@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, JetBrains_Mono } from "next/font/google";
 import { AppNav } from "@/components/layout/app-nav";
@@ -33,7 +34,9 @@ export default function RootLayout({
       className={`${beVietnamPro.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[var(--color-bg-page)] text-[var(--color-text-primary)] font-sans">
-        <AppNav>{children}</AppNav>
+        <Suspense fallback={<main className="flex-1 w-full">{children}</main>}>
+          <AppNav>{children}</AppNav>
+        </Suspense>
       </body>
     </html>
   );

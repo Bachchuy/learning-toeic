@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -9,12 +10,6 @@ import { Badge } from "@/components/ui/badge";
 export default function HomePage() {
   const [inputValue, setInputValue] = useState("");
   const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const toggleLoading = () => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1500);
-  };
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
@@ -37,14 +32,11 @@ export default function HomePage() {
 
         {/* Bất biến: Mỗi màn hình chỉ MỘT nút Primary duy nhất */}
         <div>
-          <Button
-            variant="primary"
-            size="cta"
-            onClick={toggleLoading}
-            isLoading={isLoading}
-          >
-            Bắt đầu luyện ngay
-          </Button>
+          <Link href="/practice/new">
+            <Button variant="primary" size="cta">
+              Bắt đầu luyện ngay →
+            </Button>
+          </Link>
         </div>
       </section>
 
