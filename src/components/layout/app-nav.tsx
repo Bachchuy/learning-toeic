@@ -95,9 +95,11 @@ const NAV_ITEMS: NavItem[] = [
 export function AppNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // Ẩn Navigation hoàn toàn ở màn hình Focus: /practice/[id] và /review (§5.5)
+  // Ẩn Navigation hoàn toàn ở màn hình Focus: /practice/[id], /review, và màn hình Auth (/login)
   const isFocusScreen =
-    pathname.startsWith("/practice/") || pathname === "/review";
+    pathname.startsWith("/practice/") ||
+    pathname === "/review" ||
+    pathname === "/login";
 
   if (isFocusScreen) {
     return <main className="flex-1 w-full">{children}</main>;
