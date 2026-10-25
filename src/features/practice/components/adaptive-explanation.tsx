@@ -12,15 +12,14 @@ export function AdaptiveExplanation({
   isCorrect,
   explanation,
 }: AdaptiveExplanationProps) {
-  // Bất biến §4.3: Sai thì mở toàn bộ; Đúng thì thu gọn, có nút mở
   const [isExpanded, setIsExpanded] = useState(!isCorrect);
 
   return (
     <div
       aria-live="polite"
-      className="w-full bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-sm space-y-4 text-left transition-all"
+      className="w-full bg-white border border-[#E2E8F0] rounded-xl p-5 sm:p-6 shadow-sm space-y-5 text-left transition-all"
     >
-      {/* 1. Tiêu đề phản hồi */}
+      {/* 1. Header trạng thái */}
       <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
         <div className="flex items-center gap-2">
           {isCorrect ? (
@@ -29,11 +28,11 @@ export function AdaptiveExplanation({
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FFF1F2] text-[#BE123C] border border-[#FECDD3] font-mono">
-              [✗] Chưa chính xác
+              [✗] Cần ôn lại kiến thức này
             </span>
           )}
-          <span className="text-xs text-[#475569] font-mono">
-            {isCorrect ? "Nắm vững quy tắc" : "Xem phân tích lỗi sai"}
+          <span className="text-sm text-[#475569]">
+            {isCorrect ? "Bạn đã chọn đúng phương án" : "Xem phân tích chi tiết bên dưới"}
           </span>
         </div>
 
@@ -42,79 +41,45 @@ export function AdaptiveExplanation({
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-xs font-medium text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2563EB] rounded px-1.5 py-0.5"
+            className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2563EB] rounded px-2 py-1 bg-[#EFF6FF]"
           >
-            {isExpanded ? "▲ Thu gọn" : "▼ Xem giải thích chi tiết"}
+            {isExpanded ? "▲ Thu gọn" : "▼ Mở rộng phân tích"}
           </button>
         )}
       </div>
 
-      {/* 2. Quy tắc cốt lõi (Rule Box - Viền trái 4px #2563EB) */}
-      <div className="p-4 bg-[#F8FAFC] border-l-4 border-[#2563EB] rounded-r-lg space-y-1">
+      {/* 2. Quy tắc cốt lõi (Rule Box - Viền trái 4px #2563EB, chữ to 15-16px dễ đọc) */}
+      <div className="p-4 bg-[#F8FAFC] border-l-4 border-[#2563EB] rounded-r-lg space-y-1.5">
         <div className="text-xs font-bold uppercase tracking-wider text-[#2563EB] font-mono">
-          Quy tắc ngữ pháp cốt lõi
+          Quy tắc ngữ pháp trọng tâm
         </div>
-        <p className="text-sm font-medium text-[#0F172A] leading-relaxed">
+        <p className="text-[15px] sm:text-[16px] font-medium text-[#0F172A] leading-relaxed">
           {explanation.rule_vi}
         </p>
       </div>
 
-      {/* Nội dung chi tiết (Mở toàn bộ nếu sai, hoặc khi bấm mở rộng nếu đúng) */}
+      {/* Nội dung chi tiết */}
       {isExpanded && (
-        <div className="space-y-4 pt-2">
-          {/* 3. Vì sao đúng */}
-          <div className="space-y-1.5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#047857] font-mono">
-              Vì sao đáp án đúng?
-            </h4>
-            <p className="text-sm text-[#0F172A] leading-relaxed">
-              {explanation.why_correct_vi}
-            </p>
-          </div>
-
-          {/* 4. Phân tích các phương án bẫy (sai) */}
-          {explanation.why_wrong_vi && explanation.why_wrong_vi.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#475569] font-mono">
-                Phân tích các phương án gây nhiễu
-              </h4>
-              <div className="space-y-2">
-                {explanation.why_wrong_vi.map((wrong) => (
-                  <div
-                    key={wrong.option}
-                    className="p-3 bg-[#F1F5F9] rounded-lg text-xs leading-relaxed flex items-start gap-2.5"
-                  >
-                    <span className="w-5 h-5 rounded bg-white text-[#BE123C] font-mono font-bold flex items-center justify-center shrink-0 border border-[#E2E8F0]">
-                      {wrong.option}
-                    </span>
-                    <span className="text-[#475569] mt-0.5">
-                      {wrong.reason_vi}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 5. Mẹo & Ví dụ */}
+        <div className="space-y-4 pt-1">
+          {/* Mẹo làm bài nhanh & Ví dụ */}
           {(explanation.tip_vi || explanation.example_en) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {explanation.tip_vi && (
-                <div className="p-3 rounded-lg bg-[#FFFBEB] border border-[#FDE68A] text-xs">
-                  <div className="font-bold text-[#B45309] mb-1 font-mono">
-                    💡 Mẹo làm bài nhanh
+                <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] space-y-1.5">
+                  <div className="font-bold text-[#B45309] text-xs font-mono uppercase tracking-wider">
+                    💡 Mẹo nhận diện nhanh
                   </div>
-                  <div className="text-[#92400E] leading-relaxed">
+                  <div className="text-sm text-[#92400E] leading-relaxed">
                     {explanation.tip_vi}
                   </div>
                 </div>
               )}
               {explanation.example_en && (
-                <div className="p-3 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] text-xs">
-                  <div className="font-bold text-[#2563EB] mb-1 font-mono">
-                    📖 Ví dụ điển hình
+                <div className="p-4 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] space-y-1.5">
+                  <div className="font-bold text-[#2563EB] text-xs font-mono uppercase tracking-wider">
+                    📖 Câu ví dụ thực tế
                   </div>
-                  <div className="text-[#1E40AF] italic leading-relaxed">
+                  <div className="text-sm text-[#1E40AF] italic leading-relaxed">
                     &ldquo;{explanation.example_en}&rdquo;
                   </div>
                 </div>
@@ -122,23 +87,25 @@ export function AdaptiveExplanation({
             </div>
           )}
 
-          {/* 6. Từ vựng nổi bật (Word Chips) */}
+          {/* Từ vựng nổi bật (Word Chips) */}
           {explanation.vocab_hints && explanation.vocab_hints.length > 0 && (
-            <div className="pt-2 border-t border-[#E2E8F0]">
-              <div className="text-xs font-bold uppercase tracking-wider text-[#475569] mb-2 font-mono">
-                Từ vựng then chốt trong câu
+            <div className="pt-3 border-t border-[#E2E8F0]">
+              <div className="text-xs font-bold uppercase tracking-wider text-[#475569] mb-2.5 font-mono">
+                Từ vựng then chốt trong câu (Bấm để ghi nhớ)
               </div>
               <div className="flex flex-wrap gap-2">
                 {explanation.vocab_hints.map((hint, idx) => (
-                  <span
+                  <div
                     key={idx}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#F1F5F9] text-xs font-medium text-[#0F172A] border border-[#E2E8F0]"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#F8FAFC] text-sm text-[#0F172A] border border-[#E2E8F0] shadow-2xs"
                   >
-                    <span className="font-semibold text-[#2563EB]">
+                    <span className="font-semibold text-[#2563EB] font-mono">
                       {hint.word}
                     </span>
-                    <span className="text-[#475569]">({hint.meaning_vi})</span>
-                  </span>
+                    <span className="text-[#475569] text-xs">
+                      {hint.meaning_vi}
+                    </span>
+                  </div>
                 ))}
               </div>
             </div>

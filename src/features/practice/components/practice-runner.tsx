@@ -142,6 +142,23 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
     { label: "D" as const, text: currentQuestion.option_d },
   ];
 
+  // Lấy lý do giải thích cụ thể cho từng phương án khi đã nộp bài (Feedback state)
+  const getOptionExplanation = (optLabel: "A" | "B" | "C" | "D", index: number): string | undefined => {
+    if (state.status !== "feedback" || !state.currentResult) {
+      return undefined;
+    }
+
+    if (index === state.currentResult.correct_index) {
+      return state.currentResult.explanation.why_correct_vi;
+    }
+
+    const wrongReason = state.currentResult.explanation.why_wrong_vi?.find(
+      (w) => w.option === optLabel
+    )?.reason_vi;
+
+    return wrongReason;
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28 pt-20">
       {/* 1. Header tập trung */}
@@ -157,7 +174,7 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
             {currentQuestion.tag_name_vi}
           </span>
           <span className="text-xs text-[#475569] font-mono">
-            Part 5 • Điểm độ khó: {currentQuestion.difficulty}/3
+            Part 5 • Độ khó: {currentQuestion.difficulty}/3
           </span>
         </div>
 
@@ -168,11 +185,11 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
           </h2>
         </div>
 
-        {/* 4. 4 Phương án lựa chọn (A, B, C, D) */}
+        {/* 4. 4 Phương án lựa chọn kèm giải thích gắn liền (Inline Explanation) */}
         <div
           role="radiogroup"
           aria-label="Các phương án trả lời"
-          className="space-y-3"
+          className="space-y-4"
         >
           {options.map((opt, index) => (
             <AnswerOption
@@ -181,6 +198,11 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
               text={opt.text}
               state={getOptionState(index)}
               disabled={state.status === "submitting" || state.status === "feedback"}
+              explanationReason={getOptionExplanation(opt.label, index)}
+              isCorrectOption={
+                state.status === "feedback" &&
+                index === state.currentResult?.correct_index
+              }
               onClick={() =>
                 dispatch({ type: "SELECT_OPTION", payload: { index } })
               }
