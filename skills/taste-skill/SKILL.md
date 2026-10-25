@@ -351,3 +351,26 @@ PRE_FLIGHT_LITE: (10 mục + verdict)
 ANTI_SLOP_RISKS: ...
 VERDICT: PASS_TO_CODE | NEEDS_MORE_BRIEF
 ```
+
+
+---
+
+## Taste Checkpoint — Phần bổ sung Pre-Flight (R3)
+
+> Thêm vào PRE_FLIGHT_LITE sau câu 9, trước Verdict:
+
+```text
+── Taste Checkpoints (bắt buộc — chống UI nhàm) ──
+T1. ≥1 khoảnh khắc visual đáng nhớ? YES/NO
+    (typographic moment mạnh, spacing bất ngờ có lý do, màu nền ≠ trắng/xám đơn điệu)
+T2. Layout có nhịp (rhythm) — không phải danh sách đều từ trên xuống? YES/NO
+    (overline → H1 to → body nhỏ → số mono; không phải h2+p+h2+p liên tiếp)
+T3. Brand mark nhận dạng sản phẩm có xuất hiện? YES/NO
+    (Swiss left-border, mono overline uppercase, keycap style, stat card nền ấm #FAFAF7)
+
+Verdict PASS_TO_CODE chỉ khi: câu 1-9 YES + ≥2/3 Taste Checkpoints YES
+```
+
+**Tại sao cần Taste Checkpoints:**
+Rules 1-9 chỉ validate *quy trình* — agent có thể YES tất cả và vẫn tạo ra UI nhàm đúng quy tắc.
+T1-T3 buộc agent tư duy về *cảm giác* của giao diện, không chỉ *tính đúng* của nó.

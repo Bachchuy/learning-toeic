@@ -1,10 +1,26 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { loginAction, signupAction, type AuthState } from "@/features/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+
+function DeletedBanner() {
+  const searchParams = useSearchParams();
+  const isDeleted = searchParams.get("deleted") === "true";
+  if (!isDeleted) return null;
+  return (
+    <div
+      role="status"
+      className="p-3 mb-4 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] text-xs font-medium text-[#047857] flex items-center gap-2"
+    >
+      <span className="font-bold select-none">[✓]</span>
+      <span>Tài khoản của bạn đã được xóa thành công cùng toàn bộ dữ liệu.</span>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -77,6 +93,10 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className="pt-4">
+            <Suspense fallback={null}>
+              <DeletedBanner />
+            </Suspense>
+
             {/* Error Alert */}
             {currentState?.error && (
               <div

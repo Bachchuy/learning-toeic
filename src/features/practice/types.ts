@@ -1,17 +1,16 @@
-export interface QuestionOption {
-  index: number;
-  label: "A" | "B" | "C" | "D";
-  text: string;
-}
-
 export interface PracticeQuestion {
   id: string;
   order_index: number;
   stem: string;
+  stem_vi?: string;
   option_a: string;
   option_b: string;
   option_c: string;
   option_d: string;
+  option_a_vi?: string;
+  option_b_vi?: string;
+  option_c_vi?: string;
+  option_d_vi?: string;
   tag_id: number;
   tag_name_vi: string;
   difficulty: number;
@@ -30,6 +29,8 @@ export interface VocabHint {
 export interface QuestionExplanation {
   rule_vi: string;
   why_correct_vi: string;
+  full_translation_vi?: string;
+  options_analysis?: Record<"A" | "B" | "C" | "D", string>;
   why_wrong_vi?: OptionExplanation[];
   tip_vi?: string;
   example_en?: string;

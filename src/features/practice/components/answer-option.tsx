@@ -1,4 +1,5 @@
 import React from "react";
+import { CheckCircle, XCircle } from "@phosphor-icons/react";
 
 export type OptionState =
   | "default"
@@ -10,108 +11,105 @@ export type OptionState =
 interface AnswerOptionProps {
   label: "A" | "B" | "C" | "D";
   text: string;
+  translation?: string;
   state: OptionState;
   disabled?: boolean;
-  explanationReason?: string;
-  isCorrectOption?: boolean;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export function AnswerOption({
   label,
   text,
+  translation,
   state,
   disabled = false,
-  explanationReason,
-  isCorrectOption = false,
   onClick,
 }: AnswerOptionProps) {
-  // Styles theo chuẩn Swiss Grid (min-height 52px, radius 8px, viền 2px rõ nét)
-  const stateBorderClasses = {
+  // Token-aligned state styles — tất cả màu từ design-direction.md §5.2
+  const containerClasses = {
     default:
-      "bg-white border-[#E2E8F0] hover:border-[#8190A6] hover:bg-[#F8FAFC] text-[#0F172A]",
+      "bg-[var(--color-bg-surface)] border-[var(--color-border-default)] hover:border-[#94A3B8] hover:bg-[var(--color-bg-page)] text-[var(--color-text-primary)]",
     selected:
-      "bg-[#EFF6FF] border-[#2563EB] text-[#0F172A] shadow-xs",
+      "bg-[var(--color-primary-subtle)] border-[var(--color-primary-default)] text-[var(--color-text-primary)] ring-1 ring-[var(--color-primary-default)]",
     correct:
-      "bg-[#ECFDF5] border-[#047857] text-[#047857]",
+      "bg-[var(--status-success-bg)] border-[var(--status-success-text)] text-[var(--status-success-text)]",
     incorrect:
-      "bg-[#FFF1F2] border-[#BE123C] text-[#BE123C]",
+      "bg-[var(--status-error-bg)] border-[var(--status-error-text)] text-[var(--status-error-text)]",
     unselected_disabled:
-      "bg-white border-[#E2E8F0] text-[#475569] opacity-75 cursor-not-allowed",
+      "bg-[var(--color-bg-surface)] border-[var(--color-border-default)] text-[var(--color-text-secondary)] cursor-not-allowed opacity-60",
   }[state];
 
+  // Keycap (A/B/C/D) — 28×28px, radius 6px, font mono (§5.5)
   const keycapClasses = {
-    default: "bg-[#F1F5F9] text-[#0F172A] border border-[#E2E8F0]",
-    selected: "bg-[#2563EB] text-white font-bold border border-[#2563EB]",
-    correct: "bg-[#047857] text-white font-bold border border-[#047857]",
-    incorrect: "bg-[#BE123C] text-white font-bold border border-[#BE123C]",
-    unselected_disabled: "bg-[#F1F5F9] text-[#64748B] border border-[#E2E8F0]",
+    default:
+      "bg-[var(--color-bg-muted)] text-[var(--color-text-secondary)] border border-[var(--color-border-default)]",
+    selected:
+      "bg-[var(--color-primary-default)] text-white border border-[var(--color-primary-default)] font-bold",
+    correct:
+      "bg-[var(--status-success-text)] text-white border border-[var(--status-success-text)] font-bold",
+    incorrect:
+      "bg-[var(--status-error-text)] text-white border border-[var(--status-error-text)] font-bold",
+    unselected_disabled:
+      "bg-[var(--color-bg-muted)] text-[var(--color-text-secondary)] border border-[var(--color-border-default)]",
   }[state];
 
-  const statusBadge = {
-    default: null,
-    selected: (
-      <span className="text-xs font-mono text-[#2563EB] font-semibold bg-[#DBEAFE] px-2 py-0.5 rounded">
-        Đang chọn
-      </span>
-    ),
-    correct: (
-      <span className="inline-flex items-center gap-1 text-xs font-mono font-bold text-[#047857] bg-[#D1FAE5] px-2.5 py-0.5 rounded-full border border-[#A7F3D0]">
-        [✓] Đáp án đúng
-      </span>
-    ),
-    incorrect: (
-      <span className="inline-flex items-center gap-1 text-xs font-mono font-bold text-[#BE123C] bg-[#FFE4E6] px-2.5 py-0.5 rounded-full border border-[#FECDD3]">
-        [✗] Lựa chọn của bạn
-      </span>
-    ),
-    unselected_disabled: null,
+  const translationColor = {
+    default: "text-[var(--color-text-secondary)]",
+    selected: "text-[var(--color-primary-default)]",
+    correct: "text-[var(--status-success-text)]",
+    incorrect: "text-[var(--status-error-text)]",
+    unselected_disabled: "text-[var(--color-text-secondary)]",
   }[state];
 
   return (
-    <div className="w-full space-y-1.5">
-      <button
-        type="button"
-        role="radio"
-        aria-checked={state === "selected"}
-        disabled={disabled}
-        onClick={onClick}
-        className={`w-full min-h-[54px] p-3.5 rounded-xl border-2 flex items-center justify-between text-left transition-all cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[#2563EB] focus-visible:outline-offset-2 ${stateBorderClasses}`}
-      >
-        <div className="flex items-center gap-3.5">
-          {/* Keycap 28x28px */}
-          <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center font-mono text-sm font-bold select-none shrink-0 ${keycapClasses}`}
-          >
-            {label}
-          </div>
-          <span className="text-[16px] font-medium leading-normal">
-            {text}
-          </span>
-        </div>
-
-        {statusBadge && <div className="ml-2 shrink-0">{statusBadge}</div>}
-      </button>
-
-      {/* Lời giải thích tương ứng hiện ngay dưới phương án (UX theo phản hồi của Intern) */}
-      {explanationReason && (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={state === "selected"}
+      disabled={disabled}
+      onClick={onClick}
+      className={`w-full min-h-[52px] px-4 py-3 rounded-lg border flex items-start sm:items-center justify-between text-left transition-all cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[var(--color-primary-default)] focus-visible:outline-offset-2 ${containerClasses}`}
+    >
+      <div className="flex items-start sm:items-center gap-3 flex-1 pr-2">
+        {/* Keycap A/B/C/D — 28×28px radius-6px mono (§5.5) */}
         <div
-          className={`ml-11 mr-1 p-3 rounded-lg text-sm leading-relaxed border ${
-            isCorrectOption
-              ? "bg-[#F0FDF4] border-[#BBF7D0] text-[#14532D]"
-              : state === "incorrect"
-              ? "bg-[#FFF1F2] border-[#FECDD3] text-[#9F1239]"
-              : "bg-[#F8FAFC] border-[#E2E8F0] text-[#475569]"
-          }`}
+          className={`w-7 h-7 rounded-[6px] flex items-center justify-center font-mono text-xs font-semibold select-none shrink-0 mt-0.5 sm:mt-0 ${keycapClasses}`}
         >
-          <div className="flex items-start gap-2">
-            <span className="font-bold font-mono text-xs mt-0.5 shrink-0">
-              {isCorrectOption ? "[✓ Vì sao đúng]:" : "[Phân tích]:"}
-            </span>
-            <span className="text-[14px]">{explanationReason}</span>
-          </div>
+          {label}
         </div>
-      )}
-    </div>
+
+        {/* Nội dung + dịch nghĩa */}
+        <div className="flex flex-col gap-0.5 flex-1">
+          <div className="text-[15px] sm:text-[16px] font-medium leading-snug">
+            {text}
+          </div>
+          {translation && (
+            <div
+              className={`text-[13px] leading-relaxed ${translationColor}`}
+            >
+              {translation}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Status icon — Phosphor, weight="fill" cho cảm giác solid hơn */}
+      <div className="shrink-0 mt-1 sm:mt-0 ml-2">
+        {state === "correct" && (
+          <CheckCircle
+            weight="fill"
+            className="w-5 h-5 text-[var(--status-success-text)]"
+            aria-hidden="true"
+          />
+        )}
+        {state === "incorrect" && (
+          <XCircle
+            weight="fill"
+            className="w-5 h-5 text-[var(--status-error-text)]"
+            aria-hidden="true"
+          />
+        )}
+      </div>
+    </button>
   );
 }

@@ -87,3 +87,31 @@ Component trung tâm của app luyện thi:
 - [ ] Các icon tương tác đều có `aria-label` mô tả hành động.
 - [ ] Không phụ thuộc vào duy nhất một màu sắc để diễn đạt ý nghĩa (luôn kèm icon/text).
 - [ ] Responsive hiển thị chuẩn ở cả mobile 360px và desktop 1280px.
+
+
+---
+
+## 4. Token-correct Color Reference (tra nhanh khi code)
+
+> ⚠️ Dùng CSS var, không hardcode HEX. Các màu dưới đây là giá trị chuẩn khớp token.
+
+| Trạng thái | Background CSS var | Border/Text CSS var | Sai (KHÔNG dùng) |
+|---|---|---|---|
+| Correct | `var(--status-success-bg)` = `#ECFDF5` | `var(--status-success-text)` = `#047857` | ~~#22C55E, #16A34A, #F0FDF4~~ |
+| Incorrect | `var(--status-error-bg)` = `#FFF1F2` | `var(--status-error-text)` = `#BE123C` | ~~#EF4444, #DC2626, #FEF2F2~~ |
+| Selected | `var(--color-primary-subtle)` = `#EFF6FF` | `var(--color-primary-default)` = `#2563EB` | ✓ đúng |
+| Warning | `var(--status-warning-bg)` = `#FFFBEB` | `var(--status-warning-text)` = `#B45309` | ~~#F59E0B, #FBBF24~~ |
+
+### Icon library
+- **Bắt buộc**: `@phosphor-icons/react` — `weight="fill"` cho status icons, `weight="regular"` cho UI icons
+- **Không dùng**: `lucide-react` (đã có trong legacy, sẽ migrate dần)
+
+### Card variants chuẩn
+- `variant="default"` — card trắng, border 1px (mặc định)
+- `variant="question"` — border-left 3px primary (dùng cho câu hỏi, explanation box)
+- `variant="stat"` — nền ấm `#FAFAF7`, dùng cho KPI tiles
+
+### Typography moments (chống scale phẳng)
+- H1 desktop: **≥ 28px** (tracking `−0.02em`, leading `1.2`) — không để default 24px
+- Overline: **11px mono bold uppercase tracking-[0.08em]** — luôn đi trước H1 lớn
+- Mono number: `tabular-nums`, font-mono, size **28–32px** cho KPI

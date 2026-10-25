@@ -1,113 +1,122 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { BookOpen, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
 import type { QuestionExplanation } from "../types";
 
 interface AdaptiveExplanationProps {
   isCorrect: boolean;
   explanation: QuestionExplanation;
+  onExpandClick?: () => void;
+  /** Nếu true, cho phép người dùng mở quy tắc & mẹo; mặc định luôn thu gọn để giữ giao diện thoáng */
+  initiallyExpanded?: boolean;
 }
 
 export function AdaptiveExplanation({
-  isCorrect,
   explanation,
+  onExpandClick,
+  initiallyExpanded = false,
 }: AdaptiveExplanationProps) {
-  const [isExpanded, setIsExpanded] = useState(!isCorrect);
+  // Mặc định luôn thu gọn phần mẹo & quy tắc nâng cao để tránh chiếm dụng màn hình
+  const [showAdvancedRules, setShowAdvancedRules] = useState(initiallyExpanded);
+
+  const handleToggleAdvanced = () => {
+    const nextState = !showAdvancedRules;
+    setShowAdvancedRules(nextState);
+    if (nextState && onExpandClick) {
+      onExpandClick();
+    }
+  };
 
   return (
-    <div
-      aria-live="polite"
-      className="w-full bg-white border border-[#E2E8F0] rounded-xl p-5 sm:p-6 shadow-sm space-y-5 text-left transition-all"
-    >
-      {/* 1. Header trạng thái */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-        <div className="flex items-center gap-2">
-          {isCorrect ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#ECFDF5] text-[#047857] border border-[#A7F3D0] font-mono">
-              [✓] Chính xác
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FFF1F2] text-[#BE123C] border border-[#FECDD3] font-mono">
-              [✗] Cần ôn lại kiến thức này
-            </span>
-          )}
-          <span className="text-sm text-[#475569]">
-            {isCorrect ? "Bạn đã chọn đúng phương án" : "Xem phân tích chi tiết bên dưới"}
-          </span>
+    <div className="w-full space-y-3 text-left" aria-live="polite">
+      {/* 1. Khối Giải thích trọng tâm & Dịch nghĩa (Gọn gàng, dễ đọc, không lấn át câu hỏi) */}
+      <div className="p-4 sm:p-5 rounded-xl bg-[#F0F7FF] border border-[#BFDBFE] text-[#0F172A] space-y-3">
+        <div className="text-[14px] sm:text-[15px] leading-relaxed text-[#1E293B]">
+          <span className="font-bold text-[#1E40AF]">Giải thích: </span>
+          <span>{explanation.why_correct_vi}</span>
         </div>
 
-        {/* Nút thu gọn / mở rộng khi làm đúng */}
-        {isCorrect && (
-          <button
-            type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2563EB] rounded px-2 py-1 bg-[#EFF6FF]"
-          >
-            {isExpanded ? "▲ Thu gọn" : "▼ Mở rộng phân tích"}
-          </button>
+        {explanation.full_translation_vi && (
+          <div className="text-[13px] sm:text-[14px] text-[#334155] border-t border-[#DBEAFE] pt-2.5 leading-relaxed">
+            <span className="font-semibold text-[#1E40AF]">Dịch toàn câu: </span>
+            <span className="italic">&ldquo;{explanation.full_translation_vi}&rdquo;</span>
+          </div>
+        )}
+
+        {/* Nút chủ động xem thêm Quy tắc & Mẹo (Chỉ mở khi người dùng muốn đào sâu) */}
+        {(explanation.rule_vi || explanation.tip_vi || explanation.example_en) && (
+          <div className="pt-1 border-t border-[#DBEAFE]/60">
+            <button
+              type="button"
+              onClick={handleToggleAdvanced}
+              className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-[#2563EB] hover:text-[#1D4ED8] cursor-pointer transition-colors"
+            >
+              {showAdvancedRules ? (
+                <>
+                  <ChevronUp className="w-4 h-4" />
+                  <span>Thu gọn quy tắc & mẹo nhận diện</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4" />
+                  <span>Xem thêm quy tắc cốt lõi & mẹo làm bài</span>
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
 
-      {/* 2. Quy tắc cốt lõi (Rule Box - Viền trái 4px #2563EB, chữ to 15-16px dễ đọc) */}
-      <div className="p-4 bg-[#F8FAFC] border-l-4 border-[#2563EB] rounded-r-lg space-y-1.5">
-        <div className="text-xs font-bold uppercase tracking-wider text-[#2563EB] font-mono">
-          Quy tắc ngữ pháp trọng tâm
-        </div>
-        <p className="text-[15px] sm:text-[16px] font-medium text-[#0F172A] leading-relaxed">
-          {explanation.rule_vi}
-        </p>
-      </div>
+      {/* 2. Phần mở rộng nâng cao: Chỉ hiển thị khi người dùng chủ động bấm xem */}
+      {showAdvancedRules && (
+        <div className="space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+          {/* Hộp Quy tắc ngữ pháp */}
+          {explanation.rule_vi && (
+            <div className="p-3.5 sm:p-4 bg-white border border-[#E2E8F0] rounded-xl flex items-start gap-3 shadow-xs">
+              <div className="p-1.5 rounded-lg bg-[#EFF6FF] text-[#2563EB] shrink-0 mt-0.5">
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <div className="space-y-1 flex-1">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-[#2563EB] font-mono">
+                  Quy tắc cốt lõi
+                </div>
+                <div className="text-[13px] sm:text-[14px] font-medium text-[#0F172A] leading-relaxed">
+                  {explanation.rule_vi}
+                </div>
+              </div>
+            </div>
+          )}
 
-      {/* Nội dung chi tiết */}
-      {isExpanded && (
-        <div className="space-y-4 pt-1">
-          {/* Mẹo làm bài nhanh & Ví dụ */}
+          {/* Mẹo nhận diện & Ví dụ minh họa */}
           {(explanation.tip_vi || explanation.example_en) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {explanation.tip_vi && (
-                <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] space-y-1.5">
-                  <div className="font-bold text-[#B45309] text-xs font-mono uppercase tracking-wider">
-                    💡 Mẹo nhận diện nhanh
+                <div className="p-3.5 sm:p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] flex items-start gap-2.5">
+                  <div className="p-1 rounded-md bg-[#FEF3C7] text-[#B45309] shrink-0 mt-0.5">
+                    <Lightbulb className="w-4 h-4" />
                   </div>
-                  <div className="text-sm text-[#92400E] leading-relaxed">
-                    {explanation.tip_vi}
+                  <div className="space-y-1 flex-1">
+                    <div className="font-bold text-[#B45309] text-[11px] font-mono uppercase tracking-wider">
+                      Mẹo nhận diện nhanh
+                    </div>
+                    <div className="text-[12px] sm:text-[13px] text-[#92400E] leading-relaxed">
+                      {explanation.tip_vi}
+                    </div>
                   </div>
                 </div>
               )}
+
               {explanation.example_en && (
-                <div className="p-4 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] space-y-1.5">
-                  <div className="font-bold text-[#2563EB] text-xs font-mono uppercase tracking-wider">
-                    📖 Câu ví dụ thực tế
+                <div className="p-3.5 sm:p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1 flex-1">
+                  <div className="font-bold text-[#475569] font-mono text-[11px] uppercase tracking-wider">
+                    Ví dụ minh họa
                   </div>
-                  <div className="text-sm text-[#1E40AF] italic leading-relaxed">
+                  <div className="text-[12px] sm:text-[13px] text-[#0F172A] italic leading-relaxed">
                     &ldquo;{explanation.example_en}&rdquo;
                   </div>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Từ vựng nổi bật (Word Chips) */}
-          {explanation.vocab_hints && explanation.vocab_hints.length > 0 && (
-            <div className="pt-3 border-t border-[#E2E8F0]">
-              <div className="text-xs font-bold uppercase tracking-wider text-[#475569] mb-2.5 font-mono">
-                Từ vựng then chốt trong câu (Bấm để ghi nhớ)
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {explanation.vocab_hints.map((hint, idx) => (
-                  <div
-                    key={idx}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#F8FAFC] text-sm text-[#0F172A] border border-[#E2E8F0] shadow-2xs"
-                  >
-                    <span className="font-semibold text-[#2563EB] font-mono">
-                      {hint.word}
-                    </span>
-                    <span className="text-[#475569] text-xs">
-                      {hint.meaning_vi}
-                    </span>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </div>

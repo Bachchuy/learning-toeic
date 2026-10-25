@@ -1,13 +1,28 @@
 import React from "react";
 
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** "default" — flat Swiss card (border 1px, no shadow)
+   *  "question" — left-border accent (Swiss precision mark for question stems)
+   *  "stat"     — compact KPI tile with subtle warm background */
+  variant?: "default" | "question" | "stat";
+}
+
 export function Card({
   className = "",
+  variant = "default",
   children,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: CardProps) {
+  const variantClasses = {
+    default: "bg-white border border-[#E2E8F0] rounded-lg p-5",
+    question:
+      "bg-white border border-[#E2E8F0] rounded-lg p-5 border-l-[3px] border-l-[#2563EB]",
+    stat: "bg-[#FAFAF7] border border-[#E2E8F0] rounded-lg p-4",
+  }[variant];
+
   return (
     <div
-      className={`bg-white border border-[#E2E8F0] rounded-lg p-5 ${className}`}
+      className={`${variantClasses} ${className}`}
       {...props}
     >
       {children}

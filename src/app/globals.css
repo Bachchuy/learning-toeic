@@ -18,6 +18,9 @@
     --color-border-default: #E2E8F0;
     --color-border-input: #8190A6;
 
+    /* Learning tone — warm cream, not cold gray */
+    --color-bg-learn: #FAFAF7;
+
     /* Status Tokens (WCAG AA compliant) */
     --status-success-text: #047857;
     --status-success-bg: #ECFDF5;
@@ -45,8 +48,17 @@
   --color-border-default: var(--color-border-default);
   --color-border-input: var(--color-border-input);
 
+  --color-bg-learn: var(--color-bg-learn);
+
   --font-sans: var(--font-sans), system-ui, sans-serif;
   --font-mono: var(--font-mono), monospace;
+  --font-ipa: "Segoe UI", -apple-system, BlinkMacSystemFont, "Lucida Sans Unicode", "DejaVu Sans", var(--font-sans), sans-serif;
+}
+
+.font-ipa {
+  font-family: var(--font-ipa);
+  font-feature-settings: "kern" 1, "liga" 1;
+  letter-spacing: 0.025em;
 }
 
 /* ========================================================

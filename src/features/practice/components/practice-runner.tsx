@@ -1,16 +1,23 @@
 "use client";
 
-import { useReducer, useEffect, useCallback, useTransition } from "react";
+import { useReducer, useEffect, useCallback, useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { PracticeQuestion } from "../types";
+import { CheckCircle2, XCircle, Flag, BookmarkPlus, Sparkles } from "lucide-react";
+import type { PracticeQuestion, VocabHint } from "../types";
 import {
   practiceReducer,
   createInitialPracticeState,
 } from "@/core/practiceReducer";
-import { submitAnswerAction, finishSessionAction } from "../actions";
+import {
+  submitAnswerAction,
+  finishSessionAction,
+  trackEventAction,
+} from "../actions";
 import { FocusedHeader } from "./focused-header";
 import { AnswerOption, type OptionState } from "./answer-option";
 import { AdaptiveExplanation } from "./adaptive-explanation";
+import { QuestionReportModal } from "./question-report-modal";
+import { VocabSaveModal } from "@/features/vocab/components/vocab-save-modal";
 import { Button } from "@/components/ui/button";
 
 interface PracticeRunnerProps {
@@ -21,6 +28,9 @@ interface PracticeRunnerProps {
 export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
   const router = useRouter();
   const [isFinishing, startTransition] = useTransition();
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isVocabOpen, setIsVocabOpen] = useState(false);
+  const [selectedVocabHint, setSelectedVocabHint] = useState<VocabHint | null>(null);
 
   const [state, dispatch] = useReducer(
     practiceReducer,
@@ -55,6 +65,14 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
         type: "SUBMIT_SUCCESS",
         payload: { result: response.result },
       });
+
+      // BẤT BIẾN §4.3 & D-08: Nếu làm sai, hệ thống tự động bung giải thích -> ghi nhận explanation_viewed
+      if (!response.result.is_correct) {
+        trackEventAction("explanation_viewed", {
+          question_id: currentQuestion.id,
+          session_id: sessionId,
+        });
+      }
     } catch {
       dispatch({
         type: "SUBMIT_ERROR",
@@ -77,10 +95,9 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
     }
   }, [isLastQuestion, sessionId, router]);
 
-  // Hỗ trợ phím tắt bàn phím (A, B, C, D và Enter) - §5.9
+  // Hỗ trợ phím tắt bàn phím (A, B, C, D và Enter)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Bỏ qua nếu đang gõ trong input hoặc textarea
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -135,29 +152,34 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
     return "default";
   };
 
+  // Lấy dịch nghĩa tiếng Việt tương ứng cho từng phương án
+  const getOptionTranslation = (optLabel: "A" | "B" | "C" | "D"): string | undefined => {
+    if (state.status !== "feedback" || !state.currentResult) {
+      return undefined;
+    }
+
+    // 1. Tìm trong options_analysis của JSON giải thích
+    if (state.currentResult.explanation.options_analysis?.[optLabel]) {
+      return state.currentResult.explanation.options_analysis[optLabel];
+    }
+
+    // 2. Hoặc tìm trong why_wrong_vi
+    const wrong = state.currentResult.explanation.why_wrong_vi?.find(
+      (w) => w.option === optLabel
+    );
+    if (wrong) {
+      return wrong.reason_vi;
+    }
+
+    return undefined;
+  };
+
   const options = [
     { label: "A" as const, text: currentQuestion.option_a },
     { label: "B" as const, text: currentQuestion.option_b },
     { label: "C" as const, text: currentQuestion.option_c },
     { label: "D" as const, text: currentQuestion.option_d },
   ];
-
-  // Lấy lý do giải thích cụ thể cho từng phương án khi đã nộp bài (Feedback state)
-  const getOptionExplanation = (optLabel: "A" | "B" | "C" | "D", index: number): string | undefined => {
-    if (state.status !== "feedback" || !state.currentResult) {
-      return undefined;
-    }
-
-    if (index === state.currentResult.correct_index) {
-      return state.currentResult.explanation.why_correct_vi;
-    }
-
-    const wrongReason = state.currentResult.explanation.why_wrong_vi?.find(
-      (w) => w.option === optLabel
-    )?.reason_vi;
-
-    return wrongReason;
-  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28 pt-20">
@@ -168,41 +190,107 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-6">
-        {/* 2. Chủ điểm ngữ pháp Tag Badge */}
-        <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] font-mono">
-            {currentQuestion.tag_name_vi}
-          </span>
-          <span className="text-xs text-[#475569] font-mono">
-            Part 5 • Độ khó: {currentQuestion.difficulty}/3
-          </span>
+        {/* 2. Tiêu đề câu hỏi theo phong cách app mẫu */}
+        <div className="space-y-3">
+          {/* Header trạng thái sau khi nộp (Khớp 100% mẫu người dùng cung cấp) */}
+          {state.status === "feedback" && state.currentResult ? (
+            <div className="flex items-center gap-2">
+              {state.currentResult.is_correct ? (
+                <>
+                  <CheckCircle2
+                    className="w-5 h-5 text-[#047857] shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span className="font-bold text-[#0F172A] text-base">
+                    Câu {state.currentIndex + 1}
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-xs font-bold text-white bg-[#047857] select-none font-mono tracking-wide">
+                    ĐÚNG
+                  </span>
+                </>
+              ) : (
+                <>
+                  <XCircle
+                    className="w-5 h-5 text-[#BE123C] shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span className="font-bold text-[#0F172A] text-base">
+                    Câu {state.currentIndex + 1}
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-xs font-bold text-white bg-[#BE123C] select-none font-mono tracking-wide">
+                    SAI
+                  </span>
+                </>
+              )}
+              <span className="text-xs text-[#64748B] ml-2 font-mono hidden sm:inline">
+                {currentQuestion.tag_name_vi}
+              </span>
+
+              {/* Nhóm nút phụ sau khi nộp: Lưu từ vựng & Báo lỗi (§5.5 & PD-01) */}
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedVocabHint(null);
+                    setIsVocabOpen(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-[#2563EB] hover:bg-[#EFF6FF] transition-colors cursor-pointer border border-[#BFDBFE]"
+                  title="Lưu từ vựng vào Sổ cá nhân"
+                >
+                  <BookmarkPlus className="w-3.5 h-3.5 text-[#2563EB]" />
+                  <span>+ Lưu từ</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsReportOpen(true);
+                    trackEventAction("report_opened", {
+                      question_id: currentQuestion.id,
+                      session_id: sessionId,
+                    });
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-[#64748B] hover:text-[#BE123C] hover:bg-[#FFF1F2] transition-colors cursor-pointer border border-[#E2E8F0]"
+                  title="Báo cáo lỗi câu hỏi này"
+                >
+                  <Flag className="w-3.5 h-3.5 text-[#64748B]" />
+                  <span>Báo lỗi</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] font-mono">
+                {currentQuestion.tag_name_vi}
+              </span>
+              <span className="text-xs text-[#475569] font-mono">
+                Câu {state.currentIndex + 1} / {state.totalQuestions}
+              </span>
+            </div>
+          )}
+
+          {/* Stem (Nội dung câu hỏi: Lớn, đậm và nổi bật hơn giải thích) */}
+          <div className="p-1">
+            <h2 className="text-[18px] sm:text-[20px] font-semibold text-[#0F172A] leading-[1.6] tracking-[-0.01em]">
+              {currentQuestion.stem}
+            </h2>
+          </div>
         </div>
 
-        {/* 3. Stem (Câu hỏi) */}
-        <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-xs">
-          <h2 className="text-lg sm:text-xl font-medium text-[#0F172A] leading-relaxed">
-            {currentQuestion.stem}
-          </h2>
-        </div>
-
-        {/* 4. 4 Phương án lựa chọn kèm giải thích gắn liền (Inline Explanation) */}
+        {/* 3. 4 Phương án lựa chọn (Dịch nghĩa hiển thị trọn trong khung như app mẫu) */}
         <div
           role="radiogroup"
           aria-label="Các phương án trả lời"
-          className="space-y-4"
+          className="space-y-3"
         >
           {options.map((opt, index) => (
             <AnswerOption
               key={opt.label}
               label={opt.label}
               text={opt.text}
+              translation={getOptionTranslation(opt.label)}
               state={getOptionState(index)}
               disabled={state.status === "submitting" || state.status === "feedback"}
-              explanationReason={getOptionExplanation(opt.label, index)}
-              isCorrectOption={
-                state.status === "feedback" &&
-                index === state.currentResult?.correct_index
-              }
               onClick={() =>
                 dispatch({ type: "SELECT_OPTION", payload: { index } })
               }
@@ -214,7 +302,7 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
         {state.status === "error" && (
           <div
             role="alert"
-            className="p-4 rounded-lg bg-[#FFF1F2] border border-[#FECDD3] text-sm text-[#BE123C] flex items-center justify-between"
+            className="p-4 rounded-xl bg-[#FFF1F2] border border-[#FECDD3] text-sm text-[#BE123C] flex items-center justify-between"
           >
             <div className="flex items-center gap-2">
               <span className="font-bold">[!]</span>
@@ -230,24 +318,90 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
           </div>
         )}
 
-        {/* 5. Giải thích thích ứng (Chỉ hiện sau khi nộp) */}
+        {/* 4. Khối giải thích chi tiết (Gắn trọn vẹn ngữ cảnh cụ thể) */}
         {state.status === "feedback" && state.currentResult && (
-          <AdaptiveExplanation
-            isCorrect={state.currentResult.is_correct}
-            explanation={state.currentResult.explanation}
-          />
+          <div className="space-y-4">
+            <AdaptiveExplanation
+              isCorrect={state.currentResult.is_correct}
+              explanation={state.currentResult.explanation}
+              onExpandClick={() => {
+                trackEventAction("explanation_expand_clicked", {
+                  question_id: currentQuestion.id,
+                  session_id: sessionId,
+                });
+              }}
+            />
+
+            {/* Word Chips gợi ý từ câu hỏi để lưu nhanh (PD-01 & §5.5) */}
+            {state.currentResult.explanation.vocab_hints &&
+              state.currentResult.explanation.vocab_hints.length > 0 && (
+                <div className="p-3.5 rounded-xl bg-white border border-[#E2E8F0] space-y-2">
+                  <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#475569] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+                    Lưu nhanh từ vựng quan trọng vào Sổ từ:
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {state.currentResult.explanation.vocab_hints.map((hint) => (
+                      <button
+                        key={hint.word}
+                        type="button"
+                        onClick={() => {
+                          setSelectedVocabHint(hint);
+                          setIsVocabOpen(true);
+                        }}
+                        className="h-8 px-2.5 rounded-md text-xs font-medium bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#E2E8F0] hover:border-[#BFDBFE] text-[#0F172A] hover:text-[#2563EB] transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <BookmarkPlus className="w-3.5 h-3.5 text-[#2563EB]" />
+                        <span className="font-semibold">{hint.word}</span>
+                        <span className="text-[#64748B]">({hint.meaning_vi})</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </div>
         )}
       </div>
 
+      {/* Modal Báo lỗi câu hỏi (Milestone 5) */}
+      <QuestionReportModal
+        key={`report-${currentQuestion.id}`}
+        isOpen={isReportOpen}
+        questionId={currentQuestion.id}
+        onClose={() => setIsReportOpen(false)}
+      />
+
+      {/* Modal Lưu từ vựng (Milestone 7) */}
+      <VocabSaveModal
+        key={`vocab-${currentQuestion.id}-${selectedVocabHint?.word || "custom"}`}
+        isOpen={isVocabOpen}
+        contextSentence={currentQuestion.stem}
+        answerText={
+          state.currentResult
+            ? options[state.currentResult.correct_index]?.text || ""
+            : ""
+        }
+        contextTranslation={
+          state.currentResult?.explanation.full_translation_vi || ""
+        }
+        questionId={currentQuestion.id}
+        vocabHints={state.currentResult?.explanation.vocab_hints || []}
+        initialWord={selectedVocabHint?.word || ""}
+        initialMeaning={selectedVocabHint?.meaning_vi || ""}
+        onClose={() => {
+          setIsVocabOpen(false);
+          setSelectedVocabHint(null);
+        }}
+      />
+
       {/* ========================================================
-          Sticky Action Bar (72px) ghim cố định đáy màn hình
-          Bất biến: Mỗi màn hình chỉ MỘT nút Primary duy nhất
+          Sticky Action Bar (72px)
           ======================================================== */}
       <footer className="fixed bottom-0 left-0 right-0 h-[72px] bg-white border-t border-[#E2E8F0] z-30 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto h-full flex items-center justify-between">
-          <div className="hidden sm:block text-xs font-mono text-[#475569]">
-            {state.status === "answering" && "Phím A-D: chọn • Enter: nộp"}
-            {state.status === "feedback" && "Nhấn Enter để tiếp tục"}
+          <div className="hidden sm:block text-xs font-mono text-[#64748B]">
+            {state.status === "answering" && "Phím A-D: chọn • Enter: nộp bài"}
+            {state.status === "feedback" && "Nhấn Enter để sang câu tiếp theo"}
           </div>
 
           <div className="w-full sm:w-auto">

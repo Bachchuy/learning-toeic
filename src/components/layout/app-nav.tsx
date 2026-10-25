@@ -115,15 +115,16 @@ export function AppNav({ children }: { children: React.ReactNode }) {
         className="hidden md:flex flex-col w-60 border-r border-[#E2E8F0] bg-white p-5 sticky top-0 h-screen select-none"
       >
         {/* Brand Header */}
-        <div className="flex items-center gap-2 mb-8 px-2">
-          <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center text-white font-bold text-sm">
+        <div className="flex items-center gap-2.5 mb-8 px-2">
+          {/* Logo mark — chữ T trên nền primary, Swiss precision square */}
+          <div className="w-8 h-8 rounded-[6px] bg-[var(--color-primary-default)] flex items-center justify-center text-white font-bold text-sm font-mono shrink-0">
             T
           </div>
           <div>
-            <div className="font-bold text-base tracking-tight text-[#0F172A]">
+            <div className="font-bold text-[15px] tracking-tight text-[var(--color-text-primary)] leading-none">
               TOEIC AI
             </div>
-            <div className="text-[11px] font-mono text-[#475569]">
+            <div className="text-[10px] font-mono text-[var(--color-text-secondary)] tracking-[0.06em] uppercase mt-0.5">
               Swiss LearningGrid
             </div>
           </div>
@@ -141,12 +142,19 @@ export function AppNav({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative ${
                   active
-                    ? "bg-[#EFF6FF] text-[#2563EB] font-semibold"
-                    : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+                    ? "bg-[var(--color-primary-subtle)] text-[var(--color-primary-default)] font-semibold"
+                    : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)]"
                 }`}
               >
+                {/* Active left-bar — Swiss precision mark */}
+                {active && (
+                  <span
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[var(--color-primary-default)] rounded-r-full"
+                    aria-hidden="true"
+                  />
+                )}
                 {item.icon(active)}
                 <span>{item.name}</span>
               </Link>

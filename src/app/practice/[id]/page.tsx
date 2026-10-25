@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { formatGrammarTagName } from "@/core/grammarTags";
 import { PracticeRunner } from "@/features/practice/components/practice-runner";
 import type { PracticeQuestion } from "@/features/practice/types";
 
@@ -54,6 +55,7 @@ export default async function PracticeSessionPage({ params }: PageProps) {
         tag_id,
         difficulty,
         grammar_tags!inner (
+          tag_code,
           name_vi
         )
       )
@@ -78,6 +80,7 @@ export default async function PracticeSessionPage({ params }: PageProps) {
       tag_id: number;
       difficulty: number;
       grammar_tags: {
+        tag_code: string;
         name_vi: string;
       };
     };
@@ -95,7 +98,10 @@ export default async function PracticeSessionPage({ params }: PageProps) {
     option_c: sq.questions.option_c,
     option_d: sq.questions.option_d,
     tag_id: sq.questions.tag_id,
-    tag_name_vi: sq.questions.grammar_tags.name_vi,
+    tag_name_vi: formatGrammarTagName(
+      sq.questions.grammar_tags.tag_code,
+      sq.questions.grammar_tags.name_vi
+    ),
     difficulty: sq.questions.difficulty,
   }));
 
