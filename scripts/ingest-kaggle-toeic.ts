@@ -340,7 +340,7 @@ async function run() {
     tag_code: string;
     difficulty: number;
     content_hash: string;
-    explanation: any;
+    explanation: Record<string, unknown>;
   }> = [];
 
   let auditPassed = 0;
@@ -518,7 +518,7 @@ async function run() {
     if (answerRows.length > 0) {
       const { data: insertedAData, error: aErr } = await supabase
         .from("question_answers")
-        .upsert(answerRows as any, { onConflict: "question_id" })
+        .upsert(answerRows as unknown as Record<string, unknown>[], { onConflict: "question_id" })
         .select("question_id");
 
       if (aErr) {

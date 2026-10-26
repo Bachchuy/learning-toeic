@@ -320,19 +320,23 @@ export async function getVocabListAction(
       item.metadata?.detailed_explanation?.includes("Thuật ngữ chuyên môn") ||
       item.metadata?.detailed_explanation?.includes("thường xuyên xuất hiện trong các bài thi TOEIC");
 
-    const enriched = enrichVocabMetadata(
-      item.word,
-      item.meaning,
-      item.context_sentence
-    );
+    const hasValidMetadata =
+      item.metadata &&
+      Object.keys(item.metadata).length > 0 &&
+      !isOldBoilerplate;
 
-    const metadata =
-      item.metadata && Object.keys(item.metadata).length > 0 && !isOldBoilerplate
-        ? item.metadata
-        : enriched.metadata;
+    // Tối ưu hiệu năng: Chỉ gọi enrichVocabMetadata khi metadata thực sự trống hoặc cũ
+    const enriched = hasValidMetadata
+      ? null
+      : enrichVocabMetadata(
+          item.word,
+          item.meaning,
+          item.context_sentence
+        );
 
-    const partOfSpeech = item.part_of_speech || enriched.part_of_speech || "";
-    const phonetic = item.phonetic || metadata.phonetic || enriched.phonetic || "";
+    const metadata = hasValidMetadata ? item.metadata! : enriched!.metadata;
+    const partOfSpeech = item.part_of_speech || enriched?.part_of_speech || "";
+    const phonetic = item.phonetic || metadata.phonetic || enriched?.phonetic || "";
 
     return {
       id: item.id,

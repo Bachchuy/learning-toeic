@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { VocabEntry, Notebook } from "@/features/vocab/types";
@@ -183,6 +183,53 @@ export function VocabListView({
     });
   }, [entries, filterTab, selectedPosFilter, selectedNotebookFilter, selectedTopicFilter, searchQuery, currentTime]);
 
+  // Phân trang danh sách (Tránh quá tải DOM khi sổ có hàng trăm/nghìn từ vựng)
+  const [pageSize, setPageSize] = useState(24);
+  const [currentPage, setCurrentPage] = useState(1);
+  const listTopRef = useRef<HTMLDivElement>(null);
+
+  // Bộ điều hướng bộ lọc (Tự động quay về trang 1 khi đổi tiêu chí lọc)
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setCurrentPage(1);
+  };
+
+  const handleTabChange = (tab: "all" | "due") => {
+    setFilterTab(tab);
+    setCurrentPage(1);
+  };
+
+  const handleNotebookFilter = (id: string | null) => {
+    setSelectedNotebookFilter(id);
+    setCurrentPage(1);
+  };
+
+  const handleTopicFilter = (topic: string | null) => {
+    setSelectedTopicFilter(topic);
+    setCurrentPage(1);
+  };
+
+  const handlePosFilter = (pos: "all" | PosCategory) => {
+    setSelectedPosFilter(pos);
+    setCurrentPage(1);
+  };
+
+  // Tính toán số trang và danh sách từ vựng của trang hiện tại
+  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const paginatedEntries = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * pageSize;
+    return filteredEntries.slice(startIndex, startIndex + pageSize);
+  }, [filteredEntries, safeCurrentPage, pageSize]);
+
+  // Cuộn mượt lên đầu danh sách thẻ khi chuyển trang
+  const scrollToCardsTop = () => {
+    if (typeof window !== "undefined" && listTopRef.current) {
+      listTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   // Xử lý lưu chỉnh sửa nghĩa tại chỗ
   const handleSaveMeaning = (vocabId: string) => {
     if (!editMeaning.trim()) return;
@@ -265,7 +312,7 @@ export function VocabListView({
             title="Thêm từ mới vào sổ"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Thêm từ mới</span>
+            <span>Thêm từ mới</span>
           </Button>
 
           {dueCount > 0 && (
@@ -331,14 +378,14 @@ export function VocabListView({
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Tìm theo từ tiếng Anh, từ loại hoặc nghĩa..."
             className="w-full h-11 pl-10 pr-9 rounded-lg border border-[#8190A6] text-sm text-[#0F172A] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 bg-white"
           />
           {searchQuery && (
             <button
               type="button"
-              onClick={() => setSearchQuery("")}
+              onClick={() => handleSearchChange("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8190A6] hover:text-[#0F172A] p-1 cursor-pointer"
             >
               <X className="w-4 h-4" />
@@ -350,7 +397,7 @@ export function VocabListView({
         <div className="inline-flex rounded-lg border border-[#8190A6] p-0.5 bg-[#F8FAFC] self-start sm:self-auto h-11 items-center">
           <button
             type="button"
-            onClick={() => setFilterTab("all")}
+            onClick={() => handleTabChange("all")}
             className={`px-4 h-9.5 text-xs font-semibold rounded-md transition-all cursor-pointer font-mono ${
               filterTab === "all"
                 ? "bg-white text-[#0F172A] shadow-xs"
@@ -361,7 +408,7 @@ export function VocabListView({
           </button>
           <button
             type="button"
-            onClick={() => setFilterTab("due")}
+            onClick={() => handleTabChange("due")}
             className={`px-4 h-9.5 text-xs font-semibold rounded-md transition-all cursor-pointer font-mono ${
               filterTab === "due"
                 ? "bg-[#EEF2FF] text-[#4338CA] shadow-xs"
@@ -382,7 +429,7 @@ export function VocabListView({
           </span>
           <button
             type="button"
-            onClick={() => setSelectedNotebookFilter(null)}
+            onClick={() => handleNotebookFilter(null)}
             className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 ${
               selectedNotebookFilter === null
                 ? "bg-slate-900 text-white shadow-xs"
@@ -397,7 +444,7 @@ export function VocabListView({
               <button
                 key={nb.id}
                 type="button"
-                onClick={() => setSelectedNotebookFilter(nb.id)}
+                onClick={() => handleNotebookFilter(nb.id)}
                 className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 border flex items-center gap-1.5 ${
                   isSelected
                     ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
@@ -425,7 +472,7 @@ export function VocabListView({
           </span>
           <button
             type="button"
-            onClick={() => setSelectedTopicFilter(null)}
+            onClick={() => handleTopicFilter(null)}
             className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 ${
               selectedTopicFilter === null
                 ? "bg-blue-600 text-white shadow-xs"
@@ -440,7 +487,7 @@ export function VocabListView({
               <button
                 key={top.name}
                 type="button"
-                onClick={() => setSelectedTopicFilter(top.name)}
+                onClick={() => handleTopicFilter(top.name)}
                 className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 border flex items-center gap-1.5 ${
                   isSelected
                     ? "bg-blue-600 text-white border-blue-600 shadow-xs font-bold"
@@ -483,7 +530,7 @@ export function VocabListView({
         </span>
         <button
           type="button"
-          onClick={() => setSelectedPosFilter("all")}
+          onClick={() => handlePosFilter("all")}
           className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 ${
             selectedPosFilter === "all"
               ? "bg-slate-900 text-white shadow-xs"
@@ -494,7 +541,7 @@ export function VocabListView({
         </button>
         <button
           type="button"
-          onClick={() => setSelectedPosFilter("noun")}
+          onClick={() => handlePosFilter("noun")}
           className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
             selectedPosFilter === "noun"
               ? "bg-blue-600 text-white border-blue-600 shadow-xs"
@@ -505,7 +552,7 @@ export function VocabListView({
         </button>
         <button
           type="button"
-          onClick={() => setSelectedPosFilter("verb")}
+          onClick={() => handlePosFilter("verb")}
           className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
             selectedPosFilter === "verb"
               ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
@@ -516,7 +563,7 @@ export function VocabListView({
         </button>
         <button
           type="button"
-          onClick={() => setSelectedPosFilter("adjective")}
+          onClick={() => handlePosFilter("adjective")}
           className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
             selectedPosFilter === "adjective"
               ? "bg-amber-600 text-white border-amber-600 shadow-xs"
@@ -527,7 +574,7 @@ export function VocabListView({
         </button>
         <button
           type="button"
-          onClick={() => setSelectedPosFilter("adverb")}
+          onClick={() => handlePosFilter("adverb")}
           className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
             selectedPosFilter === "adverb"
               ? "bg-purple-600 text-white border-purple-600 shadow-xs"
@@ -538,7 +585,7 @@ export function VocabListView({
         </button>
         <button
           type="button"
-          onClick={() => setSelectedPosFilter("phrase")}
+          onClick={() => handlePosFilter("phrase")}
           className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
             selectedPosFilter === "phrase"
               ? "bg-slate-700 text-white border-slate-700 shadow-xs"
@@ -549,9 +596,12 @@ export function VocabListView({
         </button>
       </div>
 
-      {/* 4. Danh sách thẻ từ vựng chuẩn mực (Bấm vào xem chi tiết) */}
+      {/* Neo cuộn trang mượt */}
+      <div ref={listTopRef} className="-mt-2 scroll-mt-6" />
+
+      {/* 4. Danh sách thẻ từ vựng chuẩn mực (Hiển thị phân trang tối ưu DOM) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filteredEntries.map((item) => {
+        {paginatedEntries.map((item) => {
           const isEditing = editingId === item.id;
           const isDeleting = confirmDeleteId === item.id;
           const isDue =
@@ -733,6 +783,114 @@ export function VocabListView({
         })}
       </div>
 
+      {/* 5. Điều hướng Phân trang (Pagination) - Tối ưu hiệu năng 60 FPS */}
+      {filteredEntries.length > 0 && (
+        <nav
+          role="navigation"
+          aria-label="Phân trang danh sách từ vựng"
+          className="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+        >
+          {/* Thống kê phạm vi từ hiển thị */}
+          <div className="text-[#475569] font-medium text-center sm:text-left">
+            Hiển thị{" "}
+            <span className="font-bold font-mono text-[#0F172A]">
+              {(safeCurrentPage - 1) * pageSize + 1}–
+              {Math.min(safeCurrentPage * pageSize, filteredEntries.length)}
+            </span>{" "}
+            trên tổng số{" "}
+            <span className="font-bold font-mono text-[#0F172A]">
+              {filteredEntries.length}
+            </span>{" "}
+            từ vựng
+          </div>
+
+          {/* Cụm nút điều hướng trang */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1 flex-wrap justify-center">
+              <button
+                type="button"
+                disabled={safeCurrentPage === 1}
+                onClick={() => {
+                  setCurrentPage((p) => Math.max(1, p - 1));
+                  scrollToCardsTop();
+                }}
+                className="px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-xs font-medium text-[#0F172A] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-xs"
+                aria-label="Trang trước"
+              >
+                ← Trước
+              </button>
+
+              {getPageNumbers(safeCurrentPage, totalPages).map((pageNum, idx) => {
+                if (pageNum === "...") {
+                  return (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="px-1.5 py-1 text-slate-400 select-none font-mono"
+                    >
+                      …
+                    </span>
+                  );
+                }
+                const isCurrent = pageNum === safeCurrentPage;
+                return (
+                  <button
+                    key={`page-${pageNum}`}
+                    type="button"
+                    onClick={() => {
+                      setCurrentPage(pageNum as number);
+                      scrollToCardsTop();
+                    }}
+                    aria-current={isCurrent ? "page" : undefined}
+                    className={`min-w-8 h-8 px-2 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer shadow-xs ${
+                      isCurrent
+                        ? "bg-[#2563EB] text-white shadow-sm"
+                        : "bg-white text-slate-700 border border-[#E2E8F0] hover:bg-slate-50"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                disabled={safeCurrentPage === totalPages}
+                onClick={() => {
+                  setCurrentPage((p) => Math.min(totalPages, p + 1));
+                  scrollToCardsTop();
+                }}
+                className="px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-xs font-medium text-[#0F172A] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-xs"
+                aria-label="Trang sau"
+              >
+                Sau →
+              </button>
+            </div>
+          )}
+
+          {/* Chọn số từ hiển thị mỗi trang */}
+          <div className="flex items-center gap-1.5 text-[#475569]">
+            <span className="text-[11px]">Trang:</span>
+            {[24, 48, 96].map((size) => (
+              <button
+                key={size}
+                type="button"
+                onClick={() => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
+                className={`px-2 py-0.5 rounded font-mono text-[11px] font-semibold transition-all cursor-pointer ${
+                  pageSize === size
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
+
       {/* 5. Trạng thái rỗng & không tìm thấy kết quả (§5.6 M6) */}
       {entries.length === 0 && (
         <Card className="p-8 sm:p-12 text-center bg-white border border-[#E2E8F0] space-y-4">
@@ -763,8 +921,11 @@ export function VocabListView({
           <button
             type="button"
             onClick={() => {
-              setSearchQuery("");
-              setFilterTab("all");
+              handleSearchChange("");
+              handleTabChange("all");
+              handleNotebookFilter(null);
+              handleTopicFilter(null);
+              handlePosFilter("all");
             }}
             className="text-xs font-semibold text-[#2563EB] underline cursor-pointer"
           >
@@ -819,7 +980,7 @@ export function VocabListView({
         onClose={() => setIsCuratedModalOpen(false)}
         decks={curatedDecks}
         onSelectNotebookFilter={(nbId) => {
-          setSelectedNotebookFilter(nbId);
+          handleNotebookFilter(nbId);
         }}
         onImportSuccess={() => {
           router.refresh();
@@ -827,4 +988,20 @@ export function VocabListView({
       />
     </div>
   );
+}
+
+/**
+ * Thuật toán sinh danh sách số trang hiển thị thông minh kèm dấu lược (...)
+ */
+function getPageNumbers(current: number, total: number): (number | "...")[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, "...", total];
+  }
+  if (current >= total - 3) {
+    return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
+  }
+  return [1, "...", current - 1, current, current + 1, "...", total];
 }
