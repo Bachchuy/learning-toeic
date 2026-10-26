@@ -8,7 +8,7 @@ import {
   generateNaturalExplanation,
   getDualPronunciation,
 } from "@/core/vocab";
-import { playPronunciation } from "@/lib/audio";
+import { playPronunciation, playDualPronunciation } from "@/lib/audio";
 import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
 import {
   Eye,
@@ -32,17 +32,22 @@ export function FlashcardModeCard({
   const [isFlipped, setIsFlipped] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
+  const dual = getDualPronunciation(card.word);
+
   useEffect(() => {
     if (autoPlayAudio) {
-      playPronunciation(card.word);
+      if (dual) {
+        playDualPronunciation(card.word);
+      } else {
+        playPronunciation(card.word);
+      }
     }
-  }, [card.word, autoPlayAudio]);
+  }, [card.word, autoPlayAudio, dual]);
 
   const phoneticDisplay = resolvePhonetic(
     card.word,
     card.phonetic || card.metadata?.phonetic
   );
-  const dual = getDualPronunciation(card.word);
   const posInfo = getPosBadgeInfo(card.part_of_speech, card.meaning, card.word);
 
   const isOldBoilerplate =
@@ -142,9 +147,15 @@ export function FlashcardModeCard({
                 </h2>
                 <button
                   type="button"
-                  onClick={() => playPronunciation(card.word)}
+                  onClick={() => {
+                    if (dual) {
+                      playDualPronunciation(card.word);
+                    } else {
+                      playPronunciation(card.word);
+                    }
+                  }}
                   className="p-1.5 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer"
-                  title="Phát âm từ này"
+                  title={dual ? "Phát âm cả danh từ & động từ" : "Phát âm từ này"}
                 >
                   <Volume2 className="w-5 h-5" />
                 </button>

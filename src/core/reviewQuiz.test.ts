@@ -70,6 +70,11 @@ describe("reviewQuiz: Versatile Multi-Mode Review Utilities", () => {
     it("level 3 should reveal middle letter as well", () => {
       expect(generateHintDisplay("speaker", 3)).toBe("s**a**r");
     });
+
+    it("should reveal first letter of each word in multi-word phrases for level 1+", () => {
+      expect(generateHintDisplay("key note", 1)).toBe("k** n***");
+      expect(generateHintDisplay("come up with", 1)).toBe("c*** u* w***");
+    });
   });
 
   describe("generateQuizOptions", () => {

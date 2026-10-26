@@ -741,8 +741,8 @@ export async function importCuratedDeckAction(deckId: string): Promise<{
     itemsToInsert.push({ ...item });
   }
 
-  // 4. Batch insert theo từng chunk 50 từ (Postgres trigger tự động tạo review_cards FSRS)
-  const CHUNK_SIZE = 50;
+  // 4. Batch insert theo từng chunk 200 từ (Tối ưu số lượt round-trip mạng tới Supabase)
+  const CHUNK_SIZE = 200;
   let totalInserted = 0;
 
   for (let i = 0; i < itemsToInsert.length; i += CHUNK_SIZE) {

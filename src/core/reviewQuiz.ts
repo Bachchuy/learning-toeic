@@ -78,12 +78,34 @@ export function generateHintDisplay(word: string, hintLevel: number): string {
   const clean = word.trim();
   if (!clean) return "";
 
+  if (hintLevel <= 0) {
+    return clean.split("").map((c) => (c === " " ? " " : "*")).join("");
+  }
+
+  // Nếu là cụm từ có chứa dấu cách (multi-word phrase/idiom)
+  if (clean.includes(" ")) {
+    return clean
+      .split(" ")
+      .map((tok) => {
+        if (!tok) return "";
+        const tLen = tok.length;
+        return tok
+          .split("")
+          .map((c, i) => {
+            if (c === "-" || c === "'") return c;
+            if (hintLevel >= 1 && i === 0) return c;
+            if (hintLevel >= 2 && i === tLen - 1) return c;
+            if (hintLevel >= 3 && i === Math.floor(tLen / 2)) return c;
+            if (hintLevel >= 4 && i % 2 === 0) return c;
+            return "*";
+          })
+          .join("");
+      })
+      .join(" ");
+  }
+
   const chars = clean.split("");
   const len = chars.length;
-
-  if (hintLevel <= 0) {
-    return chars.map((c) => (c === " " ? " " : "*")).join("");
-  }
 
   return chars
     .map((c, index) => {

@@ -44,20 +44,26 @@ export function TypingModeCard({
   // Tạo câu đục lỗ bằng dấu sao che từ
   const renderClozeAsterisks = (sentence?: string, targetWord?: string) => {
     if (!sentence || !targetWord) return null;
-    const escapedWord = targetWord.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const cleanWord = targetWord.trim();
+    const escapedWord = cleanWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(`\\b${escapedWord}\\b`, "gi");
 
     const parts = sentence.split(regex);
-    const asterisks = "*".repeat(targetWord.trim().length);
+    const asterisks = "*".repeat(cleanWord.length);
 
     if (parts.length > 1) {
       return (
         <span>
-          {parts[0]}
-          <strong className="text-rose-600 font-mono tracking-wider font-bold">
-            {asterisks}
-          </strong>
-          {parts[1]}
+          {parts.map((part, idx) => (
+            <span key={idx}>
+              {part}
+              {idx < parts.length - 1 && (
+                <strong className="text-rose-600 font-mono tracking-wider font-bold">
+                  {asterisks}
+                </strong>
+              )}
+            </span>
+          ))}
         </span>
       );
     }

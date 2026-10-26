@@ -95,19 +95,25 @@ export function ReviewView({
     setIsMobileTopicsOpen(false);
 
     startTransition(async () => {
-      const res = await getReviewCardsAction({
-        notebookId,
-        topic: selectedName,
-        limit: 50,
-        studyAll: true,
-      });
-      setQueue(res.cards);
-      setCurrentIndex(0);
-      setIsLoadingTopic(false);
-      setSessionSummary({
-        totalReviewed: 0,
-        ratingsDistribution: { again: 0, hard: 0, good: 0, easy: 0 },
-      });
+      try {
+        const res = await getReviewCardsAction({
+          notebookId,
+          topic: selectedName,
+          limit: 50,
+          studyAll: true,
+        });
+        setQueue(res.cards);
+        setCurrentIndex(0);
+        setSessionSummary({
+          totalReviewed: 0,
+          ratingsDistribution: { again: 0, hard: 0, good: 0, easy: 0 },
+        });
+      } catch (err) {
+        console.error("Lỗi khi tải chủ đề:", err);
+        setRatingError("Không thể nạp từ vựng cho chủ đề này. Vui lòng thử lại.");
+      } finally {
+        setIsLoadingTopic(false);
+      }
     });
   };
 
@@ -126,39 +132,44 @@ export function ReviewView({
       setRatingError(null);
 
       startTransition(async () => {
-        const res = await submitCardRatingAction(currentCard.id, rating);
+        try {
+          const res = await submitCardRatingAction(currentCard.id, rating);
 
-        if (!res.success) {
-          setRatingError(res.error || "Không thể chấm thẻ lúc này.");
-          return;
-        }
+          if (!res.success) {
+            setRatingError(res.error || "Không thể chấm thẻ lúc này.");
+            return;
+          }
 
-        // Cập nhật thống kê phân bổ đánh giá
-        setSessionSummary((prev) => {
-          const dist = { ...prev.ratingsDistribution };
-          if (rating === 1) dist.again += 1;
-          if (rating === 2) dist.hard += 1;
-          if (rating === 3) dist.good += 1;
-          if (rating === 4) dist.easy += 1;
-          return {
-            totalReviewed: prev.totalReviewed + 1,
-            ratingsDistribution: dist,
-            earliestNextDue: res.nextDue || prev.earliestNextDue,
-          };
-        });
+          // Cập nhật thống kê phân bổ đánh giá
+          setSessionSummary((prev) => {
+            const dist = { ...prev.ratingsDistribution };
+            if (rating === 1) dist.again += 1;
+            if (rating === 2) dist.hard += 1;
+            if (rating === 3) dist.good += 1;
+            if (rating === 4) dist.easy += 1;
+            return {
+              totalReviewed: prev.totalReviewed + 1,
+              ratingsDistribution: dist,
+              earliestNextDue: res.nextDue || prev.earliestNextDue,
+            };
+          });
 
-        // Xử lý hàng đợi OQ-2: Nếu chọn Again (1) hoặc đang ở bước học ngắn hạn,
-        // xếp lại thẻ vào cuối hàng đợi để người học củng cố trí nhớ ngay trong phiên
-        if (rating === 1 || res.isShortTermLearningStep) {
-          setQueue((prevQueue) => [...prevQueue, currentCard]);
-        }
+          // Xử lý hàng đợi OQ-2: Nếu chọn Again (1) hoặc đang ở bước học ngắn hạn,
+          // xếp lại thẻ vào cuối hàng đợi để người học củng cố trí nhớ ngay trong phiên
+          if (rating === 1 || res.isShortTermLearningStep) {
+            setQueue((prevQueue) => [...prevQueue, currentCard]);
+          }
 
-        // Chuyển sang thẻ tiếp theo
-        const nextIndex = currentIndex + 1;
-        if (nextIndex < queue.length || rating === 1 || res.isShortTermLearningStep) {
-          setCurrentIndex(nextIndex);
-        } else {
-          setIsSessionComplete(true);
+          // Chuyển sang thẻ tiếp theo
+          const nextIndex = currentIndex + 1;
+          if (nextIndex < queue.length || rating === 1 || res.isShortTermLearningStep) {
+            setCurrentIndex(nextIndex);
+          } else {
+            setIsSessionComplete(true);
+          }
+        } catch (err) {
+          console.error("Lỗi khi gửi đánh giá FSRS:", err);
+          setRatingError("Lỗi kết nối khi lưu đánh giá. Vui lòng chấm lại.");
         }
       });
     },

@@ -40,3 +40,19 @@ export async function playPronunciation(
     }
   }
 }
+
+/**
+ * Phát âm tuần tự cả 2 dạng Danh từ và Động từ cho từ đa từ loại (Dual POS)
+ * Giúp người học phân biệt rõ ràng trọng âm âm tiết 1 (Danh từ) và âm tiết 2 (Động từ).
+ * Ví dụ: "record", "present", "contract", "conduct", "produce", "object"
+ */
+export async function playDualPronunciation(word: string): Promise<void> {
+  if (!word || typeof window === "undefined") return;
+
+  // 1. Phát âm dạng danh từ
+  await playPronunciation(word, undefined, "noun");
+
+  // 2. Tạm dừng 750ms rồi phát âm dạng động từ
+  await new Promise((resolve) => setTimeout(resolve, 750));
+  await playPronunciation(word, undefined, "verb");
+}

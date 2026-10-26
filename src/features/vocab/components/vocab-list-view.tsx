@@ -276,12 +276,18 @@ export function VocabListView({
 
     setImportingDeckId(deckStatus.deck.id);
     startTransition(async () => {
-      const res = await importCuratedDeckAction(deckStatus.deck.id);
-      setImportingDeckId(null);
-      if (res.success && res.notebook?.id) {
-        router.push(`/review?notebookId=${res.notebook.id}`);
-      } else {
-        alert(res.message);
+      try {
+        const res = await importCuratedDeckAction(deckStatus.deck.id);
+        if (res.success && res.notebook?.id) {
+          router.push(`/review?notebookId=${res.notebook.id}`);
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        console.error("Lỗi khi nạp bộ thẻ:", err);
+        alert("Có sự cố khi nạp bộ thẻ. Vui lòng thử lại.");
+      } finally {
+        setImportingDeckId(null);
       }
     });
   };

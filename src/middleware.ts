@@ -35,8 +35,12 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Làm mới token session của người dùng nếu cần
-  await supabase.auth.getUser();
+  // Làm mới token session của người dùng nếu cần (bọc try...catch để không sập website nếu Supabase timeout)
+  try {
+    await supabase.auth.getUser();
+  } catch (err) {
+    console.error("[Middleware Auth Token Sync Error]:", err);
+  }
 
   return response;
 }
