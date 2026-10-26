@@ -9,19 +9,24 @@ import {
 import { trackEventAction } from "@/features/practice/actions";
 import { enrichVocabMetadata } from "@/core/vocabDictionary";
 import type { VocabMetadata } from "@/features/vocab/types";
-import type { ReviewCardItem } from "./types";
+import type { ReviewCardItem, ReviewFilterOptions, ReviewTopicInfo } from "./types";
 
 /**
  * Server Action: Lấy danh sách thẻ từ vựng đến hạn ôn tập (FSRS Spaced Repetition)
  * BẤT BIẾN §4.6b, D-03, D-22, D-24:
- * - Lấy các thẻ có due <= now() của user hiện tại (hoặc lọc theo notebookId của bộ thẻ)
+ * - Hỗ trợ chia nhỏ theo Sổ từ vựng (notebookId) và Chủ điểm chuyên đề (topic)
+ * - Giới hạn kích cỡ phiên (limit: 10, 15, 20, 30...) tránh quá tải nhận thức
+ * - Lấy các thẻ có due <= now() của user hiện tại (hoặc học củng cố cramMode)
  * - Tính toán thời gian xem trước (preview) cho 4 nút Lại / Khó / Tốt / Dễ bằng thư viện FSRS
  */
-export async function getReviewCardsAction(notebookId?: string): Promise<{
+export async function getReviewCardsAction(
+  optionsOrNotebookId?: string | ReviewFilterOptions
+): Promise<{
   cards: ReviewCardItem[];
   nextDueFormatted?: string;
   totalCardsCount: number;
   notebookName?: string;
+  topicName?: string;
   error?: string;
 }> {
   const supabase = await createClient();
@@ -37,52 +42,44 @@ export async function getReviewCardsAction(notebookId?: string): Promise<{
     };
   }
 
+  const options: ReviewFilterOptions =
+    typeof optionsOrNotebookId === "string"
+      ? { notebookId: optionsOrNotebookId }
+      : optionsOrNotebookId || {};
+
+  const { notebookId, topic, limit = 20, studyAll = false } = options;
+
   const now = new Date();
 
   let notebookName: string | undefined;
-  let targetVocabIds: string[] | undefined;
 
   if (notebookId) {
-    const [{ data: nb }, { data: vEntries }] = await Promise.all([
-      supabase
-        .from("notebooks")
-        .select("name")
-        .eq("id", notebookId)
-        .eq("user_id", user.id)
-        .single(),
-      supabase
-        .from("vocab_entries")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("notebook_id", notebookId),
-    ]);
+    const { data: nb } = await supabase
+      .from("notebooks")
+      .select("name")
+      .eq("id", notebookId)
+      .eq("user_id", user.id)
+      .single();
 
     notebookName = nb?.name;
-    targetVocabIds = vEntries?.map((v) => v.id) || [];
-
-    if (targetVocabIds.length === 0) {
-      return {
-        cards: [],
-        totalCardsCount: 0,
-        notebookName,
-        error: undefined,
-      };
-    }
   }
 
-  // 1. Đếm tổng số thẻ mà người dùng đang có (hoặc thuộc sổ này)
+  // 1. Đếm tổng số thẻ mà người dùng đang có theo bộ lọc sổ / chủ đề
   let countQuery = supabase
     .from("review_cards")
-    .select("id", { count: "exact", head: true })
+    .select("id, vocab_entries!inner(notebook_id, metadata)", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-  if (targetVocabIds && targetVocabIds.length > 0) {
-    countQuery = countQuery.in("vocab_entry_id", targetVocabIds);
+  if (notebookId) {
+    countQuery = countQuery.eq("vocab_entries.notebook_id", notebookId);
+  }
+  if (topic) {
+    countQuery = countQuery.eq("vocab_entries.metadata->>topic", topic);
   }
 
   const { count: totalCardsCount } = await countQuery;
 
-  // 2. Lấy danh sách thẻ đến hạn ôn tập (due <= now())
+  // 2. Lấy danh sách thẻ ôn tập
   let cardsQuery = supabase
     .from("review_cards")
     .select(`
@@ -96,7 +93,7 @@ export async function getReviewCardsAction(notebookId?: string): Promise<{
       last_review,
       reps,
       lapses,
-      vocab_entries (
+      vocab_entries!inner (
         id,
         word,
         lemma,
@@ -105,39 +102,50 @@ export async function getReviewCardsAction(notebookId?: string): Promise<{
         context_translation,
         part_of_speech,
         phonetic,
-        metadata
+        metadata,
+        notebook_id
       )
     `)
     .eq("user_id", user.id);
 
-  if (targetVocabIds && targetVocabIds.length > 0) {
-    cardsQuery = cardsQuery.in("vocab_entry_id", targetVocabIds);
+  if (notebookId) {
+    cardsQuery = cardsQuery.eq("vocab_entries.notebook_id", notebookId);
+  }
+  if (topic) {
+    cardsQuery = cardsQuery.eq("vocab_entries.metadata->>topic", topic);
   }
 
-  const { data: initialData, error } = await cardsQuery
-    .lte("due", now.toISOString())
-    .order("due", { ascending: true });
+  if (studyAll) {
+    // Chế độ học tự do / củng cố toàn bộ
+    cardsQuery = cardsQuery
+      .order("last_review", { ascending: true, nullsFirst: true })
+      .limit(limit);
+  } else {
+    // Mặc định: Lấy các thẻ đến hạn theo FSRS
+    cardsQuery = cardsQuery
+      .lte("due", now.toISOString())
+      .order("due", { ascending: true })
+      .limit(limit);
+  }
 
+  const { data: initialData, error } = await cardsQuery;
   let data = initialData;
 
   if (error) {
+    console.error("Lỗi getReviewCardsAction:", error);
     return {
       cards: [],
       totalCardsCount: totalCardsCount ?? 0,
       notebookName,
+      topicName: topic,
       error: "Không thể tải danh sách thẻ ôn lúc này.",
     };
   }
 
-  // Nếu người dùng chọn học riêng một bộ thẻ (notebookId) mà chưa có thẻ nào đến hạn,
-  // tự động lấy tối đa 50 thẻ của bộ này để học tự do / củng cố (Cram Mode)
-  if (
-    notebookId &&
-    (!data || data.length === 0) &&
-    targetVocabIds &&
-    targetVocabIds.length > 0
-  ) {
-    const { data: cramData } = await supabase
+  // Nếu người dùng chọn học riêng một bộ thẻ hoặc chủ đề mà chưa có thẻ nào đến hạn,
+  // tự động lấy tối đa số thẻ (limit) của nhóm này để học tự do / củng cố (Cram Mode)
+  if ((notebookId || topic) && (!data || data.length === 0)) {
+    let cramQuery = supabase
       .from("review_cards")
       .select(`
         id,
@@ -150,7 +158,7 @@ export async function getReviewCardsAction(notebookId?: string): Promise<{
         last_review,
         reps,
         lapses,
-        vocab_entries (
+        vocab_entries!inner (
           id,
           word,
           lemma,
@@ -159,13 +167,22 @@ export async function getReviewCardsAction(notebookId?: string): Promise<{
           context_translation,
           part_of_speech,
           phonetic,
-          metadata
+          metadata,
+          notebook_id
         )
       `)
       .eq("user_id", user.id)
-      .in("vocab_entry_id", targetVocabIds)
       .order("last_review", { ascending: true, nullsFirst: true })
-      .limit(50);
+      .limit(limit);
+
+    if (notebookId) {
+      cramQuery = cramQuery.eq("vocab_entries.notebook_id", notebookId);
+    }
+    if (topic) {
+      cramQuery = cramQuery.eq("vocab_entries.metadata->>topic", topic);
+    }
+
+    const { data: cramData } = await cramQuery;
 
     if (cramData && cramData.length > 0) {
       data = cramData;
@@ -177,14 +194,17 @@ export async function getReviewCardsAction(notebookId?: string): Promise<{
   if (!data || data.length === 0) {
     let upcomingQuery = supabase
       .from("review_cards")
-      .select("due")
+      .select("due, vocab_entries!inner(notebook_id, metadata)")
       .eq("user_id", user.id)
       .gt("due", now.toISOString())
       .order("due", { ascending: true })
       .limit(1);
 
-    if (targetVocabIds && targetVocabIds.length > 0) {
-      upcomingQuery = upcomingQuery.in("vocab_entry_id", targetVocabIds);
+    if (notebookId) {
+      upcomingQuery = upcomingQuery.eq("vocab_entries.notebook_id", notebookId);
+    }
+    if (topic) {
+      upcomingQuery = upcomingQuery.eq("vocab_entries.metadata->>topic", topic);
     }
 
     const { data: upcoming } = await upcomingQuery.single();
@@ -407,4 +427,84 @@ export async function submitCardRatingAction(
     nextDue: nextDue.toISOString(),
     isShortTermLearningStep,
   };
+}
+
+/**
+ * Server Action: Lấy danh sách các chủ điểm (Topics) từ vựng của người dùng kèm số lượng thẻ
+ * Giúp người học chia nhỏ kho từ vựng lớn (1000+ từ) thành các chủ đề nhỏ 10-15 từ
+ */
+export async function getReviewTopicsAction(notebookId?: string): Promise<{
+  topics: ReviewTopicInfo[];
+  error?: string;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { topics: [] };
+  }
+
+  const now = new Date().toISOString();
+
+  let query = supabase
+    .from("vocab_entries")
+    .select(`
+      id,
+      metadata,
+      notebook_id,
+      review_cards (
+        id,
+        due
+      )
+    `)
+    .eq("user_id", user.id);
+
+  if (notebookId) {
+    query = query.eq("notebook_id", notebookId);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    return { topics: [] };
+  }
+
+  const map = new Map<string, { totalCount: number; dueCount: number }>();
+
+  interface QueryEntry {
+    metadata?: { topic?: string };
+    review_cards?: Array<{ id: string; due: string | null }> | { id: string; due: string | null };
+  }
+
+  for (const item of data as unknown as QueryEntry[]) {
+    const topic = item.metadata?.topic?.trim() || "Chung";
+    if (!map.has(topic)) {
+      map.set(topic, { totalCount: 0, dueCount: 0 });
+    }
+    const stat = map.get(topic)!;
+    stat.totalCount += 1;
+
+    const cards = Array.isArray(item.review_cards)
+      ? item.review_cards
+      : item.review_cards
+      ? [item.review_cards]
+      : [];
+
+    const firstCard = cards[0];
+    if (firstCard && (!firstCard.due || firstCard.due <= now)) {
+      stat.dueCount += 1;
+    }
+  }
+
+  const topics: ReviewTopicInfo[] = Array.from(map.entries())
+    .map(([name, stat]) => ({
+      name,
+      totalCount: stat.totalCount,
+      dueCount: stat.dueCount,
+    }))
+    .sort((a, b) => b.dueCount - a.dueCount || a.name.localeCompare(b.name));
+
+  return { topics };
 }

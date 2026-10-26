@@ -37,6 +37,7 @@ import {
   Folder,
   FolderPlus,
   Layers,
+  ArrowRight,
 } from "lucide-react";
 
 interface VocabListViewProps {
@@ -57,6 +58,7 @@ export function VocabListView({
   const [curatedDecks] = useState<CuratedDeckStatus[]>(initialCuratedDecks);
   const [isCuratedModalOpen, setIsCuratedModalOpen] = useState(false);
   const [selectedNotebookFilter, setSelectedNotebookFilter] = useState<string | null>(null);
+  const [selectedTopicFilter, setSelectedTopicFilter] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isNotebookManagerOpen, setIsNotebookManagerOpen] = useState(false);
   const [filterTab, setFilterTab] = useState<"all" | "due">("all");
@@ -97,12 +99,33 @@ export function VocabListView({
     return counts;
   }, [entries]);
 
-  // Lọc theo search, tab, từ loại và sổ tự tạo
+  // Danh sách chủ điểm (Topics) có sẵn trong sổ từ
+  const availableTopics = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const e of entries) {
+      const t = e.metadata?.topic?.trim();
+      if (t) {
+        map.set(t, (map.get(t) || 0) + 1);
+      }
+    }
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [entries]);
+
+  // Lọc theo search, tab, từ loại, sổ tự tạo và chủ điểm
   const filteredEntries = useMemo(() => {
     return entries.filter((item) => {
       // 0. Lọc theo Sổ từ vựng tự tạo
       if (selectedNotebookFilter !== null) {
         if (item.notebook_id !== selectedNotebookFilter) {
+          return false;
+        }
+      }
+
+      // 0b. Lọc theo Chủ điểm chuyên đề
+      if (selectedTopicFilter !== null) {
+        if (item.metadata?.topic?.trim() !== selectedTopicFilter) {
           return false;
         }
       }
@@ -158,7 +181,7 @@ export function VocabListView({
 
       return true;
     });
-  }, [entries, filterTab, selectedPosFilter, selectedNotebookFilter, searchQuery, currentTime]);
+  }, [entries, filterTab, selectedPosFilter, selectedNotebookFilter, selectedTopicFilter, searchQuery, currentTime]);
 
   // Xử lý lưu chỉnh sửa nghĩa tại chỗ
   const handleSaveMeaning = (vocabId: string) => {
@@ -390,6 +413,66 @@ export function VocabListView({
               </button>
             );
           })}
+        </div>
+      )}
+
+      {/* 3b. Bộ lọc Chủ điểm chuyên đề (Topics - Chia nhỏ 50 chủ đề TOEIC) */}
+      {availableTopics.length > 0 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 mr-1 shrink-0 flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+            <span>Chủ điểm:</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setSelectedTopicFilter(null)}
+            className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+              selectedTopicFilter === null
+                ? "bg-blue-600 text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            Tất cả chủ điểm ({availableTopics.length})
+          </button>
+          {availableTopics.map((top) => {
+            const isSelected = selectedTopicFilter === top.name;
+            return (
+              <button
+                key={top.name}
+                type="button"
+                onClick={() => setSelectedTopicFilter(top.name)}
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 border flex items-center gap-1.5 ${
+                  isSelected
+                    ? "bg-blue-600 text-white border-blue-600 shadow-xs font-bold"
+                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <span>{top.name}</span>
+                <span className={`text-[10px] font-mono ${isSelected ? "text-blue-100" : "text-slate-400"}`}>
+                  ({top.count})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Banner hành động khi đang lọc theo 1 chủ điểm cụ thể */}
+      {selectedTopicFilter && (
+        <div className="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+            <span className="text-xs font-semibold text-blue-950">
+              Đang chọn chủ điểm: <strong>{selectedTopicFilter}</strong> ({filteredEntries.length} từ)
+            </span>
+          </div>
+          <Link
+            href={`/review?topic=${encodeURIComponent(selectedTopicFilter)}&limit=15`}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer"
+          >
+            <span>Ôn chủ điểm này ({filteredEntries.length} từ)</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       )}
 

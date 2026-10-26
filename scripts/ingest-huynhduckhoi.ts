@@ -262,6 +262,7 @@ async function main() {
   console.log("\n==================================================================");
   console.log("🎉 HOÀN THÀNH INGESTION CÂU HỎI TOEIC PART 5!");
   console.log(`✅ Đã nạp thành công: ${insertedCount} câu hỏi mới vào Database`);
+  console.log(`🔎 Đạt chuẩn kiểm định chất lượng: ${validCount} câu`);
   console.log(`⏭️ Bỏ qua trùng lặp: ${skippedDuplicates} câu`);
   console.log(`⚠️ Bị loại do không qua chuẩn S3-S6: ${validatorFailed} câu`);
   console.log("==================================================================");

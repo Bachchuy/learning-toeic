@@ -7,12 +7,15 @@ import {
   Sparkles,
   BookOpen,
   Calendar,
+  SlidersHorizontal,
 } from "lucide-react";
-import type { ReviewCardItem, ReviewSessionSummary } from "../types";
+import type { ReviewCardItem, ReviewSessionSummary, ReviewTopicInfo } from "../types";
+import type { Notebook } from "@/features/vocab/types";
 import { submitCardRatingAction } from "../actions";
 import { ReviewHeader, type ReviewStudyMode } from "./review-header";
 import { ShortcutsModal } from "./shortcuts-modal";
 import { ReviewSettingsModal, type ReviewSettings } from "./review-settings-modal";
+import { ReviewSetupModal } from "./review-setup-modal";
 import { TypingModeCard } from "./typing-mode-card";
 import { FlashcardModeCard } from "./flashcard-mode-card";
 import { QuizModeCard } from "./quiz-mode-card";
@@ -23,7 +26,12 @@ interface ReviewViewProps {
   nextDueFormatted?: string;
   totalCardsCount: number;
   notebookName?: string;
+  topicName?: string;
   notebookId?: string;
+  currentTopic?: string;
+  currentLimit?: number;
+  notebooks?: Notebook[];
+  topics?: ReviewTopicInfo[];
 }
 
 export function ReviewView({
@@ -31,6 +39,12 @@ export function ReviewView({
   nextDueFormatted,
   totalCardsCount,
   notebookName,
+  topicName,
+  notebookId,
+  currentTopic,
+  currentLimit = 15,
+  notebooks = [],
+  topics = [],
 }: ReviewViewProps) {
   const [queue, setQueue] = useState<ReviewCardItem[]>(initialCards);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -42,6 +56,7 @@ export function ReviewView({
   // Đã được tích hợp phân tầng trong FlashcardModeCard, QuizModeCard và ShortcutsModal
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSetupOpen, setIsSetupOpen] = useState(false);
 
   // Settings
   const [settings, setSettings] = useState<ReviewSettings>({
@@ -133,10 +148,12 @@ export function ReviewView({
 
           <div className="space-y-2">
             <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
-              Trí nhớ của bạn đang rất tốt!
+              {topicName ? `Chủ đề "${topicName}" đã hoàn tất!` : "Trí nhớ của bạn đang rất tốt!"}
             </h1>
             <p className="text-sm text-[#475569] leading-relaxed">
-              Hôm nay bạn không còn thẻ nào đến hạn ôn tập. Toàn bộ từ vựng đã được củng cố theo đúng chu kỳ FSRS tối ưu.
+              {topicName
+                ? `Không còn từ vựng nào đến hạn trong chủ điểm "${topicName}". Bạn có thể chọn chủ điểm khác để tiếp tục.`
+                : "Hôm nay bạn không còn thẻ nào đến hạn ôn tập. Toàn bộ từ vựng đã được củng cố theo đúng chu kỳ FSRS tối ưu."}
             </p>
           </div>
 
@@ -152,11 +169,19 @@ export function ReviewView({
             </div>
           ) : totalCardsCount === 0 ? (
             <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200/60 text-xs text-blue-900 leading-relaxed">
-              Bạn chưa có từ vựng nào trong sổ từ. Hãy lưu từ mới sau khi luyện tập câu hỏi TOEIC để bắt đầu ôn tập FSRS.
+              Bạn chưa có từ vựng nào trong mục này. Hãy nạp bộ thẻ hoặc chọn chủ đề khác.
             </div>
           ) : null}
 
-          <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5 justify-center">
+            <button
+              type="button"
+              onClick={() => setIsSetupOpen(true)}
+              className="px-5 h-11 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span>Đổi chủ điểm / Quy mô phiên</span>
+            </button>
             <Link
               href="/vocab"
               className="px-5 h-11 rounded-xl text-xs font-semibold bg-white border border-[#8190A6] text-[#0F172A] hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
@@ -164,15 +189,19 @@ export function ReviewView({
               <BookOpen className="w-4 h-4 text-[#475569]" />
               <span>Xem Sổ từ vựng</span>
             </Link>
-            <Link
-              href="/practice/new"
-              className="px-5 h-11 rounded-xl text-xs font-semibold bg-[#2563EB] text-white hover:bg-[#1D4ED8] transition-colors flex items-center justify-center gap-2 shadow-xs"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Luyện tập câu mới</span>
-            </Link>
           </div>
         </div>
+
+        {/* Modal Setup khi trống */}
+        <ReviewSetupModal
+          isOpen={isSetupOpen}
+          onClose={() => setIsSetupOpen(false)}
+          notebooks={notebooks}
+          topics={topics}
+          currentNotebookId={notebookId}
+          currentTopic={currentTopic}
+          currentLimit={currentLimit}
+        />
       </div>
     );
   }
@@ -190,10 +219,11 @@ export function ReviewView({
 
           <div className="space-y-1.5">
             <h1 className="text-2xl sm:text-3xl font-bold text-[#0F172A] tracking-tight">
-              Tuyệt vời! Bạn đã hoàn thành phiên ôn tập
+              Tuyệt vời! Hoàn thành phiên ôn tập
             </h1>
             <p className="text-sm text-[#475569]">
-              Bộ não của bạn vừa củng cố vững chắc {sessionSummary.totalReviewed} lượt từ vựng hôm nay.
+              Bạn vừa hoàn thành một phiên vi mô {sessionSummary.totalReviewed} từ vựng
+              {topicName ? ` thuộc chủ điểm "${topicName}"` : ""}.
             </p>
           </div>
 
@@ -237,22 +267,35 @@ export function ReviewView({
           </div>
 
           {/* Nút hành động chính */}
-          <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5 justify-center">
+            <button
+              type="button"
+              onClick={() => setIsSetupOpen(true)}
+              className="w-full sm:w-auto px-6 h-11 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span>Ôn chủ điểm khác</span>
+            </button>
             <Link
               href="/vocab"
-              className="w-full sm:w-auto px-6 h-11 rounded-xl text-xs font-semibold bg-[#2563EB] text-white hover:bg-[#1D4ED8] transition-colors flex items-center justify-center gap-2 shadow-xs"
+              className="w-full sm:w-auto px-6 h-11 rounded-xl text-xs font-semibold bg-white border border-[#8190A6] text-[#0F172A] hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
             >
               <BookOpen className="w-4 h-4" />
               <span>Về Sổ từ vựng</span>
             </Link>
-            <Link
-              href="/"
-              className="w-full sm:w-auto px-6 h-11 rounded-xl text-xs font-semibold bg-white border border-[#8190A6] text-[#0F172A] hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
-            >
-              <span>Về Trang chủ</span>
-            </Link>
           </div>
         </div>
+
+        {/* Modal Setup khi hoàn tất */}
+        <ReviewSetupModal
+          isOpen={isSetupOpen}
+          onClose={() => setIsSetupOpen(false)}
+          notebooks={notebooks}
+          topics={topics}
+          currentNotebookId={notebookId}
+          currentTopic={currentTopic}
+          currentLimit={currentLimit}
+        />
       </div>
     );
   }
@@ -262,15 +305,17 @@ export function ReviewView({
   // ========================================================
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
-      {/* 1. Header Đa Năng 5 Chế độ */}
+      {/* 1. Header Đa Năng 5 Chế độ kèm Tùy chỉnh chủ đề */}
       <ReviewHeader
         currentMode={currentMode}
         onSelectMode={setCurrentMode}
         currentIndex={currentIndex}
         totalCards={queue.length}
         notebookName={notebookName}
+        topicName={topicName}
         onOpenShortcuts={() => setIsShortcutsOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenSetup={() => setIsSetupOpen(true)}
       />
 
       {/* 2. Container Nội dung Chế độ Học */}
@@ -362,6 +407,16 @@ export function ReviewView({
         onUpdateSettings={(newSettings) =>
           setSettings((prev) => ({ ...prev, ...newSettings }))
         }
+      />
+
+      <ReviewSetupModal
+        isOpen={isSetupOpen}
+        onClose={() => setIsSetupOpen(false)}
+        notebooks={notebooks}
+        topics={topics}
+        currentNotebookId={notebookId}
+        currentTopic={currentTopic}
+        currentLimit={currentLimit}
       />
     </div>
   );

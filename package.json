@@ -17,6 +17,7 @@
     "db:seed-batch": "tsx scripts/seed-batch-questions.ts",
     "db:crawl": "tsx scripts/crawler-ets.ts",
     "db:ingest-ets": "tsx scripts/ingest-huynhduckhoi.ts",
+    "db:ingest-kaggle": "tsx scripts/ingest-kaggle-toeic.ts",
     "db:seed-decks": "tsx scripts/seed-curated-decks.ts",
     "ai:generate": "tsx scripts/generate-questions-pipeline.ts",
     "db:setup": "npm run db:migrate && npm run db:seed && npm run db:seed-batch"

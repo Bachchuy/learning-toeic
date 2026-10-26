@@ -23,6 +23,19 @@ export interface ReviewCardItem {
   previews?: RatingPreview[];
 }
 
+export interface ReviewTopicInfo {
+  name: string;
+  totalCount: number;
+  dueCount: number;
+}
+
+export interface ReviewFilterOptions {
+  notebookId?: string;
+  topic?: string;
+  limit?: number; // 10, 15, 20, 30, hoặc undefined (tất cả)
+  studyAll?: boolean; // Học củng cố tự do (cramming)
+}
+
 export interface ReviewSessionSummary {
   totalReviewed: number;
   ratingsDistribution: {

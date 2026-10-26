@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getReviewCardsAction } from "@/features/review/actions";
+import {
+  getReviewCardsAction,
+  getReviewTopicsAction,
+} from "@/features/review/actions";
+import { getNotebooksAction } from "@/features/vocab/actions";
 import { ReviewView } from "@/features/review/components/review-view";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +15,12 @@ export const metadata = {
 };
 
 interface ReviewPageProps {
-  searchParams: Promise<{ notebookId?: string }>;
+  searchParams: Promise<{
+    notebookId?: string;
+    topic?: string;
+    limit?: string;
+    studyAll?: string;
+  }>;
 }
 
 export default async function ReviewPage({ searchParams }: ReviewPageProps) {
@@ -24,10 +33,23 @@ export default async function ReviewPage({ searchParams }: ReviewPageProps) {
     redirect("/login?next=/review");
   }
 
-  const { notebookId } = (await searchParams) || {};
+  const { notebookId, topic, limit, studyAll } = (await searchParams) || {};
+  const parsedLimit = limit ? parseInt(limit, 10) : 15; // Mặc định 15 từ mỗi phiên (Micro-learning)
 
-  const { cards, nextDueFormatted, totalCardsCount, notebookName } =
-    await getReviewCardsAction(notebookId);
+  const [
+    { cards, nextDueFormatted, totalCardsCount, notebookName, topicName },
+    notebooks,
+    { topics },
+  ] = await Promise.all([
+    getReviewCardsAction({
+      notebookId,
+      topic,
+      limit: parsedLimit,
+      studyAll: studyAll === "true",
+    }),
+    getNotebooksAction(),
+    getReviewTopicsAction(notebookId),
+  ]);
 
   return (
     <ReviewView
@@ -35,7 +57,12 @@ export default async function ReviewPage({ searchParams }: ReviewPageProps) {
       nextDueFormatted={nextDueFormatted}
       totalCardsCount={totalCardsCount}
       notebookName={notebookName}
+      topicName={topicName}
       notebookId={notebookId}
+      currentTopic={topic}
+      currentLimit={parsedLimit}
+      notebooks={notebooks}
+      topics={topics}
     />
   );
 }

@@ -10,6 +10,7 @@ import {
   Mic,
   Keyboard,
   Settings,
+  SlidersHorizontal,
 } from "lucide-react";
 
 export type ReviewStudyMode =
@@ -25,8 +26,10 @@ interface ReviewHeaderProps {
   currentIndex: number;
   totalCards: number;
   notebookName?: string;
+  topicName?: string;
   onOpenShortcuts: () => void;
   onOpenSettings: () => void;
+  onOpenSetup?: () => void;
 }
 
 export function ReviewHeader({
@@ -35,8 +38,10 @@ export function ReviewHeader({
   currentIndex,
   totalCards,
   notebookName,
+  topicName,
   onOpenShortcuts,
   onOpenSettings,
+  onOpenSetup,
 }: ReviewHeaderProps) {
   const progressPct = totalCards > 0 ? Math.round(((currentIndex + 1) / totalCards) * 100) : 0;
 
@@ -64,10 +69,16 @@ export function ReviewHeader({
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div className="hidden md:block">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
-              {notebookName || "ÔN TẬP ĐA NĂNG"}
-            </span>
+          <div className="hidden md:flex items-center gap-1.5">
+            {topicName ? (
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                Chủ điểm: {topicName}
+              </span>
+            ) : (
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                {notebookName || "ÔN TẬP ĐA NĂNG"}
+              </span>
+            )}
           </div>
         </div>
 
@@ -106,6 +117,19 @@ export function ReviewHeader({
           </div>
 
           <div className="h-4 w-px bg-slate-200 mx-0.5 hidden sm:block" />
+
+          {/* Nút Tùy chỉnh phiên ôn (Sổ / Chủ đề / Số thẻ) */}
+          {onOpenSetup && (
+            <button
+              type="button"
+              onClick={onOpenSetup}
+              className="p-1.5 sm:p-2 rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer border border-blue-200 flex items-center gap-1 text-xs font-semibold"
+              title="Chia nhỏ / Tùy chỉnh phiên ôn"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span className="hidden lg:inline">Tùy chỉnh</span>
+            </button>
+          )}
 
           {/* Nút Phím tắt */}
           <button
