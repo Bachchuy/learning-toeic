@@ -6,6 +6,7 @@ export interface WordFamilyMember {
 
 export interface VocabMetadata {
   phonetic?: string;
+  audio_url?: string;
   detailed_explanation?: string;
   topic?: string;
   word_family?: WordFamilyMember[];
@@ -25,6 +26,7 @@ export interface VocabEntry {
   context_sentence: string;
   part_of_speech?: string;
   phonetic?: string;
+  audio_url?: string;
   context_translation?: string;
   metadata?: VocabMetadata;
   source_question_id: string | null;

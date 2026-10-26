@@ -7,6 +7,7 @@ import {
   generateNaturalExplanation,
 } from "@/core/vocab";
 import { resolvePhonetic } from "@/core/vocabDictionary";
+import { playPronunciation } from "@/lib/audio";
 import {
   X,
   Calendar,
@@ -101,14 +102,9 @@ export function VocabDetailModal({
 
   const stateInfo = getFSRSStateLabel(card?.state);
 
-  // Phát âm cơ bản bằng Web Speech API
+  // Phát âm kép (Dual-Engine: US Audio CDN + Web Speech API fallback)
   const handleSpeak = () => {
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(entry.word);
-      utterance.lang = "en-US";
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
+    playPronunciation(entry.word, entry.audio_url || entry.metadata?.audio_url);
   };
 
   const phoneticDisplay = resolvePhonetic(

@@ -12,6 +12,7 @@ import {
 import { VocabDetailModal } from "./vocab-detail-modal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
 import {
   Search,
   BookOpen,
@@ -380,6 +381,8 @@ export function VocabListView({ initialEntries }: VocabListViewProps) {
                       >
                         {item.word}
                       </button>
+
+                      <AudioSpeakerButton word={item.word} size="sm" />
 
                       {/* Phiên âm IPA chuẩn quốc tế cho từ đơn và cụm từ */}
                       {phonetic && (

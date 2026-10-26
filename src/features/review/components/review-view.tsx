@@ -17,6 +17,7 @@ import type { ReviewCardItem, ReviewSessionSummary } from "../types";
 import { submitCardRatingAction } from "../actions";
 import { getPosBadgeInfo, generateNaturalExplanation } from "@/core/vocab";
 import { resolvePhonetic } from "@/core/vocabDictionary";
+import { playPronunciation } from "@/lib/audio";
 
 interface ReviewViewProps {
   initialCards: ReviewCardItem[];
@@ -49,14 +50,9 @@ export function ReviewView({
 
   const currentCard: ReviewCardItem | undefined = queue[currentIndex];
 
-  // Phát âm Web Speech API
+  // Phát âm kép (Dual-Engine: US Audio CDN + Web Speech API fallback)
   const handleSpeak = useCallback((text: string) => {
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
+    playPronunciation(text);
   }, []);
 
   // Xử lý lật thẻ
