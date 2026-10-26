@@ -27,6 +27,7 @@ export interface ReviewTopicInfo {
   name: string;
   totalCount: number;
   dueCount: number;
+  learnedCount?: number;
 }
 
 export interface ReviewFilterOptions {

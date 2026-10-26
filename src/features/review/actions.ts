@@ -456,7 +456,9 @@ export async function getReviewTopicsAction(notebookId?: string): Promise<{
       notebook_id,
       review_cards (
         id,
-        due
+        due,
+        state,
+        reps
       )
     `)
     .eq("user_id", user.id);
@@ -471,17 +473,19 @@ export async function getReviewTopicsAction(notebookId?: string): Promise<{
     return { topics: [] };
   }
 
-  const map = new Map<string, { totalCount: number; dueCount: number }>();
+  const map = new Map<string, { totalCount: number; dueCount: number; learnedCount: number }>();
 
   interface QueryEntry {
     metadata?: { topic?: string };
-    review_cards?: Array<{ id: string; due: string | null }> | { id: string; due: string | null };
+    review_cards?:
+      | Array<{ id: string; due: string | null; state?: number; reps?: number }>
+      | { id: string; due: string | null; state?: number; reps?: number };
   }
 
   for (const item of data as unknown as QueryEntry[]) {
     const topic = item.metadata?.topic?.trim() || "Chung";
     if (!map.has(topic)) {
-      map.set(topic, { totalCount: 0, dueCount: 0 });
+      map.set(topic, { totalCount: 0, dueCount: 0, learnedCount: 0 });
     }
     const stat = map.get(topic)!;
     stat.totalCount += 1;
@@ -496,6 +500,13 @@ export async function getReviewTopicsAction(notebookId?: string): Promise<{
     if (firstCard && (!firstCard.due || firstCard.due <= now)) {
       stat.dueCount += 1;
     }
+    if (
+      firstCard &&
+      ((firstCard.reps !== undefined && firstCard.reps > 0) ||
+        (firstCard.state !== undefined && firstCard.state > 0))
+    ) {
+      stat.learnedCount += 1;
+    }
   }
 
   const topics: ReviewTopicInfo[] = Array.from(map.entries())
@@ -503,6 +514,7 @@ export async function getReviewTopicsAction(notebookId?: string): Promise<{
       name,
       totalCount: stat.totalCount,
       dueCount: stat.dueCount,
+      learnedCount: stat.learnedCount,
     }))
     .sort((a, b) => b.dueCount - a.dueCount || a.name.localeCompare(b.name));
 

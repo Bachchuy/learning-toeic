@@ -59,26 +59,21 @@ export function ReviewHeader({
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-[#E2E8F0] shadow-xs">
-      <div className="px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2 sm:gap-4 max-w-5xl mx-auto">
+      <div className="px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2 sm:gap-4 max-w-7xl mx-auto">
         {/* Left: Nút thoát & Tên sổ */}
         <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/vocab"
-            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-            title="Về Sổ từ vựng"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors text-xs font-semibold"
+            title="Quay lại danh sách bộ thẻ"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Quay lại</span>
           </Link>
-          <div className="hidden md:flex items-center gap-1.5">
-            {topicName ? (
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                Chủ điểm: {topicName}
-              </span>
-            ) : (
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
-                {notebookName || "ÔN TẬP ĐA NĂNG"}
-              </span>
-            )}
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-bold text-[#0F172A] line-clamp-1 max-w-[150px] sm:max-w-xs">
+              {topicName ? `${notebookName || "Ôn tập"} · ${topicName}` : (notebookName || "Ôn tập theo chủ đề")}
+            </span>
           </div>
         </div>
 

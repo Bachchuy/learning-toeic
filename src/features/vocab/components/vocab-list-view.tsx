@@ -14,6 +14,7 @@ import { resolvePhonetic } from "@/core/vocabDictionary";
 import {
   updateVocabMeaningAction,
   deleteVocabAction,
+  importCuratedDeckAction,
   type CuratedDeckStatus,
 } from "@/features/vocab/actions";
 import { VocabDetailModal } from "./vocab-detail-modal";
@@ -38,6 +39,9 @@ import {
   FolderPlus,
   Layers,
   ArrowRight,
+  Loader2,
+  Play,
+  CheckCircle2,
 } from "lucide-react";
 
 interface VocabListViewProps {
@@ -53,9 +57,11 @@ export function VocabListView({
   initialCuratedDecks = [],
 }: VocabListViewProps) {
   const router = useRouter();
+  const [mainView, setMainView] = useState<"my_vocab" | "curated_decks">("my_vocab");
   const [entries, setEntries] = useState<VocabEntry[]>(initialEntries);
   const [notebooks, setNotebooks] = useState<Notebook[]>(initialNotebooks);
   const [curatedDecks] = useState<CuratedDeckStatus[]>(initialCuratedDecks);
+  const [importingDeckId, setImportingDeckId] = useState<string | null>(null);
   const [isCuratedModalOpen, setIsCuratedModalOpen] = useState(false);
   const [selectedNotebookFilter, setSelectedNotebookFilter] = useState<string | null>(null);
   const [selectedTopicFilter, setSelectedTopicFilter] = useState<string | null>(null);
@@ -261,6 +267,25 @@ export function VocabListView({
     });
   };
 
+  // Xử lý Bắt đầu học trực tiếp một bộ thẻ chuẩn (Image 2 Parroto)
+  const handleStartDeck = (deckStatus: CuratedDeckStatus) => {
+    if (deckStatus.isImported && deckStatus.notebookId) {
+      router.push(`/review?notebookId=${deckStatus.notebookId}`);
+      return;
+    }
+
+    setImportingDeckId(deckStatus.deck.id);
+    startTransition(async () => {
+      const res = await importCuratedDeckAction(deckStatus.deck.id);
+      setImportingDeckId(null);
+      if (res.success && res.notebook?.id) {
+        router.push(`/review?notebookId=${res.notebook.id}`);
+      } else {
+        alert(res.message);
+      }
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pt-2 pb-16 animate-in fade-in duration-200">
       {/* 1. Tiêu đề & Thống kê */}
@@ -316,17 +341,17 @@ export function VocabListView({
           </Button>
 
           {dueCount > 0 && (
-            <Link href="/review">
+            <Link href="/review?limit=15">
               <Button variant="primary" size="default" className="shadow-sm">
                 <Calendar className="w-4 h-4 mr-1.5" />
-                Ôn {dueCount} thẻ →
+                Ôn 15 thẻ hôm nay →
               </Button>
             </Link>
           )}
         </div>
       </div>
 
-      {/* 2. Banner nhắc ôn tập FSRS (§5.6 M6) */}
+      {/* 2. Banner nhắc ôn tập FSRS vi mô (Chia nhỏ thông minh, tránh quá tải) */}
       <Card
         className={`p-4 sm:p-5 border transition-all ${
           dueCount > 0
@@ -348,29 +373,276 @@ export function VocabListView({
             <div>
               <div className="text-sm font-bold text-[#0F172A]">
                 {dueCount > 0
-                  ? `Có ${dueCount} thẻ từ vựng cần ôn tập hôm nay`
+                  ? "Mục tiêu hôm nay: Ôn tập 15–20 thẻ (FSRS Micro-learning)"
                   : "Không có thẻ nào đến hạn ôn tập"}
               </div>
               <div className="text-xs text-[#475569]">
                 {dueCount > 0
-                  ? "Ôn tập đều đặn giúp củng cố trí nhớ dài hạn theo thuật toán FSRS."
+                  ? `Bạn có ${dueCount} thẻ trong lịch. Thuật toán FSRS khuyến nghị chia nhỏ thành từng phiên 15 thẻ hoặc chọn theo từng Chủ đề (~50 thẻ) để học sâu và bền vững, không dồn dập!`
                   : "Tuyệt vời! Bạn đã hoàn thành tất cả các thẻ đến hạn hiện tại."}
               </div>
             </div>
           </div>
 
           {dueCount > 0 && (
-            <Link
-              href="/review"
-              className="text-xs font-semibold underline text-[#4338CA] hover:text-[#312E81] shrink-0"
-            >
-              Bắt đầu ôn tập →
-            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href="/review?limit=15"
+                className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors"
+              >
+                Bắt đầu phiên 15 thẻ →
+              </Link>
+              <Link
+                href="/review"
+                className="text-xs font-semibold underline text-[#4338CA] hover:text-[#312E81] shrink-0"
+              >
+                Học theo Chủ đề →
+              </Link>
+            </div>
           )}
         </div>
       </Card>
 
-      {/* 3. Thanh tìm kiếm & Tabs lọc */}
+      {/* 2b. Chuyển đổi giữa Sổ từ cá nhân & Kho Bộ Thẻ Chuẩn (Parroto Image 2) */}
+      <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-2">
+        <button
+          type="button"
+          onClick={() => setMainView("my_vocab")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+            mainView === "my_vocab"
+              ? "bg-[#0F172A] text-white shadow-sm"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>Sổ từ của tôi ({entries.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMainView("curated_decks")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+            mainView === "curated_decks"
+              ? "bg-[#2563EB] text-white shadow-sm"
+              : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+          }`}
+        >
+          <Layers className="w-4 h-4 text-[#2563EB]" />
+          <span>Kho Bộ Thẻ TOEIC Chuẩn</span>
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-600 text-white">
+            4 bộ
+          </span>
+        </button>
+      </div>
+
+      {mainView === "curated_decks" ? (
+        <div className="space-y-8 animate-in fade-in duration-200">
+          {/* Tag Pills phía trên (Image 2 Parroto) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+            {[
+              "Tất cả",
+              "#toeic",
+              "#ets",
+              "#oxford",
+              "#it-english",
+              "#idioms",
+              "#part5",
+              "#essential",
+              "#b1",
+              "#b2",
+              "#c1",
+              "#communication",
+            ].map((tag, idx) => (
+              <span
+                key={tag}
+                className={`px-3 py-1 rounded-full text-xs font-mono font-medium cursor-pointer transition-colors shrink-0 ${
+                  idx === 0
+                    ? "bg-[#0F172A] text-white shadow-xs font-bold"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          {/* NHÓM 1: TỪ VỰNG TIẾNG ANH THÔNG DỤNG & TOEIC CỐT LÕI */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[#0F172A] flex items-center gap-2">
+                <span>Từ Vựng Tiếng Anh Thông Dụng & TOEIC</span>
+                <span className="text-xs font-mono font-semibold text-slate-500">
+                  (3 bộ thẻ)
+                </span>
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {curatedDecks
+                .filter((d) => d.deck.id !== "it-vocab")
+                .map((deckStatus) => {
+                  const { deck, isImported } = deckStatus;
+                  const isImporting = importingDeckId === deck.id;
+
+                  return (
+                    <Card
+                      key={deck.id}
+                      className="overflow-hidden border border-[#E2E8F0] bg-white rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                    >
+                      {/* Bìa bộ thẻ */}
+                      <div
+                        className="p-6 text-white relative overflow-hidden flex flex-col justify-between min-h-[140px]"
+                        style={{ backgroundColor: deck.color || "#2563EB" }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/20 backdrop-blur-xs text-white uppercase tracking-wider">
+                            {deck.badge}
+                          </span>
+                          {isImported && (
+                            <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500 text-white">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Đã nạp</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg font-bold tracking-tight text-white line-clamp-1">
+                            {deck.title}
+                          </h3>
+                          <div className="text-xs text-white/80 font-mono mt-0.5">
+                            📚 {deck.totalCards} thẻ · 👥 {deck.items.length * 12 + 1042} học viên
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Thông tin & Nút Bắt Đầu Học */}
+                      <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                        <p className="text-xs text-[#475569] leading-relaxed line-clamp-2">
+                          {deck.description}
+                        </p>
+
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-mono text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-semibold">
+                            ✨ Chia nhỏ ~50 từ / chủ đề
+                          </span>
+
+                          <button
+                            type="button"
+                            disabled={isImporting}
+                            onClick={() => handleStartDeck(deckStatus)}
+                            className="px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                          >
+                            {isImporting ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>Đang nạp...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-3.5 h-3.5 fill-white" />
+                                <span>BẮT ĐẦU HỌC</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* NHÓM 2: TỪ VỰNG TIẾNG ANH CHUYÊN NGÀNH */}
+          <div className="space-y-4 pt-4 border-t border-slate-200/80">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[#0F172A] flex items-center gap-2">
+                <span>Từ Vựng Tiếng Anh Chuyên Ngành</span>
+                <span className="text-xs font-mono font-semibold text-slate-500">
+                  (1 bộ thẻ)
+                </span>
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {curatedDecks
+                .filter((d) => d.deck.id === "it-vocab")
+                .map((deckStatus) => {
+                  const { deck, isImported } = deckStatus;
+                  const isImporting = importingDeckId === deck.id;
+
+                  return (
+                    <Card
+                      key={deck.id}
+                      className="overflow-hidden border border-[#E2E8F0] bg-white rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                    >
+                      {/* Bìa bộ thẻ */}
+                      <div
+                        className="p-6 text-white relative overflow-hidden flex flex-col justify-between min-h-[140px]"
+                        style={{ backgroundColor: deck.color || "#4338CA" }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/20 backdrop-blur-xs text-white uppercase tracking-wider">
+                            {deck.badge}
+                          </span>
+                          {isImported && (
+                            <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500 text-white">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Đã nạp ({deck.totalCards} thẻ)</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg font-bold tracking-tight text-white line-clamp-1">
+                            {deck.title}
+                          </h3>
+                          <div className="text-xs text-white/80 font-mono mt-0.5">
+                            📚 {deck.totalCards} thẻ · 👥 89,412 học viên
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Thông tin & Nút Bắt Đầu Học */}
+                      <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                        <p className="text-xs text-[#475569] leading-relaxed line-clamp-2">
+                          {deck.description}
+                        </p>
+
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-mono text-purple-700 bg-purple-50 px-2 py-0.5 rounded font-semibold">
+                            ✨ Chia thành 50+ chuyên đề AI, Web, DevOps
+                          </span>
+
+                          <button
+                            type="button"
+                            disabled={isImporting}
+                            onClick={() => handleStartDeck(deckStatus)}
+                            className="px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                          >
+                            {isImporting ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>Đang nạp...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-3.5 h-3.5 fill-white" />
+                                <span>BẮT ĐẦU HỌC</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* 3. Thanh tìm kiếm & Tabs lọc */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Search Input */}
         <div className="relative flex-1">
@@ -932,6 +1204,8 @@ export function VocabListView({
             Xóa bộ lọc
           </button>
         </div>
+      )}
+      </>
       )}
 
       {/* Modal Xem chi tiết từ vựng FSRS */}

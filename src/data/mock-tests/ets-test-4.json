@@ -1,0 +1,2827 @@
+{
+  "id": "4b82667d-dbd0-4e33-98bf-8b21f247e210",
+  "slug": "ets-2024-full-test-4",
+  "title": "ETS TOEIC 2024 - Full Practice Test 4",
+  "description": "Đề thi thử TOEIC 2024 Test 4 - Bộ đề phân loại cao cấp với các ngữ cảnh kinh doanh, logistics và hợp đồng thương mại quốc tế. Mục tiêu 850-900+.",
+  "exam_type": "full_test",
+  "target_score": 900,
+  "duration_minutes": 120,
+  "total_questions": 200,
+  "parts_summary": {
+    "part1": 6,
+    "part2": 25,
+    "part3": 39,
+    "part4": 30,
+    "part5": 30,
+    "part6": 16,
+    "part7": 54,
+    "totalListening": 100,
+    "totalReading": 100,
+    "totalQuestions": 200
+  },
+  "content": {
+    "listening": {
+      "part1": [
+        {
+          "id": "t4_p1_01",
+          "scene": "Khu bán cây ngoài trời của một trung tâm cây cảnh (garden center). Rất nhiều chậu cây nhỏ được xếp thẳng hàng trên các kệ gỗ nhiều tầng. Trong ảnh không có người. Một chiếc xe đẩy hàng trống đỗ ở lối đi; một vòi tưới nước được cuộn gọn, treo trên một cây cột.",
+          "options": [
+            "A woman is watering some plants.",
+            "Some potted plants have been lined up on shelves.",
+            "A hose is being unrolled across a walkway.",
+            "A cart is loaded with bags of soil."
+          ],
+          "audioScript": "Khu bán cây ngoài trời của một trung tâm cây cảnh (garden center). Rất nhiều chậu cây nhỏ được xếp thẳng hàng trên các kệ gỗ nhiều tầng. Trong ảnh không có người. Một chiếc xe đẩy hàng trống đỗ ở lối đi; một vòi tưới nước được cuộn gọn, treo trên một cây cột."
+        },
+        {
+          "id": "t4_p1_02",
+          "scene": "Trong một phòng trưng bày tranh (art gallery) có tường trắng, một người đàn ông đứng trên một chiếc thang thấp, dùng hai tay chỉnh lại cho ngay một khung tranh lớn đang treo trên tường. Dưới sàn cạnh chân thang có một hộp dụng cụ đang mở nắp. Không có khách tham quan nào trong phòng.",
+          "options": [
+            "He's wrapping a picture frame in paper.",
+            "Some visitors are admiring the artwork.",
+            "A toolbox has been closed and put away.",
+            "He's adjusting the position of a frame."
+          ],
+          "audioScript": "Trong một phòng trưng bày tranh (art gallery) có tường trắng, một người đàn ông đứng trên một chiếc thang thấp, dùng hai tay chỉnh lại cho ngay một khung tranh lớn đang treo trên tường. Dưới sàn cạnh chân thang có một hộp dụng cụ đang mở nắp. Không có khách tham quan nào trong phòng."
+        },
+        {
+          "id": "t4_p1_03",
+          "scene": "Tại một trạm xe buýt bên đường, vài hành khách đang xếp hàng trước cửa trước đang mở của một chiếc xe buýt; người đứng đầu hàng đang bước lên bậc xe. Tài xế ngồi ở ghế lái bên trong xe. Bên phải có mái che chờ xe, băng ghế dưới mái che trống, không ai ngồi.",
+          "options": [
+            "Passengers are boarding a bus.",
+            "A driver is collecting tickets on the sidewalk.",
+            "Some people are seated in a waiting area.",
+            "A bus is pulling away from the curb."
+          ],
+          "audioScript": "Tại một trạm xe buýt bên đường, vài hành khách đang xếp hàng trước cửa trước đang mở của một chiếc xe buýt; người đứng đầu hàng đang bước lên bậc xe. Tài xế ngồi ở ghế lái bên trong xe. Bên phải có mái che chờ xe, băng ghế dưới mái che trống, không ai ngồi."
+        },
+        {
+          "id": "t4_p1_04",
+          "scene": "Bên trong một chợ đầu mối bán sỉ, nhiều thùng gỗ chứa đầy cà chua và ớt chuông được chồng lên nhau trên nền xi măng. Một người đàn ông đang dùng xe nâng tay kéo một pallet thùng hàng dọc lối đi. Vài tấm bảng giá viết tay đã được gắn sẵn trên các thùng. Không có xe tải hay cân trong ảnh.",
+          "options": [
+            "Some crates are being loaded onto a truck.",
+            "A man is weighing some vegetables on a scale.",
+            "Some produce has been stacked in containers.",
+            "A man is writing on a price sign."
+          ],
+          "audioScript": "Bên trong một chợ đầu mối bán sỉ, nhiều thùng gỗ chứa đầy cà chua và ớt chuông được chồng lên nhau trên nền xi măng. Một người đàn ông đang dùng xe nâng tay kéo một pallet thùng hàng dọc lối đi. Vài tấm bảng giá viết tay đã được gắn sẵn trên các thùng. Không có xe tải hay cân trong ảnh."
+        },
+        {
+          "id": "t4_p1_05",
+          "scene": "Trong một văn phòng hành chính của bệnh viện, hai người phụ nữ ngồi đối diện nhau ở một bàn làm việc. Một người đang chỉ tay vào màn hình máy tính xách tay, người còn lại nhìn theo. Phía sau là dãy tủ hồ sơ đều đang đóng; một chậu cây nhỏ đặt sẵn trên nóc tủ.",
+          "options": [
+            "One of the women is opening a file drawer.",
+            "They're shaking hands across a desk.",
+            "A plant is being placed on a cabinet.",
+            "One of the women is pointing at a screen."
+          ],
+          "audioScript": "Trong một văn phòng hành chính của bệnh viện, hai người phụ nữ ngồi đối diện nhau ở một bàn làm việc. Một người đang chỉ tay vào màn hình máy tính xách tay, người còn lại nhìn theo. Phía sau là dãy tủ hồ sơ đều đang đóng; một chậu cây nhỏ đặt sẵn trên nóc tủ."
+        },
+        {
+          "id": "t4_p1_06",
+          "scene": "Trong một xưởng rang cà phê, một người đàn ông đeo tạp dề đang dùng một cái xẻng nhỏ xúc hạt cà phê từ một bao tải lớn sang một cái xô kim loại. Bên cạnh anh là một máy rang cà phê cỡ lớn đang tắt. Trên kệ phía sau xếp sẵn các túi cà phê đã đóng gói kín.",
+          "options": [
+            "He's pouring coffee into some cups.",
+            "He's scooping beans out of a sack.",
+            "He's sealing some bags at a counter.",
+            "He's repairing a roasting machine."
+          ],
+          "audioScript": "Trong một xưởng rang cà phê, một người đàn ông đeo tạp dề đang dùng một cái xẻng nhỏ xúc hạt cà phê từ một bao tải lớn sang một cái xô kim loại. Bên cạnh anh là một máy rang cà phê cỡ lớn đang tắt. Trên kệ phía sau xếp sẵn các túi cà phê đã đóng gói kín."
+        }
+      ],
+      "part2": [
+        {
+          "id": "t4_p2_07",
+          "stem": "Who's in charge of renewing the office lease?",
+          "options": [
+            "Ms. Patel handled it last year.",
+            "Yes, it expires in March.",
+            "A larger conference room."
+          ]
+        },
+        {
+          "id": "t4_p2_08",
+          "stem": "When will the new bus schedule take effect?",
+          "options": [
+            "At the main terminal.",
+            "The council hasn't approved it yet.",
+            "Every twenty minutes."
+          ]
+        },
+        {
+          "id": "t4_p2_09",
+          "stem": "Why was the gallery opening moved to Thursday?",
+          "options": [
+            "Yes, it opens at seven.",
+            "Mostly paintings and sculptures.",
+            "The artist's flight was delayed."
+          ]
+        },
+        {
+          "id": "t4_p2_10",
+          "stem": "Would you like me to send the claim forms by e-mail or by mail?",
+          "options": [
+            "Yes, I'd like that.",
+            "The insurance company called.",
+            "Whichever is faster."
+          ]
+        },
+        {
+          "id": "t4_p2_11",
+          "stem": "Haven't the coffee samples from Colombia arrived yet?",
+          "options": [
+            "They're being held at customs.",
+            "Yes, a medium roast, please.",
+            "I've never been there."
+          ]
+        },
+        {
+          "id": "t4_p2_12",
+          "stem": "How much did we spend on the garden center's spring advertising?",
+          "options": [
+            "About three weeks ago.",
+            "The figures are in the shared folder.",
+            "Mostly flowering shrubs."
+          ]
+        },
+        {
+          "id": "t4_p2_13",
+          "stem": "The dishwasher prototype failed its noise test again.",
+          "options": [
+            "At the testing facility downstairs.",
+            "Maybe the engineers should check the motor mount.",
+            "Yes, I washed them already."
+          ]
+        },
+        {
+          "id": "t4_p2_14",
+          "stem": "Could you cover my shift at the reception desk on Saturday?",
+          "options": [
+            "The desk was delivered on Friday.",
+            "Yes, it was covered in the newsletter.",
+            "I'm visiting my parents that weekend."
+          ]
+        },
+        {
+          "id": "t4_p2_15",
+          "stem": "Where are we holding the client workshop next month?",
+          "options": [
+            "We're still comparing a few venues.",
+            "About forty participants.",
+            "It went very well, thanks."
+          ]
+        },
+        {
+          "id": "t4_p2_16",
+          "stem": "You've reviewed the hospital's new visitor policy, haven't you?",
+          "options": [
+            "Visiting hours are over.",
+            "No, he's a new patient.",
+            "I've only had time to skim it."
+          ]
+        },
+        {
+          "id": "t4_p2_17",
+          "stem": "Should we order more bags of potting soil or wait until the shipment arrives?",
+          "options": [
+            "Yes, the soil is very rich.",
+            "We have plenty in the back room.",
+            "A twenty-kilogram bag."
+          ]
+        },
+        {
+          "id": "t4_p2_18",
+          "stem": "Why don't we ask the city council for a larger budget?",
+          "options": [
+            "They've already finalized this year's numbers.",
+            "Because the meeting was canceled.",
+            "On the third floor of city hall."
+          ]
+        },
+        {
+          "id": "t4_p2_19",
+          "stem": "Which supplier gave us the lowest quote for the display cases?",
+          "options": [
+            "I thought you were collecting those.",
+            "Yes, they're quite low.",
+            "In the main exhibition room."
+          ]
+        },
+        {
+          "id": "t4_p2_20",
+          "stem": "Is the wholesale market open to the public on weekends?",
+          "options": [
+            "Fresh fruit and vegetables.",
+            "No, I'll close the window.",
+            "Only on Sunday mornings."
+          ]
+        },
+        {
+          "id": "t4_p2_21",
+          "stem": "How long will the consultants be on site?",
+          "options": [
+            "In the conference room on the fourth floor.",
+            "Until they finish interviewing the department heads.",
+            "Yes, we've hired them."
+          ]
+        },
+        {
+          "id": "t4_p2_22",
+          "stem": "I can't find the policy number on this renewal notice.",
+          "options": [
+            "The new policy starts next week.",
+            "It's printed in the upper right corner.",
+            "Sure, I'll renew my membership."
+          ]
+        },
+        {
+          "id": "t4_p2_23",
+          "stem": "Didn't Harper's Bakery order the dark roast again this month?",
+          "options": [
+            "They switched to a lighter blend.",
+            "No, it's not too dark in here.",
+            "Two pounds per bag."
+          ]
+        },
+        {
+          "id": "t4_p2_24",
+          "stem": "Who's going to give the board members a tour of the new wing?",
+          "options": [
+            "It's on the east side of the hospital.",
+            "The board meeting went smoothly.",
+            "The director said she'd do it herself."
+          ]
+        },
+        {
+          "id": "t4_p2_25",
+          "stem": "What time does the last express bus leave for the airport?",
+          "options": [
+            "From platform six.",
+            "It costs twelve dollars.",
+            "The timetable changed this week, so let me check."
+          ]
+        },
+        {
+          "id": "t4_p2_26",
+          "stem": "Let's display the new watercolors near the entrance.",
+          "options": [
+            "That area gets too much direct sunlight.",
+            "Several colors are available.",
+            "The entrance fee is ten dollars."
+          ]
+        },
+        {
+          "id": "t4_p2_27",
+          "stem": "Has the refrigerator assembly line been running at full capacity?",
+          "options": [
+            "The refrigerator is in the break room.",
+            "Not since two of the machines were shut down for repairs.",
+            "Yes, it was a full-time position."
+          ]
+        },
+        {
+          "id": "t4_p2_28",
+          "stem": "Would you mind reviewing my proposal before I send it to the client?",
+          "options": [
+            "No, the client didn't mind.",
+            "A proposal for the new office.",
+            "Can it wait until after lunch?"
+          ]
+        },
+        {
+          "id": "t4_p2_29",
+          "stem": "The garden center's delivery truck is still in the repair shop.",
+          "options": [
+            "Then we'll have to postpone this afternoon's orders.",
+            "I bought some tulip bulbs there.",
+            "It's a large shopping center."
+          ]
+        },
+        {
+          "id": "t4_p2_30",
+          "stem": "Where can I get my parking ticket validated?",
+          "options": [
+            "Yes, it's valid for one year.",
+            "Just show it at the front desk.",
+            "About five dollars an hour."
+          ]
+        },
+        {
+          "id": "t4_p2_31",
+          "stem": "Why hasn't the claims department responded to Mr. Ortiz?",
+          "options": [
+            "To file an insurance claim.",
+            "No, he hasn't called yet.",
+            "Didn't you see the e-mail they sent this morning?"
+          ]
+        }
+      ],
+      "part3": [
+        {
+          "id": "t4_p3_c1",
+          "lines": [
+            {
+              "speaker": "M",
+              "text": "Thanks for calling Brightline Insurance. This is Kevin. How can I help you?"
+            },
+            {
+              "speaker": "W",
+              "text": "Hi. Last week I filed a claim for water damage in my kitchen. A pipe burst under the sink while I was away. Now I've received a letter saying my claim is on hold, but it doesn't say why."
+            },
+            {
+              "speaker": "M",
+              "text": "Let me pull up your file. OK, I see. Before we can process anything, we need a repair estimate from a licensed plumber. The invoice you sent us was from a general handyman."
+            },
+            {
+              "speaker": "W",
+              "text": "Oh, I didn't realize that mattered. He's the one who actually fixed the pipe."
+            },
+            {
+              "speaker": "M",
+              "text": "That's fine for the repair itself, but the assessment has to be signed by a licensed professional. Once you have one, just upload it through our customer portal."
+            },
+            {
+              "speaker": "W",
+              "text": "All right. My neighbor works for a plumbing company, so I'll ask her about it tonight."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_32",
+              "stem": "What caused the damage the woman mentions?",
+              "options": [
+                "A severe storm",
+                "A plumbing failure",
+                "A kitchen fire",
+                "A faulty appliance"
+              ]
+            },
+            {
+              "id": "t4_p3_33",
+              "stem": "Why has the woman's claim been put on hold?",
+              "options": [
+                "A payment has not been received.",
+                "A form is missing her signature.",
+                "Her policy has expired.",
+                "A document was prepared by an unlicensed worker."
+              ]
+            },
+            {
+              "id": "t4_p3_34",
+              "stem": "What will the woman most likely do next?",
+              "options": [
+                "Ask an acquaintance for assistance",
+                "Visit a local branch office",
+                "Upload photographs of the damage",
+                "Request a different adjuster"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c2",
+          "lines": [
+            {
+              "speaker": "W",
+              "text": "Gary, the new patient check-in kiosks are supposed to go live in the main lobby on Monday. Have the volunteers been trained to help people use them yet?"
+            },
+            {
+              "speaker": "M",
+              "text": "Not yet. The vendor was going to run a training session this Thursday, but they just e-mailed to say their trainer is sick."
+            },
+            {
+              "speaker": "W",
+              "text": "Thursday's our last chance before the launch. We can't open the kiosks if no one knows how they work."
+            },
+            {
+              "speaker": "M",
+              "text": "Well, I sat in on the demonstration they gave the managers last month."
+            },
+            {
+              "speaker": "W",
+              "text": "Really? Then could you walk the volunteers through it? Just try to keep it under an hour, since most of them only work morning shifts."
+            },
+            {
+              "speaker": "M",
+              "text": "Sure. I'll put together a short handout, too, so they have something to refer to afterward."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_35",
+              "stem": "What are the speakers mainly discussing?",
+              "options": [
+                "Recruiting additional volunteers",
+                "Relocating a reception area",
+                "Preparing staff for new self-service machines",
+                "Choosing a new equipment vendor"
+              ]
+            },
+            {
+              "id": "t4_p3_36",
+              "stem": "Why does the man say, \"I sat in on the demonstration they gave the managers last month\"?",
+              "options": [
+                "To explain why he missed a meeting",
+                "To indicate that he could lead a training session",
+                "To complain about a vendor's presentation",
+                "To recommend that managers be retrained"
+              ]
+            },
+            {
+              "id": "t4_p3_37",
+              "stem": "What does the man say he will do?",
+              "options": [
+                "Contact the vendor again",
+                "Change some volunteers' shifts",
+                "Set up the kiosks in the lobby",
+                "Prepare some written instructions"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c3",
+          "lines": [
+            {
+              "speaker": "M",
+              "text": "Lena, Rosa, thanks for coming. I just heard from Dalton's Cafés. They'd like to serve our beans at all twelve of their locations starting in June."
+            },
+            {
+              "speaker": "W",
+              "text": "That's great news. But with our current roaster, we can barely keep up with the orders we already have."
+            },
+            {
+              "speaker": "W2",
+              "text": "She's right. We're already running it six days a week. To fill an order that size, we'd need a second machine."
+            },
+            {
+              "speaker": "M",
+              "text": "I've looked into that. A new roaster would take at least four months to be delivered."
+            },
+            {
+              "speaker": "W",
+              "text": "What about the roastery on Pine Street that closed last month? I heard they're selling off their equipment."
+            },
+            {
+              "speaker": "W2",
+              "text": "I know the former owner. I'll call him this afternoon and ask what condition their roaster is in."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_38",
+              "stem": "What news does the man share?",
+              "options": [
+                "A café chain has purchased new equipment.",
+                "A business wants to offer the company's coffee.",
+                "A competitor has closed down.",
+                "A shipment will arrive in June."
+              ]
+            },
+            {
+              "id": "t4_p3_39",
+              "stem": "What problem do the women mention?",
+              "options": [
+                "A machine needs to be repaired.",
+                "Employees are working too much overtime.",
+                "Some beans are out of stock.",
+                "Current equipment cannot handle more orders."
+              ]
+            },
+            {
+              "id": "t4_p3_40",
+              "stem": "What does one of the women say she will do this afternoon?",
+              "options": [
+                "Inquire about some secondhand equipment",
+                "Visit a café location",
+                "Place an order for a new roaster",
+                "Interview a former employee"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c4",
+          "lines": [
+            {
+              "speaker": "W",
+              "text": "Hello. I'm calling on behalf of the Riverside Business Association. I'd like to request time to speak at next Tuesday's city council meeting."
+            },
+            {
+              "speaker": "M",
+              "text": "Certainly. Is this about a specific item on the agenda?"
+            },
+            {
+              "speaker": "W",
+              "text": "Yes, the proposal to make Front Street a pedestrian-only zone. Many of our members own shops there, and they're worried their customers won't be able to park anywhere nearby."
+            },
+            {
+              "speaker": "M",
+              "text": "I understand. Public comments are limited to three minutes per speaker, and you'll need to submit a request form on our Web site by Friday at noon."
+            },
+            {
+              "speaker": "W",
+              "text": "Three minutes isn't very long. Could I also submit a written statement?"
+            },
+            {
+              "speaker": "M",
+              "text": "Of course. Written statements go into the meeting packet that every council member receives in advance, so they'll be able to read it in full."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_41",
+              "stem": "Who most likely is the woman?",
+              "options": [
+                "A city council member",
+                "A shopper on Front Street",
+                "A representative of a business group",
+                "A parking lot manager"
+              ]
+            },
+            {
+              "id": "t4_p3_42",
+              "stem": "What concern does the woman mention?",
+              "options": [
+                "Shoppers may have trouble finding parking.",
+                "Rents on Front Street are rising.",
+                "A meeting has been scheduled at an inconvenient time.",
+                "Construction work will be noisy."
+              ]
+            },
+            {
+              "id": "t4_p3_43",
+              "stem": "Why does the man mention a meeting packet?",
+              "options": [
+                "To ask the woman to pick up a document",
+                "To explain how her written comments will be seen",
+                "To point out that the agenda has changed",
+                "To recommend that she review some materials"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c5",
+          "lines": [
+            {
+              "speaker": "M",
+              "text": "Priya, how did the presentation to the hotel group go this morning?"
+            },
+            {
+              "speaker": "W",
+              "text": "Mostly well. They liked our recommendations for cutting energy costs. But their finance director asked for a detailed timeline showing when they'd start seeing savings, and we didn't have one ready."
+            },
+            {
+              "speaker": "M",
+              "text": "Hmm. When do they need it?"
+            },
+            {
+              "speaker": "W",
+              "text": "Before their board meets on the fifteenth. That's not much time, considering Jacob is on leave this week."
+            },
+            {
+              "speaker": "M",
+              "text": "Jacob built the cost model, didn't he?"
+            },
+            {
+              "speaker": "W",
+              "text": "He did. But I've been working with his spreadsheets for the past month, so I think I can manage. I'd just like someone to double-check my numbers before it goes out."
+            },
+            {
+              "speaker": "M",
+              "text": "Send it to me as soon as it's done. I'll make it a priority."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_44",
+              "stem": "Who most likely is the speakers' client?",
+              "options": [
+                "A hospitality company",
+                "An energy provider",
+                "A financial institution",
+                "A construction firm"
+              ]
+            },
+            {
+              "id": "t4_p3_45",
+              "stem": "What does the woman imply when she says, \"That's not much time, considering Jacob is on leave this week\"?",
+              "options": [
+                "She would like to postpone a board meeting.",
+                "A colleague should have attended the presentation.",
+                "A task will be difficult to finish by the deadline.",
+                "She needs approval to take time off."
+              ]
+            },
+            {
+              "id": "t4_p3_46",
+              "stem": "What does the man agree to do?",
+              "options": [
+                "Call the finance director",
+                "Lead a board presentation",
+                "Rebuild a cost model",
+                "Check some figures"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c6",
+          "lines": [
+            {
+              "speaker": "W",
+              "text": "Excuse me. I bought these tomato seedlings here about two weeks ago, and their leaves are already turning yellow. I've been watering them every single day."
+            },
+            {
+              "speaker": "M",
+              "text": "Hmm, that might actually be the problem. Tomatoes in containers don't usually need water every day this early in the season. Too much water causes exactly what you're describing."
+            },
+            {
+              "speaker": "W",
+              "text": "Oh, I had no idea. The plant tag didn't mention anything about that."
+            },
+            {
+              "speaker": "M",
+              "text": "Unfortunately, the tags are pretty basic. But we're holding a free workshop on vegetable gardening this Saturday morning. One of our horticulturists will cover watering schedules and soil drainage."
+            },
+            {
+              "speaker": "W",
+              "text": "That sounds useful. Do I need to sign up in advance?"
+            },
+            {
+              "speaker": "M",
+              "text": "I'd recommend it. Space is limited to twenty people. You can register at the customer service counter on your way out."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_47",
+              "stem": "Why has the woman come to the garden center?",
+              "options": [
+                "To return some damaged pots",
+                "To get advice about plants she bought",
+                "To purchase fertilizer",
+                "To inquire about a job opening"
+              ]
+            },
+            {
+              "id": "t4_p3_48",
+              "stem": "What does the man suggest is causing the problem?",
+              "options": [
+                "The containers are too small.",
+                "The plants are not getting enough sunlight.",
+                "The plants are being overwatered.",
+                "The soil is low in nutrients."
+              ]
+            },
+            {
+              "id": "t4_p3_49",
+              "stem": "What does the man recommend the woman do at the customer service counter?",
+              "options": [
+                "Enroll in a free class",
+                "Pick up a discount coupon",
+                "Exchange her seedlings",
+                "Request a printed watering guide"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c7",
+          "lines": [
+            {
+              "speaker": "M",
+              "text": "Hi, Denise. I've been going over last month's rider feedback. A lot of people on Route 14 are complaining that buses are passing the stop at Maple Hospital without stopping."
+            },
+            {
+              "speaker": "W",
+              "text": "I've heard that, too. That stop comes right after the construction zone on Grand Avenue. Drivers are behind schedule by the time they get there, so if no one's standing at the stop, they keep going."
+            },
+            {
+              "speaker": "M",
+              "text": "But people waiting inside the hospital can't see the bus coming. They need it to stop."
+            },
+            {
+              "speaker": "W",
+              "text": "Well, the construction's scheduled to finish in October."
+            },
+            {
+              "speaker": "M",
+              "text": "That's two months away. What if we moved the stop closer to the hospital's main entrance, so drivers can see people waiting?"
+            },
+            {
+              "speaker": "W",
+              "text": "That's worth considering. I'll talk to the hospital's facilities manager about whether there's room for a shelter there."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_50",
+              "stem": "What problem are the speakers discussing?",
+              "options": [
+                "Some buses are overcrowded.",
+                "Several vehicles have broken down.",
+                "Drivers are skipping a stop.",
+                "A fare increase has upset riders."
+              ]
+            },
+            {
+              "id": "t4_p3_51",
+              "stem": "Why does the man say, \"That's two months away\"?",
+              "options": [
+                "To correct a date the woman mentioned",
+                "To indicate that a solution is needed sooner",
+                "To point out that a project is ahead of schedule",
+                "To request an extension on a deadline"
+              ]
+            },
+            {
+              "id": "t4_p3_52",
+              "stem": "What will the woman most likely do next?",
+              "options": [
+                "Revise a route timetable",
+                "Hire additional drivers",
+                "Inspect a construction site",
+                "Consult a hospital employee"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c8",
+          "lines": [
+            {
+              "speaker": "W",
+              "text": "Raj, Victor, thanks for joining me. I want to talk about the complaints we've been getting about the Model 300 washing machine. Customers say the door latch breaks after just a few months."
+            },
+            {
+              "speaker": "M",
+              "text": "Yes, I've seen the reports. We traced it to the plastic piece that holds the latch in place. Our supplier switched to a cheaper material in January without telling us."
+            },
+            {
+              "speaker": "M2",
+              "text": "And our contract with that supplier doesn't expire until next year, so we can't simply change suppliers."
+            },
+            {
+              "speaker": "W",
+              "text": "Then let's at least take care of our customers. Could we offer free replacement latches made from the original material?"
+            },
+            {
+              "speaker": "M",
+              "text": "We could produce those ourselves. It'd take about two weeks to set up."
+            },
+            {
+              "speaker": "M2",
+              "text": "In the meantime, I'll draft a notice for our service centers so they know what to tell customers who call."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_53",
+              "stem": "What problem with the product does the woman mention?",
+              "options": [
+                "It is too noisy.",
+                "A part breaks too easily.",
+                "It uses too much water.",
+                "Its instructions are confusing."
+              ]
+            },
+            {
+              "id": "t4_p3_54",
+              "stem": "According to one of the men, what did a supplier do?",
+              "options": [
+                "It altered a component without notifying the company.",
+                "It raised its prices unexpectedly.",
+                "It delayed a shipment of parts.",
+                "It ended a contract early."
+              ]
+            },
+            {
+              "id": "t4_p3_55",
+              "stem": "What does the woman propose?",
+              "options": [
+                "Recalling all of the machines",
+                "Finding a different supplier",
+                "Providing replacement parts at no charge",
+                "Lengthening the product warranty"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c9",
+          "lines": [
+            {
+              "speaker": "W",
+              "text": "Marcus, the shipping company just called. The crates with Elena Ruiz's sculptures are being held at the port, and they won't be released until Thursday at the earliest."
+            },
+            {
+              "speaker": "M",
+              "text": "Thursday? The exhibition opens Friday evening. That would give us one day to unpack and install everything."
+            },
+            {
+              "speaker": "W",
+              "text": "I know. I was thinking we could open with just her paintings and drawings, and then add the sculptures the following week."
+            },
+            {
+              "speaker": "M",
+              "text": "The invitations specifically mention the sculptures, though. Many of the collectors are coming just to see them."
+            },
+            {
+              "speaker": "W",
+              "text": "That's true. Then what if we brought in extra installation staff on Thursday?"
+            },
+            {
+              "speaker": "M",
+              "text": "Good idea. I'll call the agency we used for the spring show. Their workers have experience handling large pieces."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_56",
+              "stem": "What problem does the woman report?",
+              "options": [
+                "An artist has canceled an appearance.",
+                "Some artwork was damaged in transit.",
+                "A delivery has been held up.",
+                "Some invitations contained errors."
+              ]
+            },
+            {
+              "id": "t4_p3_57",
+              "stem": "Why does the man say, \"The invitations specifically mention the sculptures, though\"?",
+              "options": [
+                "To suggest reprinting the invitations",
+                "To express doubt about the woman's suggestion",
+                "To praise the artist's recent work",
+                "To explain why few guests have replied"
+              ]
+            },
+            {
+              "id": "t4_p3_58",
+              "stem": "What does the man say he will do?",
+              "options": [
+                "Arrange for temporary workers",
+                "Call the port authorities",
+                "Postpone the opening reception",
+                "Inspect the sculptures for damage"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c10",
+          "lines": [
+            {
+              "speaker": "M",
+              "text": "Good morning. I run a small grocery store on Elm Street, and I'm interested in buying produce here at the wholesale market. Do I need some kind of membership?"
+            },
+            {
+              "speaker": "W",
+              "text": "You do. Only registered businesses can purchase from our vendors. You'll need to show your business license and fill out an application."
+            },
+            {
+              "speaker": "M",
+              "text": "I have my license with me. How long does approval usually take?"
+            },
+            {
+              "speaker": "W",
+              "text": "A day or two. But if you apply now, I can issue you a temporary pass so you can shop today."
+            },
+            {
+              "speaker": "M",
+              "text": "That would be great. I'm hoping to pick up some peaches. I've heard the vendors here charge less than my current distributor."
+            },
+            {
+              "speaker": "W",
+              "text": "They usually do. Just so you know, though, most of the best stock is gone by seven a.m."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_59",
+              "stem": "Who most likely is the man?",
+              "options": [
+                "A farmer",
+                "A delivery driver",
+                "A market vendor",
+                "A shop owner"
+              ]
+            },
+            {
+              "id": "t4_p3_60",
+              "stem": "What does the woman offer to provide?",
+              "options": [
+                "A short-term permit",
+                "A list of vendors",
+                "A copy of a license",
+                "A delivery schedule"
+              ]
+            },
+            {
+              "id": "t4_p3_61",
+              "stem": "What does the woman imply about the market?",
+              "options": [
+                "It is closed to the public on weekends.",
+                "Its prices have recently increased.",
+                "Shoppers who arrive late have fewer good options.",
+                "It plans to add more vendors."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c11",
+          "lines": [
+            {
+              "speaker": "W",
+              "text": "Hello, this is Grace from Fern Street Bakery. We've been ordering the Harbor House blend from you, but some of our customers have said they'd prefer something stronger with their pastries."
+            },
+            {
+              "speaker": "M",
+              "text": "Thanks for letting us know. Would you like to try one of our darker roasts?"
+            },
+            {
+              "speaker": "W",
+              "text": "I think so. But I'd rather not go over twenty-five dollars a kilogram. Our margins are already pretty tight."
+            },
+            {
+              "speaker": "M",
+              "text": "In that case, there's really only one option for you. I can include a free sample bag with your next order so you can test it first."
+            },
+            {
+              "speaker": "W",
+              "text": "That would be perfect. Also, could you ship that order a day earlier than usual? We'll be closed on Monday for the holiday."
+            },
+            {
+              "speaker": "M",
+              "text": "No problem. I'll schedule it for Friday."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_62",
+              "stem": "Why does the woman want to change her order?",
+              "options": [
+                "Her usual blend is no longer available.",
+                "Some customers want a bolder flavor.",
+                "She is opening a second bakery.",
+                "Her supplier has raised its prices."
+              ]
+            },
+            {
+              "id": "t4_p3_63",
+              "stem": "Look at the graphic. Which blend will the woman most likely try?",
+              "options": [
+                "Morning Light",
+                "Harbor House",
+                "Midnight Dock",
+                "Captain's Reserve"
+              ]
+            },
+            {
+              "id": "t4_p3_64",
+              "stem": "Why does the woman ask for an earlier delivery?",
+              "options": [
+                "She is hosting a special event.",
+                "She is running low on supplies.",
+                "Her delivery address has changed.",
+                "Her business will be closed on a particular day."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c12",
+          "lines": [
+            {
+              "speaker": "M",
+              "text": "Hi, I need a ticket to Port Halden for tomorrow. I have a job interview there at eleven-thirty, so I have to arrive before then."
+            },
+            {
+              "speaker": "W",
+              "text": "Let me check. I'm afraid the eight-thirty express is completely sold out."
+            },
+            {
+              "speaker": "M",
+              "text": "Oh, no. That's the one I was planning to take."
+            },
+            {
+              "speaker": "W",
+              "text": "There's still an earlier bus with plenty of seats. It takes a little longer, but you'd get there with time to spare."
+            },
+            {
+              "speaker": "M",
+              "text": "I guess that'll have to do. Is there anywhere to leave luggage at the Port Halden station? I'm going straight to a conference afterward, so I'll have a suitcase with me."
+            },
+            {
+              "speaker": "W",
+              "text": "Yes, there are lockers just inside the station entrance. They only take coins, though, so make sure you have some change."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_65",
+              "stem": "Why is the man traveling to Port Halden?",
+              "options": [
+                "To visit a relative",
+                "To meet with a potential employer",
+                "To give a presentation",
+                "To tour a factory"
+              ]
+            },
+            {
+              "id": "t4_p3_66",
+              "stem": "Look at the graphic. What time will the man's bus most likely leave?",
+              "options": [
+                "7:15 A.M.",
+                "8:30 A.M.",
+                "9:45 A.M.",
+                "11:00 A.M."
+              ]
+            },
+            {
+              "id": "t4_p3_67",
+              "stem": "What does the woman advise the man to do?",
+              "options": [
+                "Arrive at the station early",
+                "Reserve a locker in advance",
+                "Have some coins with him",
+                "Check his suitcase at the counter"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p3_c13",
+          "lines": [
+            {
+              "speaker": "M",
+              "text": "Nadia, have you registered for the staff training sessions yet? The deadline's tomorrow."
+            },
+            {
+              "speaker": "W",
+              "text": "Just the fire safety one so far. I meant to sign up for the billing software update, too, but I'll be at the regional health care conference in Denver that whole week."
+            },
+            {
+              "speaker": "M",
+              "text": "That's a problem. Everyone in our office has to complete that session before the new billing system is introduced in July."
+            },
+            {
+              "speaker": "W",
+              "text": "I realize that. I've already asked the trainer whether she could record her presentation so I can watch it when I get back."
+            },
+            {
+              "speaker": "M",
+              "text": "What did she say?"
+            },
+            {
+              "speaker": "W",
+              "text": "She thought it'd be fine, but she needs to get approval from her supervisor first."
+            }
+          ],
+          "questions": [
+            {
+              "id": "t4_p3_68",
+              "stem": "What does the man say about the billing software session?",
+              "options": [
+                "It is required for everyone in their office.",
+                "It has been moved to a larger room.",
+                "It is already fully booked.",
+                "It will be led by an outside consultant."
+              ]
+            },
+            {
+              "id": "t4_p3_69",
+              "stem": "Look at the graphic. When is the session that the woman will miss?",
+              "options": [
+                "May 20",
+                "June 4",
+                "June 17",
+                "June 29"
+              ]
+            },
+            {
+              "id": "t4_p3_70",
+              "stem": "What has the woman asked the trainer to do?",
+              "options": [
+                "Send her some handouts",
+                "Change the date of a session",
+                "Let her join a later session",
+                "Make a recording available to her"
+              ]
+            }
+          ]
+        }
+      ],
+      "part4": [
+        {
+          "id": "t4_p4_t1",
+          "type": "Telephone message",
+          "speaker": "W",
+          "script": "Hello, Mr. Okafor. This is Janet Lindqvist from Pinecrest Insurance, returning your call about your homeowner's policy. You asked whether setting up a home office would affect your coverage. Since you mentioned that you'll occasionally meet clients there, I'd recommend adding our business property endorsement. It covers work equipment such as computers and printers, as well as injuries to visitors who come for business purposes. Your current policy doesn't include either of those. The endorsement would add roughly fifteen dollars a month, but before I can give you an exact figure, I'll need a list of the equipment you plan to keep in the office. You can just e-mail it to me directly. Oh, and just so you know, our offices will be closed this Friday for system maintenance. Thanks, and I look forward to hearing from you.",
+          "questions": [
+            {
+              "id": "t4_p4_71",
+              "stem": "Why is the speaker calling?",
+              "options": [
+                "To follow up on a customer's inquiry",
+                "To report an error on a bill",
+                "To announce a change in rates",
+                "To confirm that a payment was received"
+              ]
+            },
+            {
+              "id": "t4_p4_72",
+              "stem": "What does the speaker ask Mr. Okafor to send?",
+              "options": [
+                "A signed contract",
+                "Photographs of his home",
+                "An inventory of some items",
+                "Proof of a business license"
+              ]
+            },
+            {
+              "id": "t4_p4_73",
+              "stem": "What does the speaker imply when she says, \"our offices will be closed this Friday for system maintenance\"?",
+              "options": [
+                "A payment will be processed late.",
+                "A policy cannot be changed online.",
+                "She will be working from home.",
+                "The listener should respond before the end of the week."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p4_t2",
+          "type": "Announcement",
+          "speaker": "M",
+          "script": "Attention, all vendors and buyers. This is an announcement from the Eastgate Wholesale Market management office. As many of you know, the north loading dock will be resurfaced beginning tomorrow. While the work is under way, all deliveries must use the south dock, which means trucks will need to enter from Harbor Road instead of Commerce Street. To keep traffic moving smoothly, we're asking vendors to schedule their deliveries in thirty-minute time slots. You can reserve a slot on the tablet outside the management office or by speaking with any staff member in an orange vest. Buyers, please be aware that the parking area beside the south dock will be closed to cars for the duration of the project. We apologize for any inconvenience. The resurfacing is expected to be completed by the end of next week.",
+          "questions": [
+            {
+              "id": "t4_p4_74",
+              "stem": "What will happen starting tomorrow?",
+              "options": [
+                "A new vendor will open a stall.",
+                "Work will begin on a loading area.",
+                "A street will be renamed.",
+                "Market hours will be shortened."
+              ]
+            },
+            {
+              "id": "t4_p4_75",
+              "stem": "What are vendors asked to do?",
+              "options": [
+                "Park on a different street",
+                "Wear orange identification vests",
+                "Report any damaged merchandise",
+                "Book a time for their deliveries"
+              ]
+            },
+            {
+              "id": "t4_p4_76",
+              "stem": "What are buyers informed about?",
+              "options": [
+                "A parking area will be unavailable.",
+                "Some prices will be reduced.",
+                "A shuttle bus will be provided.",
+                "A new entrance will open on Harbor Road."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p4_t3",
+          "type": "News report",
+          "speaker": "W",
+          "script": "In local news, the Hollis City Council voted last night to fund a new bicycle-sharing program. Beginning in the spring, residents will be able to rent bicycles from twenty stations located throughout downtown, with rides costing two dollars for the first half hour. Council member Alan Brooks, who proposed the program, said it's intended to ease congestion around the train station, where traffic has gotten worse since a large office complex opened on Bay Street. Not everyone was convinced, however. Several shop owners from Main Street spoke at the meeting, arguing that the stations would take up parking spaces their customers depend on. In response, the council agreed to hold a public workshop next month, where residents can look at maps of the proposed station sites and suggest changes. Details will be posted on the city's Web site.",
+          "questions": [
+            {
+              "id": "t4_p4_77",
+              "stem": "What is the news report mainly about?",
+              "options": [
+                "The opening of a new train station",
+                "The construction of an office complex",
+                "A shared transportation service",
+                "An increase in parking fees"
+              ]
+            },
+            {
+              "id": "t4_p4_78",
+              "stem": "According to Alan Brooks, what is the purpose of the program?",
+              "options": [
+                "To reduce traffic in a busy area",
+                "To attract more tourists downtown",
+                "To raise money for road repairs",
+                "To encourage healthier lifestyles"
+              ]
+            },
+            {
+              "id": "t4_p4_79",
+              "stem": "What will residents be able to do next month?",
+              "options": [
+                "Try out the bicycles for free",
+                "Vote on the council's decision",
+                "Apply for parking permits",
+                "Give feedback on proposed locations"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p4_t4",
+          "type": "Meeting excerpt",
+          "speaker": "M",
+          "script": "Before we wrap up, I'd like to share some results from our recent customer survey on the Aria countertop oven. Overall, people love how quickly it heats up, and many said they chose it because it fits easily on a crowded kitchen counter. The biggest complaint, though, was about the control panel. A lot of users said the icons are too small and difficult to understand without the manual. Now, I know the design team spent months on that panel. But two thousand customers responded. So starting next week, design and engineering will work together on a simplified layout with larger text labels. Before our meeting on Thursday, I'd like each of you to look over the sample responses I've uploaded to the shared drive, so we can discuss specific suggestions.",
+          "questions": [
+            {
+              "id": "t4_p4_80",
+              "stem": "What do customers like about the product?",
+              "options": [
+                "Its low price",
+                "Its quiet operation",
+                "Its range of colors",
+                "Its compact size"
+              ]
+            },
+            {
+              "id": "t4_p4_81",
+              "stem": "What does the speaker imply when he says, \"But two thousand customers responded\"?",
+              "options": [
+                "He is surprised that the survey was so popular.",
+                "The complaint is too widespread to ignore.",
+                "More staff are needed to analyze the results.",
+                "The survey should have been shorter."
+              ]
+            },
+            {
+              "id": "t4_p4_82",
+              "stem": "What are the listeners asked to do before Thursday?",
+              "options": [
+                "Read some customer comments",
+                "Submit new design proposals",
+                "Contact some survey participants",
+                "Test a revised control panel"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p4_t5",
+          "type": "Tour",
+          "speaker": "W",
+          "script": "Welcome to Copperleaf Coffee Roasters, and thank you for joining today's tour. We'll begin here in our storage room, where we keep unroasted beans from the twelve farms we buy from directly. You'll notice it's quite cool in here. That's because temperature and humidity have a big effect on how the beans age, and we want them to stay fresh until they're roasted. In a few minutes, we'll move to the roasting floor, where our head roaster, Daniel, will show you how he adjusts the heat during each batch. The machines get extremely hot, so please stay behind the yellow line at all times. At the end of the tour, you'll each taste three of our single-origin coffees and vote for your favorite. The winner will be featured as the coffee of the month at our café next door.",
+          "questions": [
+            {
+              "id": "t4_p4_83",
+              "stem": "Why is the storage room kept cool?",
+              "options": [
+                "To preserve the quality of the beans",
+                "To lower energy costs",
+                "To keep visitors comfortable",
+                "To prevent the machines from overheating"
+              ]
+            },
+            {
+              "id": "t4_p4_84",
+              "stem": "What are the listeners reminded to do?",
+              "options": [
+                "Wear protective clothing",
+                "Refrain from taking photographs",
+                "Keep a safe distance from equipment",
+                "Stay close to the tour group"
+              ]
+            },
+            {
+              "id": "t4_p4_85",
+              "stem": "What will the listeners' votes determine?",
+              "options": [
+                "Which farm will receive an award",
+                "Which coffee will be promoted at a café",
+                "Which roast will be discontinued",
+                "Who will lead the next tour"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p4_t6",
+          "type": "Advertisement",
+          "speaker": "M",
+          "script": "Is your yard ready for summer? At Greenhaven Garden Center, we have everything you need, from flowering shrubs to drought-resistant grasses. And this month, we're making it easier than ever to get started. Just bring us a photo and the measurements of your outdoor space, and one of our landscape designers will sketch a custom planting plan for you, completely free of charge. Buy the plants we recommend, and we'll deliver them to your door at no extra cost. Not sure what will grow well in your area? Every member of our sales staff has completed a regional gardening certification program, so they can tell you exactly which plants suit your soil and climate. Greenhaven is on Route 9, just past the Westbrook bus terminal. Stop by this weekend and enjoy a free glass of lemonade while you shop.",
+          "questions": [
+            {
+              "id": "t4_p4_86",
+              "stem": "What service is being offered for free?",
+              "options": [
+                "Weekly lawn mowing",
+                "Soil testing",
+                "A personalized garden design",
+                "Plant installation"
+              ]
+            },
+            {
+              "id": "t4_p4_87",
+              "stem": "What must customers do to receive free delivery?",
+              "options": [
+                "Purchase the suggested plants",
+                "Spend more than a certain amount",
+                "Live within the city limits",
+                "Shop on a weekend"
+              ]
+            },
+            {
+              "id": "t4_p4_88",
+              "stem": "What does the speaker say about the sales staff?",
+              "options": [
+                "They have worked at the store for many years.",
+                "They can be reached by phone.",
+                "They speak several languages.",
+                "They hold a professional qualification."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p4_t7",
+          "type": "Introduction",
+          "speaker": "W",
+          "script": "Good morning, everyone, and welcome to the second day of our client workshop. It's my pleasure to introduce our next speaker, Martin Feld, a senior partner here at Whitmore Consulting. Martin has spent the past fifteen years advising manufacturers on how to reorganize their supply chains, and last year he led the project that cut delivery times at Corvel Appliances by nearly forty percent. Today he'll be talking about how companies can prepare for sudden disruptions, such as port closures or shortages of raw materials. I've seen this presentation before, and I'll just say this: bring a notebook. After the session, Martin will stay for a question-and-answer period. Since we have such a large group today, please write your questions on the cards at your tables, and our staff will collect them during the break.",
+          "questions": [
+            {
+              "id": "t4_p4_89",
+              "stem": "Who is Martin Feld?",
+              "options": [
+                "A factory manager",
+                "A government official",
+                "A shipping executive",
+                "A business consultant"
+              ]
+            },
+            {
+              "id": "t4_p4_90",
+              "stem": "What does the speaker imply when she says, \"bring a notebook\"?",
+              "options": [
+                "The presentation will contain a lot of useful information.",
+                "The listeners will have to complete a written exercise.",
+                "The speaker forgot to prepare handouts.",
+                "Notebooks are being sold at the entrance."
+              ]
+            },
+            {
+              "id": "t4_p4_91",
+              "stem": "How are the listeners asked to submit questions?",
+              "options": [
+                "By sending an e-mail",
+                "By raising their hands",
+                "By writing them on cards",
+                "By using a mobile app"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p4_t8",
+          "type": "Announcement",
+          "speaker": "W",
+          "script": "Good afternoon, passengers, and thank you for traveling with Valley Line Coaches. This is your driver speaking. We've just been informed that part of Highway 30 has been closed because of an accident near Millbrook. To avoid long delays, we'll be taking a detour along the coastal road. This route is a bit longer, so we expect to arrive at Clayton Station about twenty-five minutes behind schedule. For those of you with connecting trains at Clayton, our dispatch office has already been in touch with the rail company, and the six-fifteen train to Ashford will wait for our bus. Because of the change, we won't be making our usual rest stop at Pine Ridge. However, there's a restroom at the back of the bus, and complimentary bottled water is available in the bin next to my seat.",
+          "questions": [
+            {
+              "id": "t4_p4_92",
+              "stem": "Why is the bus changing its route?",
+              "options": [
+                "A bridge is being repaired.",
+                "Part of a highway is inaccessible.",
+                "Severe weather is expected.",
+                "A passenger has requested an extra stop."
+              ]
+            },
+            {
+              "id": "t4_p4_93",
+              "stem": "What has the dispatch office done?",
+              "options": [
+                "Booked hotel rooms for passengers",
+                "Sent a replacement bus",
+                "Coordinated with a rail company",
+                "Arranged partial refunds"
+              ]
+            },
+            {
+              "id": "t4_p4_94",
+              "stem": "According to the speaker, what can passengers do?",
+              "options": [
+                "Buy snacks at Pine Ridge",
+                "Move to empty seats",
+                "Request a ticket refund",
+                "Get a free beverage"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p4_t9",
+          "type": "Meeting excerpt",
+          "speaker": "M",
+          "script": "Thanks for coming, everyone. I'd like to start with our visitor numbers for the spring. As you can see on the chart, attendance rose sharply in one month this season. That jump was mostly due to the photography exhibition we co-hosted with the university, which got a lot of coverage in the local press. Unfortunately, in the month right after that exhibition ended, our attendance dropped to its lowest level of the year so far. We believe that's mainly because the east wing was closed for the lighting upgrade, which meant half of our permanent collection was off-limits. Now that the work is finished, we need to bring visitors back. Teresa from our marketing team has an idea about offering free admission on the first Sunday of every month, and she's going to walk us through it right now.",
+          "questions": [
+            {
+              "id": "t4_p4_95",
+              "stem": "Look at the graphic. When was the photography exhibition held?",
+              "options": [
+                "In March",
+                "In April",
+                "In May",
+                "In June"
+              ]
+            },
+            {
+              "id": "t4_p4_96",
+              "stem": "According to the speaker, why did attendance fall?",
+              "options": [
+                "Admission prices were raised.",
+                "Some exhibition space was closed to the public.",
+                "Local media stopped covering the gallery.",
+                "A nearby museum opened."
+              ]
+            },
+            {
+              "id": "t4_p4_97",
+              "stem": "What will Teresa most likely do next?",
+              "options": [
+                "Introduce a guest artist",
+                "Distribute a press release",
+                "Lead a tour of the east wing",
+                "Explain a plan to attract visitors"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t4_p4_t10",
+          "type": "Telephone message",
+          "speaker": "W",
+          "script": "Hi, Thomas. This is Carol Mendez from the administration office at Northfield Medical Center. Thanks again for applying to our volunteer program. I've reviewed your application, and I'm happy to tell you that we'd like you to join our patient escort team starting next month. Before then, though, you'll need to pick up your photo ID badge. Badges are issued by the office that handles all staff hiring and employment paperwork. When you go, please bring a copy of your vaccination record, because they'll need to scan it into our system. Also, I noticed on your form that you're available on weekends. We're always short of help on Sunday mornings, so if you'd be willing to come in then, please let me know when you call back. My extension is 4418.",
+          "questions": [
+            {
+              "id": "t4_p4_98",
+              "stem": "What is the purpose of the call?",
+              "options": [
+                "To schedule a job interview",
+                "To tell an applicant that he has been accepted",
+                "To request a missing document",
+                "To announce a change to a schedule"
+              ]
+            },
+            {
+              "id": "t4_p4_99",
+              "stem": "Look at the graphic. Which room should the listener go to?",
+              "options": [
+                "Room 104",
+                "Room 106",
+                "Room 210",
+                "Room 212"
+              ]
+            },
+            {
+              "id": "t4_p4_100",
+              "stem": "Why does the speaker mention Sunday mornings?",
+              "options": [
+                "To point out when more help is needed",
+                "To give the date of an orientation session",
+                "To explain when a badge can be picked up",
+                "To reschedule an appointment"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "reading": {
+      "part5": [
+        {
+          "id": "t4_p5_101",
+          "stem": "Policyholders who file a claim online can expect a ___ response from one of our adjusters within two business days.",
+          "options": [
+            "promptness",
+            "prompt",
+            "promptly",
+            "prompting"
+          ],
+          "grammarTag": "wordform",
+          "difficulty": 700
+        },
+        {
+          "id": "t4_p5_102",
+          "stem": "Several regional insurers have expressed strong interest ___ acquiring Halbrook Mutual, according to industry sources.",
+          "options": [
+            "at",
+            "for",
+            "on",
+            "in"
+          ],
+          "grammarTag": "prep",
+          "difficulty": 700
+        },
+        {
+          "id": "t4_p5_103",
+          "stem": "Although Brevano's countertop ovens are ___ priced, reviewers consistently praise their durability and energy efficiency.",
+          "options": [
+            "modest",
+            "modesty",
+            "modestly",
+            "more modest"
+          ],
+          "grammarTag": "wordform",
+          "difficulty": 700
+        },
+        {
+          "id": "t4_p5_104",
+          "stem": "Ms. Ruiz accepted the community service award on ___ of the entire nursing staff at Lakeview General Hospital.",
+          "options": [
+            "behalf",
+            "favor",
+            "part",
+            "regard"
+          ],
+          "grammarTag": "colloc",
+          "difficulty": 700
+        },
+        {
+          "id": "t4_p5_105",
+          "stem": "All requests for ___ reimbursement must be accompanied by original receipts and a supervisor's signature.",
+          "options": [
+            "expensive",
+            "expend",
+            "expense",
+            "expensively"
+          ],
+          "grammarTag": "np",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_106",
+          "stem": "The city council will vote on the proposed parking ordinance once the transportation committee ___ its review of public comments.",
+          "options": [
+            "will complete",
+            "completes",
+            "completed",
+            "had completed"
+          ],
+          "grammarTag": "timecl",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_107",
+          "stem": "Our claims representatives are trained to handle sensitive personal information with the utmost ___.",
+          "options": [
+            "disclosure",
+            "distinction",
+            "discrepancy",
+            "discretion"
+          ],
+          "grammarTag": "vocab",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_108",
+          "stem": "The state insurance commissioner has requested that each provider ___ a detailed explanation of its proposed premium increases.",
+          "options": [
+            "submit",
+            "submits",
+            "submitted",
+            "will submit"
+          ],
+          "grammarTag": "subj",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_109",
+          "stem": "The hospital will host an information session next Tuesday for ___ volunteers interested in working in the pediatric ward.",
+          "options": [
+            "prospect",
+            "prospectively",
+            "prospective",
+            "prospecting"
+          ],
+          "grammarTag": "wordform",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_110",
+          "stem": "The number of patients who schedule appointments through the hospital's online portal ___ steadily since the system was introduced.",
+          "options": [
+            "has risen",
+            "have risen",
+            "rising",
+            "were rising"
+          ],
+          "grammarTag": "agree",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_111",
+          "stem": "Brevano's new single-serve coffee maker is ___ with most reusable filter pods, so customers do not need to purchase the brand's own pods.",
+          "options": [
+            "comparable",
+            "complementary",
+            "considerate",
+            "compatible"
+          ],
+          "grammarTag": "vocab",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_112",
+          "stem": "Mr. Delgado's ___ of the hospital's patient-intake procedures led to a 20 percent reduction in average waiting times.",
+          "options": [
+            "reorganize",
+            "reorganizer",
+            "reorganization",
+            "reorganized"
+          ],
+          "grammarTag": "wordform",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_113",
+          "stem": "Before the safety inspection, the facilities manager had all of the hospital's aging water heaters ___ with energy-efficient models.",
+          "options": [
+            "replace",
+            "replaced",
+            "replacing",
+            "to replace"
+          ],
+          "grammarTag": "caus",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_114",
+          "stem": "Kettleworth Roasters sources its green coffee beans ___ from small, family-owned farms in Colombia and Ethiopia.",
+          "options": [
+            "exclusion",
+            "exclusive",
+            "exclusivity",
+            "exclusively"
+          ],
+          "grammarTag": "wordform",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_115",
+          "stem": "The hospital's patient satisfaction survey asked respondents ___ the new self-service check-in kiosks had shortened their waiting times.",
+          "options": [
+            "that",
+            "whether",
+            "what",
+            "which"
+          ],
+          "grammarTag": "nclause",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_116",
+          "stem": "Ms. Park has been asked to ___ the panel discussion at next week's town hall meeting on public transportation.",
+          "options": [
+            "moderate",
+            "mediate",
+            "arbitrate",
+            "negotiate"
+          ],
+          "grammarTag": "vocab",
+          "difficulty": 900
+        },
+        {
+          "id": "t4_p5_117",
+          "stem": "Insurance premiums for commercial properties along the coast are expected to rise ___ next year as a result of increased storm activity.",
+          "options": [
+            "considerate",
+            "considerable",
+            "consideration",
+            "considerably"
+          ],
+          "grammarTag": "wordform",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_118",
+          "stem": "___ submits the winning design for the new riverside plaza will receive a $5,000 prize and a contract with the city.",
+          "options": [
+            "Whomever",
+            "Anyone",
+            "Whoever",
+            "Those"
+          ],
+          "grammarTag": "ever",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_119",
+          "stem": "Although the merger has received regulatory approval, several analysts remain ___ about its long-term benefits for shareholders.",
+          "options": [
+            "skeptic",
+            "skeptical",
+            "skeptically",
+            "skepticism"
+          ],
+          "grammarTag": "wordform",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_120",
+          "stem": "Because demand for its bottled cold brew has been ___ this summer, Kettleworth Roasters plans to add a second production shift.",
+          "options": [
+            "brisk",
+            "hasty",
+            "swift",
+            "abrupt"
+          ],
+          "grammarTag": "vocab",
+          "difficulty": 900
+        },
+        {
+          "id": "t4_p5_121",
+          "stem": "After reviewing the consultant's analysis of the proposed merger, the board members found it highly ___ and voted to proceed.",
+          "options": [
+            "convinced",
+            "convince",
+            "convincingly",
+            "convincing"
+          ],
+          "grammarTag": "part",
+          "difficulty": 800
+        },
+        {
+          "id": "t4_p5_122",
+          "stem": "Coffee roasting is a ___ process that requires constant attention to temperature, airflow, and timing.",
+          "options": [
+            "brittle",
+            "delicate",
+            "frail",
+            "tender"
+          ],
+          "grammarTag": "vocab",
+          "difficulty": 900
+        },
+        {
+          "id": "t4_p5_123",
+          "stem": "Analysts attributed the insurer's strong second-quarter earnings to a ___ low volume of weather-related claims.",
+          "options": [
+            "comparative",
+            "comparison",
+            "comparatively",
+            "compared"
+          ],
+          "grammarTag": "wordform",
+          "difficulty": 900
+        },
+        {
+          "id": "t4_p5_124",
+          "stem": "Policyholders will be ___ to a 10 percent premium discount if they install an approved water-leak detection system in their homes.",
+          "options": [
+            "eligible",
+            "entitled",
+            "qualified",
+            "deserving"
+          ],
+          "grammarTag": "vocab",
+          "difficulty": 900
+        },
+        {
+          "id": "t4_p5_125",
+          "stem": "By the end of next month, all of the roastery's plastic packaging ___ with compostable alternatives.",
+          "options": [
+            "will have replaced",
+            "has been replaced",
+            "is replacing",
+            "will have been replaced"
+          ],
+          "grammarTag": "passive",
+          "difficulty": 900
+        },
+        {
+          "id": "t4_p5_126",
+          "stem": "The warranty covers the cost of replacing any defective ___ components, including the motor, compressor, and cooling fan.",
+          "options": [
+            "mechanical",
+            "mechanic",
+            "mechanically",
+            "mechanism"
+          ],
+          "grammarTag": "wordform",
+          "difficulty": 900
+        },
+        {
+          "id": "t4_p5_127",
+          "stem": "___ the council to approve the budget amendment this week, construction on the Elm Street library annex could begin as early as March.",
+          "options": [
+            "Should",
+            "If",
+            "Were",
+            "Did"
+          ],
+          "grammarTag": "inv",
+          "difficulty": 900
+        },
+        {
+          "id": "t4_p5_128",
+          "stem": "After months of public debate, the city council voted to ___ the outdated zoning regulations and adopt a simplified code.",
+          "options": [
+            "recall",
+            "retract",
+            "repeal",
+            "resign"
+          ],
+          "grammarTag": "vocab",
+          "difficulty": 900
+        },
+        {
+          "id": "t4_p5_129",
+          "stem": "Ms. Lindqvist was commended for her ___ handling of a dispute between two of the consulting firm's longtime clients.",
+          "options": [
+            "tactfully",
+            "tactics",
+            "tact",
+            "tactful"
+          ],
+          "grammarTag": "wordform",
+          "difficulty": 900
+        },
+        {
+          "id": "t4_p5_130",
+          "stem": "Mr. Varga's expansion proposal was rejected because the projected costs far ___ the benefits the company could reasonably expect.",
+          "options": [
+            "outweighed",
+            "overcame",
+            "overtook",
+            "outran"
+          ],
+          "grammarTag": "vocab",
+          "difficulty": 900
+        }
+      ],
+      "part6": [
+        {
+          "id": "t4_p6_1",
+          "part": "Part 6",
+          "docType": "Letter",
+          "title": "[Part 6 — Đoạn 1] Thư thông báo thay đổi phạm vi bảo hiểm nhà ở khi gia hạn hợp đồng",
+          "passage": "Harwell Mutual Insurance\n418 Brookside Avenue\nColumbus, OH 43215\n\nApril 3\n\nMs. Danielle Ferro\n27 Linden Court\nDublin, OH 43017\n\nDear Ms. Ferro,\n\nThank you for insuring your home with Harwell Mutual for the past six years. Your current homeowner's policy is scheduled to expire on May 15. Before it is renewed, we would like to inform you of a change that will ___ [1] ___ your coverage.\n\nFor all policies renewed after May 1, water damage caused by sewer backups will no longer be included in our standard plan. ___ [2] ___, this protection will be offered as an optional add-on for an additional $48 per year. ___ [3] ___.\n\nIf you wish to add this protection, simply check the appropriate box on the enclosed renewal form and return it in the postage-paid envelope. Should you decide not to make any changes, your policy will be renewed ___ [4] ___ under its current terms, minus the sewer backup coverage.\n\nPlease do not hesitate to call your agent, Mr. Victor Lam, at 614-555-0172 if you have any questions.\n\nSincerely,\n\nRenata Oduya\nPolicy Services Manager\n\nEnclosure",
+          "questions": [
+            {
+              "id": "t4_p6_131",
+              "blank": 1,
+              "stem": "[1] Choose the best word or phrase for blank [1].",
+              "options": [
+                "affect",
+                "effect",
+                "afflict",
+                "inflict"
+              ],
+              "type": "từ vựng"
+            },
+            {
+              "id": "t4_p6_132",
+              "blank": 2,
+              "stem": "[2] Choose the best word or phrase for blank [2].",
+              "options": [
+                "Furthermore",
+                "Similarly",
+                "Instead",
+                "For example"
+              ],
+              "type": "từ nối"
+            },
+            {
+              "id": "t4_p6_133",
+              "blank": 3,
+              "stem": "[3] Choose the best sentence for blank [3].",
+              "options": [
+                "Unfortunately, we are unable to renew your policy at this time.",
+                "Homeowners in low-lying areas, where such backups are more common, may find this option particularly worthwhile.",
+                "As a result, your annual premium has already been increased by $48.",
+                "This change applies only to commercial policies issued after that date."
+              ],
+              "type": "chèn câu"
+            },
+            {
+              "id": "t4_p6_134",
+              "blank": 4,
+              "stem": "[4] Choose the best word or phrase for blank [4].",
+              "options": [
+                "automatic",
+                "automation",
+                "automate",
+                "automatically"
+              ],
+              "type": "ngữ pháp"
+            }
+          ]
+        },
+        {
+          "id": "t4_p6_2",
+          "part": "Part 6",
+          "docType": "Memo",
+          "title": "[Part 6 — Đoạn 2] Bản ghi nhớ: Di dời quầy đăng ký bệnh nhân trong thời gian cải tạo sảnh bệnh viện",
+          "passage": "MEMO\n\nTo: All Outpatient Clinic Staff\nFrom: Gloria Banerjee, Director of Patient Access\nDate: September 8\nSubject: Relocation of the Registration Desk\n\nAs many of you know, the main lobby of St. Aldric Medical Center will undergo renovation beginning on Monday, September 22. While the work ___ [1] ___, patient registration for all outpatient clinics will take place in Conference Room 1B, located just off the east entrance.\n\nTo help patients find the temporary desk, volunteers will be stationed at both the north and east entrances during clinic hours. Directional signs will also be posted throughout the ground floor. ___ [2] ___, we ask that you remind patients of the change when you call to confirm their appointments.\n\n___ [3] ___. Please encourage patients to complete their registration forms online before their visit. Doing so will ___ [4] ___ the time they spend in line at the temporary desk, which has only three registration stations instead of the usual six.\n\nThank you for your cooperation.",
+          "questions": [
+            {
+              "id": "t4_p6_135",
+              "blank": 1,
+              "stem": "[1] Choose the best word or phrase for blank [1].",
+              "options": [
+                "will be in progress",
+                "is in progress",
+                "was in progress",
+                "had been in progress"
+              ],
+              "type": "ngữ pháp"
+            },
+            {
+              "id": "t4_p6_136",
+              "blank": 2,
+              "stem": "[2] Choose the best word or phrase for blank [2].",
+              "options": [
+                "In addition",
+                "On the contrary",
+                "In other words",
+                "Otherwise"
+              ],
+              "type": "từ nối"
+            },
+            {
+              "id": "t4_p6_137",
+              "blank": 3,
+              "stem": "[3] Choose the best sentence for blank [3].",
+              "options": [
+                "The renovation is expected to cost approximately $2 million.",
+                "The east entrance will be closed for the duration of the project.",
+                "Online registration will no longer be available after September 22.",
+                "We anticipate longer wait times during the renovation period."
+              ],
+              "type": "chèn câu"
+            },
+            {
+              "id": "t4_p6_138",
+              "blank": 4,
+              "stem": "[4] Choose the best word or phrase for blank [4].",
+              "options": [
+                "abbreviate",
+                "condense",
+                "shorten",
+                "contract"
+              ],
+              "type": "từ vựng"
+            }
+          ]
+        },
+        {
+          "id": "t4_p6_3",
+          "part": "Part 6",
+          "docType": "Press release",
+          "title": "[Part 6 — Đoạn 3] Thông cáo báo chí: Ridgeline Coffee Roasters khai trương xưởng rang mới",
+          "passage": "FOR IMMEDIATE RELEASE\n\nContact: Marisol Quintero, Communications Manager, mquintero@ridgelineroasters.com\n\nPORTLAND (October 2) — Ridgeline Coffee Roasters today announced the official opening of a 40,000-square-foot roasting facility in the city's Northgate industrial district. The new plant, which ___ [1] ___ in operation on a trial basis since mid-September, will allow the company to triple its annual production.\n\nFounded in a converted garage twelve years ago, Ridgeline has grown into one of the Pacific Northwest's most ___ [2] ___ specialty roasters, supplying beans to cafés, grocery stores, and restaurants in six states. ___ [3] ___. \"Our wholesale orders have doubled in the past two years alone,\" said founder Tomas Reyes. \"We simply ran out of room.\"\n\nThe facility is equipped with two energy-efficient roasters that consume roughly 30 percent less natural gas than conventional models. ___ [4] ___, the building's roof is fitted with solar panels that supply much of its electricity.\n\nPublic tours of the facility will be offered every Saturday beginning in November. Reservations can be made at www.ridgelineroasters.com/tours.",
+          "questions": [
+            {
+              "id": "t4_p6_139",
+              "blank": 1,
+              "stem": "[1] Choose the best word or phrase for blank [1].",
+              "options": [
+                "was",
+                "will be",
+                "has been",
+                "is being"
+              ],
+              "type": "ngữ pháp"
+            },
+            {
+              "id": "t4_p6_140",
+              "blank": 2,
+              "stem": "[2] Choose the best word or phrase for blank [2].",
+              "options": [
+                "respectful",
+                "respective",
+                "respecting",
+                "respected"
+              ],
+              "type": "từ vựng"
+            },
+            {
+              "id": "t4_p6_141",
+              "blank": 3,
+              "stem": "[3] Choose the best sentence for blank [3].",
+              "options": [
+                "The expansion comes in response to rapidly growing demand from these customers.",
+                "However, the company plans to stop selling its beans to grocery stores next year.",
+                "Mr. Reyes previously worked as a manager at a regional bakery chain.",
+                "The original garage remains the company's only roasting location."
+              ],
+              "type": "chèn câu"
+            },
+            {
+              "id": "t4_p6_142",
+              "blank": 4,
+              "stem": "[4] Choose the best word or phrase for blank [4].",
+              "options": [
+                "Even so",
+                "In addition",
+                "By contrast",
+                "Instead"
+              ],
+              "type": "từ nối"
+            }
+          ]
+        },
+        {
+          "id": "t4_p6_4",
+          "part": "Part 6",
+          "docType": "Web page",
+          "title": "[Part 6 — Đoạn 4] Trang web: Gói bảo hành mở rộng CarePlus cho thiết bị gia dụng Brevano",
+          "passage": "https://www.brevanoappliances.com/support/careplus\n\nBrevano CarePlus Extended Protection\n\nEvery Brevano appliance comes with a one-year limited warranty. With CarePlus, you can extend that protection for up to five additional years. Plans cover parts, labor, and in-home service for problems ___ [1] ___ by normal wear and tear, including failures of motors, compressors, and control panels.\n\nCarePlus may be purchased at the time of sale or at any point during the original warranty period. ___ [2] ___ the original warranty expires, however, the appliance is no longer eligible for coverage. ___ [3] ___.\n\nTo file a service request, call 1-800-555-0136 or complete the online form below. A certified technician will contact you within one business day to arrange a convenient appointment. If your appliance cannot be repaired, we will replace it with a comparable model at no ___ [4] ___ cost to you.\n\nPlease note that CarePlus does not cover cosmetic damage, such as scratches or dents, or damage resulting from improper installation.",
+          "questions": [
+            {
+              "id": "t4_p6_143",
+              "blank": 1,
+              "stem": "[1] Choose the best word or phrase for blank [1].",
+              "options": [
+                "cause",
+                "causing",
+                "caused",
+                "to cause"
+              ],
+              "type": "ngữ pháp"
+            },
+            {
+              "id": "t4_p6_144",
+              "blank": 2,
+              "stem": "[2] Choose the best word or phrase for blank [2].",
+              "options": [
+                "Once",
+                "Unless",
+                "Until",
+                "Whereas"
+              ],
+              "type": "từ nối"
+            },
+            {
+              "id": "t4_p6_145",
+              "blank": 3,
+              "stem": "[3] Choose the best sentence for blank [3].",
+              "options": [
+                "Technicians are available seven days a week, including most holidays.",
+                "We therefore recommend enrolling well before your first year of ownership ends.",
+                "Customers who purchased CarePlus last year will receive a full refund.",
+                "Cosmetic damage is covered only under our premium plan."
+              ],
+              "type": "chèn câu"
+            },
+            {
+              "id": "t4_p6_146",
+              "blank": 4,
+              "stem": "[4] Choose the best word or phrase for blank [4].",
+              "options": [
+                "addition",
+                "add",
+                "additionally",
+                "additional"
+              ],
+              "type": "ngữ pháp"
+            }
+          ]
+        }
+      ],
+      "part7": [
+        {
+          "id": "t4_p7_1",
+          "part": "Part 7 Single",
+          "docType": "Notice",
+          "title": "[Part 7 Đơn #1] Thông báo thay đổi lộ trình tuyến xe buýt số 14 (2 câu)",
+          "passage": "METRO VALLEY TRANSIT — SERVICE ADVISORY\n\nEffective Sunday, May 4, Route 14 (Harbor Point–Civic Center) will no longer serve the stops along Linden Avenue between 3rd and 9th Streets. Instead, buses will travel along Garfield Boulevard, one block east, where the city has recently completed a dedicated bus lane. Riders who currently board at the Linden Avenue stops are advised to use the new shelters at Garfield and 4th, Garfield and 6th, or Garfield and 8th.\n\nBecause the bus lane allows vehicles to bypass much of the downtown traffic, the average trip time between Harbor Point and Civic Center is expected to fall by about seven minutes. As a result, weekday departures from Harbor Point will begin at 5:40 A.M. rather than 5:25 A.M., while the last bus from Civic Center will still leave at 11:50 P.M.\n\nPrinted timetables reflecting these changes are available on all Route 14 buses and at the customer service window in Civic Center Station. Riders with questions may also call 555-0148 between 7 A.M. and 7 P.M. daily.",
+          "questions": [
+            {
+              "id": "t4_p7_147",
+              "stem": "What is the main purpose of the notice?",
+              "options": [
+                "To announce the opening of a new transit station",
+                "To explain a change in the streets a bus route will use",
+                "To warn riders about construction delays downtown",
+                "To introduce a reduced fare for weekday travelers"
+              ],
+              "type": "ý chính"
+            },
+            {
+              "id": "t4_p7_148",
+              "stem": "What is suggested about the first weekday bus from Harbor Point?",
+              "options": [
+                "It will leave later because the trip will be shorter.",
+                "It will no longer stop at Civic Center Station.",
+                "It will travel along Linden Avenue in the early morning.",
+                "It will be replaced by a bus from a different route."
+              ],
+              "type": "suy luận"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_2",
+          "part": "Part 7 Single",
+          "docType": "Text-message chain",
+          "title": "[Part 7 Đơn #2] Chuỗi tin nhắn: trung tâm cây cảnh nhận nhầm lô hoa (2 câu)",
+          "passage": "Rosa Delgado [9:12 A.M.]: Hi Ben, the truck from Fairmont Nurseries just pulled in. They sent 40 flats of dwarf marigolds instead of the 40 flats of French lavender we ordered.\nBen Okafor [9:14 A.M.]: Ugh. The lavender was for the Hillcrest Library landscaping job on Thursday.\nRosa Delgado [9:15 A.M.]: Should I refuse the shipment? The driver is waiting.\nBen Okafor [9:17 A.M.]: Not so fast. Marigolds always sell out in our front display this time of year.\nRosa Delgado [9:18 A.M.]: True. I'll keep them, then, and have the driver note the error on the delivery slip.\nBen Okafor [9:20 A.M.]: Good. I'll call Fairmont about getting the lavender to us by Wednesday. If they can't, Greenway Growers usually has it in stock.\nRosa Delgado [9:21 A.M.]: OK. I'll let the Hillcrest crew know there may be a change.",
+          "questions": [
+            {
+              "id": "t4_p7_149",
+              "stem": "At 9:17 A.M., what does Mr. Okafor most likely mean when he writes, \"Not so fast\"?",
+              "options": [
+                "He thinks the driver should wait until he arrives.",
+                "He wants Ms. Delgado to consider accepting the plants.",
+                "He believes the shipment arrived earlier than expected.",
+                "He is worried that the library job will be delayed."
+              ],
+              "type": "ý định người viết"
+            },
+            {
+              "id": "t4_p7_150",
+              "stem": "What is indicated about the French lavender?",
+              "options": [
+                "It is sold out in the store's front display.",
+                "It was delivered to the wrong business.",
+                "It is intended for use at an outside project.",
+                "It is no longer sold by Fairmont Nurseries."
+              ],
+              "type": "chi tiết"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_3",
+          "part": "Part 7 Single",
+          "docType": "Form (Statement)",
+          "title": "[Part 7 Đơn #3] Bảng kê gia hạn thuê sạp ở chợ đầu mối (2 câu)",
+          "passage": "EASTGATE WHOLESALE MARKET\nStall Lease Renewal Statement\n\nTenant: Kim Brothers Produce\nStall: B-17 (Cold Storage Hall)\nLease period: July 1 – June 30\nStatement date: May 20\n\nDescription | Amount\nAnnual stall rent (B-17, 24 m²) | $14,400.00\nRefrigeration surcharge (Cold Storage Hall) | $2,160.00\nLoading dock access permit (2 vehicles) | $480.00\nEarly renewal discount (5% of annual stall rent) | –$720.00\nTotal due | $16,320.00\n\nNotes:\n• The early renewal discount applies only if this statement is signed and returned by June 1. After that date, the full amount without the discount will be due.\n• Payment may be made in a single installment or in four quarterly installments. Tenants choosing quarterly payments are not eligible for the early renewal discount.\n• Tenants wishing to add a third vehicle to their loading dock permit should contact the Market Office before the start of the lease period. Each additional vehicle is $240 per year.",
+          "questions": [
+            {
+              "id": "t4_p7_151",
+              "stem": "What is true about Kim Brothers Produce?",
+              "options": [
+                "Its renewal includes dock access for two vehicles.",
+                "It has always paid its rent in quarterly installments.",
+                "It is moving to a stall in the Cold Storage Hall.",
+                "It owes a fee for returning a statement late."
+              ],
+              "type": "NOT/TRUE"
+            },
+            {
+              "id": "t4_p7_152",
+              "stem": "According to the statement, how could Kim Brothers Produce lose the discount?",
+              "options": [
+                "By requesting a larger stall",
+                "By choosing to spread its payments over the year",
+                "By adding a vehicle after July 1",
+                "By paying the full amount before June 1"
+              ],
+              "type": "suy luận"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_4",
+          "part": "Part 7 Single",
+          "docType": "E-mail",
+          "title": "[Part 7 Đơn #4] Email công ty bảo hiểm phản hồi yêu cầu bồi thường thiệt hại do nước (2 câu)",
+          "passage": "To: Gerald Pham <gpham@ridgemail.com>\nFrom: Claims Department <claims@northbridgemutual.com>\nDate: February 11\nSubject: Claim #HP-30827\n\nDear Mr. Pham,\n\nThank you for submitting your claim for the water damage to the kitchen of your home at 418 Ellery Lane. Our adjuster, Ms. Corinne Abbot, has reviewed the photographs you uploaded as well as the repair estimate from Brightline Contractors.\n\nBased on her review, the cost of replacing the damaged cabinets and flooring is covered under your homeowner's policy. However, the replacement of the dishwasher is not, since the leak appears to have originated from a worn supply hose inside the appliance itself. Damage resulting from the gradual wear of household appliances is excluded under Section 4(b) of your policy.\n\nThe approved amount of $6,850, less your $500 deductible, will be deposited directly into the account you designated within five business days. Should you wish to contest any part of this decision, you may submit a written appeal along with any supporting documents within 30 days of the date of this e-mail.\n\nSincerely,\nNorthbridge Mutual Insurance Claims Department",
+          "questions": [
+            {
+              "id": "t4_p7_153",
+              "stem": "Why was part of Mr. Pham's claim denied?",
+              "options": [
+                "The repair estimate was submitted after a deadline.",
+                "The photographs did not clearly show the damage.",
+                "The cause of the problem is excluded from his coverage.",
+                "The contractor charged more than the standard rate."
+              ],
+              "type": "chi tiết"
+            },
+            {
+              "id": "t4_p7_154",
+              "stem": "What is indicated about the payment Mr. Pham will receive?",
+              "options": [
+                "It will be mailed as a check within 30 days.",
+                "It will be sent directly to Brightline Contractors.",
+                "It will include the cost of a new dishwasher.",
+                "It will be smaller than the amount that was approved."
+              ],
+              "type": "suy luận"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_5",
+          "part": "Part 7 Single",
+          "docType": "Memo",
+          "title": "[Part 7 Đơn #5] Bản ghi nhớ bệnh viện: thay đổi quy trình làm thủ tục cho bệnh nhân (3 câu — có chèn câu)",
+          "passage": "MEMO\nTo: All Outpatient Clinic Staff\nFrom: Darnell Whitaker, Director of Patient Services, St. Agnes Regional Hospital\nDate: October 2\nRe: Changes to patient check-in\n\nBeginning Monday, October 16, patients arriving for appointments at any of our outpatient clinics will check in at self-service kiosks located in the main lobby rather than at the individual clinic reception desks. [1] The kiosks will allow patients to confirm their personal details, update their insurance information, and sign consent forms without waiting in line.\n\nThis change follows a three-month trial at the Orthopedics Clinic, where average waiting times at reception fell from fourteen minutes to under five. [2] Reception staff there also reported that they were able to spend more time assisting patients who needed extra help, such as those with limited mobility or those unfamiliar with the hospital.\n\nTo prepare for the transition, all reception staff must complete a one-hour training session on the kiosk system. [3] Sessions will be held in Conference Room 2B on October 9, 10, and 11 at 8:00 A.M. and 2:00 P.M. Please register through your clinic supervisor by October 6.\n\nDuring the first two weeks, volunteers wearing green vests will be stationed beside the kiosks to guide patients through the process. [4] Clinic reception desks will remain open for patients who prefer to check in with a staff member.",
+          "questions": [
+            {
+              "id": "t4_p7_155",
+              "stem": "What is the purpose of the memo?",
+              "options": [
+                "To introduce a new procedure for recording patient arrivals",
+                "To announce the relocation of the Orthopedics Clinic",
+                "To recruit volunteers for a hospital event",
+                "To request feedback on the results of a trial"
+              ],
+              "type": "ý chính"
+            },
+            {
+              "id": "t4_p7_156",
+              "stem": "What is NOT mentioned as something patients can do at the kiosks?",
+              "options": [
+                "Verify their personal information",
+                "Provide updated insurance details",
+                "Pay the fees for their appointments",
+                "Sign consent documents"
+              ],
+              "type": "NOT/TRUE"
+            },
+            {
+              "id": "t4_p7_157",
+              "stem": "In which of the positions marked [1], [2], [3], and [4] does the following sentence best belong?\n\"Patients who took part in the trial also gave the new system overwhelmingly positive ratings.\"",
+              "options": [
+                "[1]",
+                "[2]",
+                "[3]",
+                "[4]"
+              ],
+              "type": "chèn câu"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_6",
+          "part": "Part 7 Single",
+          "docType": "Advertisement",
+          "title": "[Part 7 Đơn #6] Quảng cáo gói đăng ký cà phê định kỳ của xưởng rang (3 câu)",
+          "passage": "Copperline Coffee Roasters — Roasted Fresh, Delivered Fresher\n\nFor over fifteen years, Copperline has sourced beans directly from small farms in Colombia, Ethiopia, and Guatemala and roasted them in small batches at our facility in Portland. Now, with the Copperline Club, you can enjoy our coffee without ever running out.\n\nHow it works:\n• Choose from three plans: Explorer (a different single-origin coffee each shipment), Classic (your favorite blend, every time), or Office (2-kilogram bags for workplaces).\n• Select delivery every two, three, or four weeks. Each bag is roasted no more than 48 hours before it ships.\n• Pause, skip, or cancel online at any time — no fees and no questions asked.\n\nMembers save 15% compared with our in-store prices and receive free shipping on every order. Office plan members also receive a complimentary grinder rental for as long as their membership is active.\n\nSign up by March 31 and your first shipment will include a Copperline ceramic pour-over set (a $38 value). Visit www.copperlinecoffee.com/club to get started.",
+          "questions": [
+            {
+              "id": "t4_p7_158",
+              "stem": "What is NOT stated about Copperline Coffee Roasters?",
+              "options": [
+                "It obtains beans from producers in several countries.",
+                "It roasts coffee shortly before shipping it.",
+                "It operates cafés in a number of cities.",
+                "It has been in business for more than a decade."
+              ],
+              "type": "NOT/TRUE"
+            },
+            {
+              "id": "t4_p7_159",
+              "stem": "What is suggested about the Explorer plan?",
+              "options": [
+                "It is the most expensive of the three plans.",
+                "It lets members try coffee from a variety of origins.",
+                "It is available only to businesses.",
+                "It comes with a grinder at no extra charge."
+              ],
+              "type": "suy luận"
+            },
+            {
+              "id": "t4_p7_160",
+              "stem": "What will customers who join the Copperline Club by March 31 receive?",
+              "options": [
+                "An extra bag of coffee with their second shipment",
+                "A larger first bag of coffee",
+                "Free shipping for the first year only",
+                "Equipment for preparing coffee"
+              ],
+              "type": "chi tiết"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_7",
+          "part": "Part 7 Single",
+          "docType": "Notice",
+          "title": "[Part 7 Đơn #7] Thông báo phiên điều trần công khai của hội đồng thành phố (3 câu)",
+          "passage": "CITY OF BRANFORD — NOTICE OF PUBLIC HEARING\n\nThe Branford City Council will hold a public hearing on Tuesday, June 17, at 7:00 P.M. in the Council Chambers of City Hall, 200 Market Street, to receive comments on a proposal to convert the vacant lot at the corner of Wells Road and Archer Street into a community park.\n\nThe proposal, submitted by the Parks and Recreation Department, includes a children's playground, a walking path, and approximately 40 parking spaces. The estimated cost of $1.2 million would be covered in part by a state grant, with the remainder drawn from the city's capital improvement fund. No increase in local property taxes is anticipated.\n\nResidents who wish to speak at the hearing must sign up with the City Clerk's Office no later than noon on June 16. Speakers will be limited to three minutes each. Those unable to attend may submit written comments by e-mail to clerk@branfordcity.gov or by mail; written comments must be received by June 13 to be distributed to council members before the hearing.\n\nCopies of the full proposal, including site drawings, may be viewed at the Branford Public Library and at the City Clerk's Office during regular business hours. The hearing will also be broadcast live on Branford Community Television, Channel 18.",
+          "questions": [
+            {
+              "id": "t4_p7_161",
+              "stem": "What is the notice mainly about?",
+              "options": [
+                "The results of a vote on a new local tax",
+                "The opening of a recently completed park",
+                "A request for volunteers to clean up a vacant lot",
+                "A gathering to discuss a proposed use for an empty site"
+              ],
+              "type": "ý chính"
+            },
+            {
+              "id": "t4_p7_162",
+              "stem": "What is indicated about the proposed project?",
+              "options": [
+                "It would include space for vehicles.",
+                "It would require residents to pay higher property taxes.",
+                "It would be paid for entirely with state funds.",
+                "It was proposed by a group of local residents."
+              ],
+              "type": "NOT/TRUE"
+            },
+            {
+              "id": "t4_p7_163",
+              "stem": "What is suggested about a resident who mails written comments that arrive on June 15?",
+              "options": [
+                "The resident will be given three minutes to speak at the hearing.",
+                "The comments will be read aloud during the television broadcast.",
+                "The resident must also visit the library to submit the comments.",
+                "The comments may not be passed on to council members ahead of the hearing."
+              ],
+              "type": "suy luận"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_8",
+          "part": "Part 7 Single",
+          "docType": "Online chat discussion",
+          "title": "[Part 7 Đơn #8] Trò chuyện trực tuyến: công ty tư vấn đổi phòng hội thảo cho khách hàng (4 câu)",
+          "passage": "Priya Nair [2:03 P.M.]: Quick update on the Fenwick Markets workshop next Thursday. The hotel just told me the Magnolia Room is double-booked, so they've offered us the Cedar Room instead.\nTomás Reyes [2:05 P.M.]: The Cedar Room only seats about twenty, doesn't it? Fenwick confirmed twenty-six attendees last week.\nPriya Nair [2:06 P.M.]: Twenty-two, actually. Four of their store managers dropped out yesterday because of an inventory audit.\nTomás Reyes [2:07 P.M.]: Still tight.\nHelen Cho [2:09 P.M.]: What if we hold the workshop here instead? Our training room fits thirty, and the projector was just replaced.\nPriya Nair [2:11 P.M.]: I thought about that, but Fenwick specifically asked for a location near their head office. Our building is almost an hour away for them.\nHelen Cho [2:12 P.M.]: Fair point. Did the hotel offer anything to make up for the mix-up?\nPriya Nair [2:14 P.M.]: They'll waive the room fee and upgrade the lunch at no cost. And the Cedar Room opens onto a terrace, so we could set up the breakout groups out there if the weather is good.\nTomás Reyes [2:15 P.M.]: That changes things. With the terrace, space shouldn't be an issue.\nHelen Cho [2:16 P.M.]: Agreed. Priya, can you confirm with the hotel? I'll rework the agenda so the group exercises fall in the afternoon, when it's warmer.\nPriya Nair [2:17 P.M.]: Will do. I'll also ask them to hold a backup room in case it rains.",
+          "questions": [
+            {
+              "id": "t4_p7_164",
+              "stem": "What problem does Ms. Nair report?",
+              "options": [
+                "A reserved meeting room cannot be used.",
+                "A client has postponed a planned event.",
+                "A hotel has raised its catering prices.",
+                "Some presentation equipment is not working."
+              ],
+              "type": "chi tiết"
+            },
+            {
+              "id": "t4_p7_165",
+              "stem": "What is indicated about Fenwick Markets?",
+              "options": [
+                "Its head office is close to the consulting firm's building.",
+                "It has asked to move the workshop to a different date.",
+                "Fewer of its employees will attend than it had previously indicated.",
+                "It recently hired several new store managers."
+              ],
+              "type": "suy luận"
+            },
+            {
+              "id": "t4_p7_166",
+              "stem": "At 2:15 P.M., what does Mr. Reyes most likely mean when he writes, \"That changes things\"?",
+              "options": [
+                "He is pleased that the lunch will be upgraded.",
+                "He now wants to hold the event at the firm's office.",
+                "He thinks the agenda should be shortened.",
+                "He is no longer concerned about the room's capacity."
+              ],
+              "type": "ý định người viết"
+            },
+            {
+              "id": "t4_p7_167",
+              "stem": "What will Ms. Cho most likely do next?",
+              "options": [
+                "Contact the hotel to confirm the arrangement",
+                "Change the timing of some workshop activities",
+                "Test the new projector in the training room",
+                "Request that a backup room be reserved"
+              ],
+              "type": "suy luận"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_9",
+          "part": "Part 7 Single",
+          "docType": "Article",
+          "title": "[Part 7 Đơn #9] Bài báo: phòng tranh mở rộng không gian triển lãm (4 câu — có chèn câu, từ đồng nghĩa)",
+          "passage": "Halvorsen Gallery to Double Exhibition Space\n\nDULUTH (August 8) — The Halvorsen Gallery, a fixture of the Canal Park arts district since 1987, announced on Tuesday that it will expand into the neighboring former textile warehouse, more than doubling its exhibition space. Construction is set to begin in January and is expected to last roughly fourteen months.\n\nThe gallery, which specializes in contemporary works by artists from the Great Lakes region, has struggled for years with limited room. \"We hold over 1,200 pieces in our permanent collection, yet we can display fewer than 150 at any one time,\" said director Annika Solberg. [1] \"The rest sit in storage, where no one can enjoy them.\"\n\nThe expansion will add three exhibition halls, a sculpture courtyard, and a classroom for the gallery's popular weekend workshops, which currently meet in a rented space several blocks away. [2] The renovated warehouse will also house a climate-controlled storage area, allowing the gallery to bring back works it has placed with other institutions for safekeeping.\n\nThe $9.4 million project is being financed largely through private donations, including a $3 million gift from the Lindqvist Family Foundation. [3] Ms. Solberg said that the gallery has raised about 80 percent of the total so far and will launch a public fundraising campaign in October to cover the remainder.\n\nThe gallery will remain open throughout construction, although its east wing will close temporarily from March to May next year while a connecting passage is built. [4] Visitors during that period will be offered reduced admission.",
+          "questions": [
+            {
+              "id": "t4_p7_168",
+              "stem": "What is the article mainly about?",
+              "options": [
+                "The sale of a historic textile warehouse",
+                "An exhibition of artists from the Great Lakes region",
+                "A foundation's support for local art schools",
+                "A gallery's plan to enlarge its facilities"
+              ],
+              "type": "ý chính"
+            },
+            {
+              "id": "t4_p7_169",
+              "stem": "In the article, the word \"fixture\" in paragraph 1 is closest in meaning to",
+              "options": [
+                "piece of equipment",
+                "familiar feature",
+                "fixed date",
+                "temporary display"
+              ],
+              "type": "từ đồng nghĩa"
+            },
+            {
+              "id": "t4_p7_170",
+              "stem": "What is NOT mentioned as a result of the expansion?",
+              "options": [
+                "Visitors will pay less to enter the gallery from now on.",
+                "More of the permanent collection can be shown.",
+                "Weekend classes will be held on the gallery's premises.",
+                "Works now kept at other institutions can be returned."
+              ],
+              "type": "NOT/TRUE"
+            },
+            {
+              "id": "t4_p7_171",
+              "stem": "In which of the positions marked [1], [2], [3], and [4] does the following sentence best belong?\n\"The foundation has also funded the gallery's educational programs for more than two decades.\"",
+              "options": [
+                "[1]",
+                "[2]",
+                "[3]",
+                "[4]"
+              ],
+              "type": "chèn câu"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_10",
+          "part": "Part 7 Single",
+          "docType": "Letter",
+          "title": "[Part 7 Đơn #10] Thư nhà sản xuất thiết bị gia dụng gia hạn bảo hành bộ làm đá (4 câu — có từ đồng nghĩa)",
+          "passage": "Velmora Home Appliances\n1450 Industrial Parkway\nColumbus, OH 43219\n\nApril 3\n\nMs. Eleanor Gutierrez\n77 Birchwood Court\nDayton, OH 45402\n\nDear Ms. Gutierrez,\n\nOur records show that you purchased a Velmora FrostLine refrigerator (model FL-560) within the past three years. We are writing to let you know that a small number of FL-560 units manufactured between May and November of last year contain an ice maker valve that may wear out prematurely. Although the issue poses no safety risk, a faulty valve can cause water to collect beneath the refrigerator over time.\n\nTo address this, Velmora is extending the warranty on the ice maker of every FL-560 model to ten years from the date of purchase, regardless of when the unit was manufactured. In addition, we are offering all owners a free inspection and, if needed, valve replacement by one of our authorized technicians.\n\nTo schedule a visit, please call our Customer Care Center at 1-800-555-0172 or use the service request form at www.velmora.com/service. You will need the serial number printed on the label inside the refrigerator door. Owners who have already paid for repairs to the ice maker valve may be eligible for reimbursement; simply submit a copy of your receipt along with the form.\n\nWe sincerely regret any inconvenience and thank you for choosing Velmora.\n\nSincerely,\nMartin Albescu\nDirector of Customer Relations",
+          "questions": [
+            {
+              "id": "t4_p7_172",
+              "stem": "Why was the letter sent to Ms. Gutierrez?",
+              "options": [
+                "She ordered a replacement part for her refrigerator.",
+                "She owns an appliance that might contain a faulty component.",
+                "She has not yet registered her product warranty.",
+                "She reported water leaking from her refrigerator."
+              ],
+              "type": "ý chính"
+            },
+            {
+              "id": "t4_p7_173",
+              "stem": "In the letter, the word \"address\" in paragraph 2 is closest in meaning to",
+              "options": [
+                "deliver",
+                "speak to",
+                "deal with",
+                "locate"
+              ],
+              "type": "từ đồng nghĩa"
+            },
+            {
+              "id": "t4_p7_174",
+              "stem": "What is NOT indicated about the extended warranty?",
+              "options": [
+                "It covers a specific part of the refrigerator.",
+                "It lasts for a decade from the date of purchase.",
+                "It applies to some units made outside a certain period.",
+                "It must be requested before a deadline."
+              ],
+              "type": "NOT/TRUE"
+            },
+            {
+              "id": "t4_p7_175",
+              "stem": "What is suggested about owners who have already had the valve repaired?",
+              "options": [
+                "They may be able to recover the cost.",
+                "They are not eligible for a free inspection.",
+                "They must return the refrigerator to the store.",
+                "They will be sent a new ice maker."
+              ],
+              "type": "suy luận"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_11",
+          "part": "Part 7 Double",
+          "docType": "Double Passage (Advertisement + E-mail)",
+          "title": "[Part 7 Đôi #1] Quảng cáo lớp học làm vườn mùa xuân + Email xin chuyển lớp của khách hàng (5 câu — có kết nối thông tin 2 bài)",
+          "passage": "=== PASSAGE 1: ADVERTISEMENT ===\nThornbury Garden Center — Spring Workshop Series\n\nGet your garden ready for the season with expert advice from our horticulturists. All workshops take place in the greenhouse classroom at our Fenton Road location and last approximately 90 minutes.\n\n• Saturday, April 5, 10:00 A.M. — Starting Vegetables from Seed ($25)\n• Saturday, April 12, 10:00 A.M. — Designing Drought-Tolerant Borders ($30)\n• Wednesday, April 16, 6:30 P.M. — Pruning Fruit Trees and Shrubs ($30)\n• Saturday, April 26, 1:00 P.M. — Container Gardening for Small Spaces ($35, includes a planter and potting mix to take home)\n\nThornbury Rewards members receive 20% off all workshop fees. Space is limited to 15 participants per session, so early registration is recommended. Register in person at any customer service desk or by calling 555-0193. Cancellations made at least 72 hours in advance will be fully refunded; later cancellations will receive store credit.\n\n===\n=== PASSAGE 2: E-MAIL ===\nTo: workshops@thornburygarden.com\nFrom: Malcolm Ferris <mferris@linkmail.com>\nDate: April 14\nSubject: My registration\n\nHello,\n\nI signed up last month for the workshop on fruit trees and shrubs, and as a Rewards member I paid $24. Unfortunately, my employer has just scheduled me for a training course out of town that week, and I will not return until Thursday evening.\n\nI understand that because of the short notice I am not entitled to a full refund. Would it be possible, however, to apply the amount I paid toward the container gardening session at the end of the month instead? I would be happy to pay the difference. My neighbor, who attended that session last year, told me that it fills up quickly, so I would appreciate hearing from you soon.\n\nThank you,\nMalcolm Ferris",
+          "questions": [
+            {
+              "id": "t4_p7_176",
+              "stem": "What is indicated about the workshops in the advertisement?",
+              "options": [
+                "They are held at several of the store's locations.",
+                "They are taught by guest instructors from a university.",
+                "Each one has a limit on the number of participants.",
+                "They must be paid for when registering online."
+              ],
+              "type": "chi tiết"
+            },
+            {
+              "id": "t4_p7_177",
+              "stem": "Why is Mr. Ferris most likely not eligible for a full refund?",
+              "options": [
+                "He is a Thornbury Rewards member.",
+                "He paid a discounted fee for the workshop.",
+                "He registered for the workshop more than a month ago.",
+                "He is canceling less than 72 hours before the session begins."
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_178",
+              "stem": "How much more will Mr. Ferris most likely need to pay?",
+              "options": [
+                "$4",
+                "$5",
+                "$11",
+                "$16"
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_179",
+              "stem": "In the e-mail, the word \"apply\" in paragraph 2 is closest in meaning to",
+              "options": [
+                "submit",
+                "put",
+                "request",
+                "attach"
+              ],
+              "type": "từ đồng nghĩa"
+            },
+            {
+              "id": "t4_p7_180",
+              "stem": "What is suggested about the container gardening session?",
+              "options": [
+                "It is the least expensive workshop in the series.",
+                "It takes place on a weekday evening.",
+                "It was recently moved to a larger classroom.",
+                "It was also offered the previous year."
+              ],
+              "type": "suy luận"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_12",
+          "part": "Part 7 Double",
+          "docType": "Double Passage (Web page + E-mail)",
+          "title": "[Part 7 Đôi #2] Trang web gói cứu hộ của công ty bảo hiểm + Email của khách hàng (5 câu — có kết nối thông tin 2 bài)",
+          "passage": "=== PASSAGE 1: WEB PAGE ===\nHarlow Insurance — Roadside Assistance Add-Ons\n\nAdd roadside assistance to any Harlow auto policy and drive with confidence. Choose the level of coverage that fits your needs:\n\nBasic — $4 per month\nTowing up to 15 miles, battery jump-starts, and flat-tire changes\n\nPlus — $7 per month\nEverything in Basic, with towing extended to 50 miles, plus fuel delivery and lockout service\n\nPremier — $11 per month\nEverything in Plus, with towing up to 100 miles and reimbursement of up to $300 for hotel stays when a breakdown occurs more than 100 miles from home\n\nPlans may be added or upgraded at any time by contacting your agent. However, coverage under any new or upgraded plan begins 14 days after the change is requested. Requests to downgrade take effect at the start of the following billing month.\n\n===\n=== PASSAGE 2: E-MAIL ===\nTo: Denise Castellano <dcastellano@harlowins.com>\nFrom: Arturo Benítez <abenitez@quickpost.net>\nDate: July 2\nSubject: My policy\n\nDear Ms. Castellano,\n\nLast Saturday, my car's battery died in the parking lot of a shopping center about 20 miles from my home. A tow truck sent by Harlow arrived within 40 minutes, and the driver was able to get the car started on the spot, so no tow was needed. I was very impressed with the service.\n\nThat experience has made me think about the long trip my family is taking in August, when we will drive roughly 600 miles to visit relatives. I would like to switch to the plan that covers lodging in case something goes wrong on the road. Since we leave on August 9, I assume there is plenty of time for the new coverage to begin before then.\n\nAlso, my daughter will be borrowing the car regularly while she is home from university this summer. Could you tell me whether she needs to be added to the policy as a driver?\n\nBest regards,\nArturo Benítez",
+          "questions": [
+            {
+              "id": "t4_p7_181",
+              "stem": "According to the web page, what is true about changes to roadside assistance plans?",
+              "options": [
+                "Upgrades take effect only after a waiting period.",
+                "Downgrades are not permitted during the first year.",
+                "Changes must be requested through the Web site.",
+                "A processing fee is charged for each change."
+              ],
+              "type": "NOT/TRUE"
+            },
+            {
+              "id": "t4_p7_182",
+              "stem": "What does Mr. Benítez indicate about his recent experience?",
+              "options": [
+                "He had to wait more than an hour for help.",
+                "The problem was fixed where his car was parked.",
+                "His car was towed to a repair shop near his home.",
+                "He was charged for a service his plan did not include."
+              ],
+              "type": "chi tiết"
+            },
+            {
+              "id": "t4_p7_183",
+              "stem": "How much will Mr. Benítez most likely pay per month for the plan he wants?",
+              "options": [
+                "$4",
+                "$7",
+                "$11",
+                "$15"
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_184",
+              "stem": "What is suggested about Mr. Benítez's request to change plans?",
+              "options": [
+                "It will take effect at the start of the next billing month.",
+                "It must be approved by a different agent.",
+                "It cannot be processed because of his recent service call.",
+                "The new coverage will be active before his trip begins."
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_185",
+              "stem": "What does Mr. Benítez ask Ms. Castellano about?",
+              "options": [
+                "Whether a family member must be listed on his policy",
+                "How to file a claim for a recent repair",
+                "When his next monthly payment is due",
+                "Whether students qualify for a discount"
+              ],
+              "type": "chi tiết"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_13",
+          "part": "Part 7 Triple",
+          "docType": "Triple Passage (Job posting + E-mail + Schedule)",
+          "title": "[Part 7 Ba #1] Tin tuyển dụng bệnh viện + Email mời phỏng vấn + Lịch phỏng vấn (5 câu — kết nối 3 bài)",
+          "passage": "=== PASSAGE 1: JOB POSTING ===\nLakeview Medical Center — Patient Access Supervisor (Full-Time)\n\nLakeview Medical Center is seeking an experienced supervisor to oversee the admissions and registration team at our main campus. The successful candidate will manage a staff of twelve, coordinate shift schedules, and ensure that patient records are completed accurately and in compliance with hospital policy.\n\nRequirements:\n• At least three years of experience in hospital registration, admissions, or a related field\n• At least one year of supervisory experience\n• Familiarity with medical insurance verification procedures\n• Availability to work one weekend shift per month\n\nPreferred: Fluency in Spanish or Vietnamese; a certificate in healthcare administration\n\nApplications received by March 14 will be given priority. Selected candidates will be invited to interview in person with a panel consisting of the Director of Patient Services, the Human Resources Manager, and a current admissions team member.\n\n===\n=== PASSAGE 2: E-MAIL ===\nTo: Sandra Okoye <s.okoye@mailbox.net>\nFrom: Rebecca Lindgren <rlindgren@lakeviewmed.org>\nDate: March 20\nSubject: Interview invitation\n\nDear Ms. Okoye,\n\nThank you for applying for the position of Patient Access Supervisor. We were impressed by your six years of experience at Ridgeway Clinic, including two years leading its front-desk team, and by the healthcare administration certificate you completed last fall.\n\nWe would like to invite you to an interview. Please choose one of the available times on the attached schedule and reply to this e-mail by March 24. Because the director will be attending a conference during part of the interview period, some sessions will be conducted with only two panel members. If you choose one of those sessions, the director will contact you separately afterward for a short follow-up call.\n\nWhen you arrive, please check in at the Human Resources office on the second floor of the Wexler Building and bring a copy of your certificate.\n\nSincerely,\nRebecca Lindgren\nHuman Resources Manager, Lakeview Medical Center\n\n===\n=== PASSAGE 3: SCHEDULE ===\nPatient Access Supervisor — Interview Schedule\nLocation: Human Resources Conference Room, Wexler Building\n\nDate | Time | Panel\nTuesday, March 27 | 9:00 A.M. | D. Whitfield, R. Lindgren, J. Marsh\nTuesday, March 27 | 2:00 P.M. | D. Whitfield, R. Lindgren, J. Marsh\nThursday, March 29 | 10:00 A.M. | R. Lindgren, J. Marsh\nFriday, March 30 | 11:00 A.M. | R. Lindgren, J. Marsh\nFriday, March 30 | 3:30 P.M. | R. Lindgren, J. Marsh",
+          "questions": [
+            {
+              "id": "t4_p7_186",
+              "stem": "What is NOT listed as a requirement for the position?",
+              "options": [
+                "Prior experience managing other workers",
+                "Knowledge of how to confirm insurance coverage",
+                "Willingness to work some weekend hours",
+                "The ability to speak a second language"
+              ],
+              "type": "NOT/TRUE"
+            },
+            {
+              "id": "t4_p7_187",
+              "stem": "What is suggested about Ms. Okoye?",
+              "options": [
+                "She has one of the qualifications the hospital prefers.",
+                "She submitted her application before March 14.",
+                "She is currently employed at Lakeview Medical Center.",
+                "She has less experience than the position requires."
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_188",
+              "stem": "Who most likely is D. Whitfield?",
+              "options": [
+                "The Human Resources Manager",
+                "The Director of Patient Services",
+                "A current member of the admissions team",
+                "A conference organizer"
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_189",
+              "stem": "If Ms. Okoye chooses an interview on March 30, what will she most likely have to do?",
+              "options": [
+                "Bring a letter of recommendation",
+                "Report to a building other than the one listed",
+                "Speak with the director by phone at a later time",
+                "Submit her application a second time"
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_190",
+              "stem": "What is Ms. Okoye asked to bring to the interview?",
+              "options": [
+                "A list of professional references",
+                "A completed application form",
+                "Identification for a parking permit",
+                "Proof of a credential she has earned"
+              ],
+              "type": "chi tiết"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_14",
+          "part": "Part 7 Triple",
+          "docType": "Triple Passage (Web page + Order form + E-mail)",
+          "title": "[Part 7 Ba #2] Trang web bán sỉ của xưởng rang cà phê + Phiếu đặt hàng + Email phản hồi của quán (5 câu — kết nối 3 bài)",
+          "passage": "=== PASSAGE 1: WEB PAGE ===\nRidgeback Coffee Roasting Co. — Wholesale Program\n\nRidgeback supplies freshly roasted coffee to cafés, restaurants, and offices throughout the Pacific Northwest. Wholesale prices are based on the total weight of each order:\n\nOrder size | Price per kilogram\n5–19 kg | $24.00\n20–49 kg | $21.50\n50 kg or more | $19.00\n\n• Orders placed by noon on Monday are roasted on Tuesday and delivered on Wednesday or Thursday.\n• Delivery is free for orders of 20 kg or more within 40 miles of our roastery in Tacoma. A $25 delivery fee applies to all other orders.\n• New wholesale accounts receive one complimentary on-site barista training session.\n• Decaffeinated versions of our coffees are available for an additional $2.00 per kilogram.\n\n===\n=== PASSAGE 2: ORDER FORM ===\nRidgeback Coffee Roasting Co. — Wholesale Order Form\nAccount: Bluebird Café (Olympia, WA — 32 miles from roastery)\nOrder placed: Monday, October 6, 10:15 A.M.\n\nProduct | Quantity\nHarbor House Blend | 12 kg\nSummit Dark Roast | 6 kg\nSummit Dark Roast (decaffeinated) | 4 kg\n\nSpecial instructions: Please deliver to the rear entrance before 7:00 A.M. if possible.\n\n===\n=== PASSAGE 3: E-MAIL ===\nTo: orders@ridgebackcoffee.com\nFrom: Jamal Whitcombe <jamal@bluebirdcafe.com>\nDate: October 8\nSubject: Today's delivery\n\nHello,\n\nOur order arrived this morning, and everything looked fine except that the 4 kg of Summit Dark Roast that should have been decaffeinated were regular. Because we have only a small amount of decaf left, I would like the correct coffee sent as soon as possible. We are happy to keep the regular Summit beans and be billed for them, since our customers go through them quickly anyway.\n\nAlso, I noticed that your invoice includes a $25 delivery fee. I believe this was charged in error, given the size of our order and our location.\n\nFinally, our second location, in Lacey, is opening next month, so I expect our weekly orders to at least double. Could someone let me know whether deliveries to that address would also be free?\n\nJamal Whitcombe\nOwner, Bluebird Café",
+          "questions": [
+            {
+              "id": "t4_p7_191",
+              "stem": "According to the web page, what is true about Ridgeback's wholesale program?",
+              "options": [
+                "Orders are delivered on the same day they are roasted.",
+                "Customers pay less per kilogram when they order more.",
+                "Delivery is free for every customer located in Tacoma.",
+                "Barista training is offered monthly to all accounts."
+              ],
+              "type": "NOT/TRUE"
+            },
+            {
+              "id": "t4_p7_192",
+              "stem": "What price per kilogram applies to the Harbor House Blend in Bluebird Café's order?",
+              "options": [
+                "$24.00",
+                "$23.50",
+                "$21.50",
+                "$19.00"
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_193",
+              "stem": "Why does Mr. Whitcombe believe the delivery fee was charged in error?",
+              "options": [
+                "His café is located in Tacoma.",
+                "He has been a customer of Ridgeback for many years.",
+                "He asked for the order to arrive before 7:00 A.M.",
+                "His order was large enough and his café is close enough."
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_194",
+              "stem": "What does Mr. Whitcombe indicate about the regular Summit Dark Roast that was delivered by mistake?",
+              "options": [
+                "He is willing to keep it and pay for it.",
+                "He will send it back with the next delivery.",
+                "It was damaged during shipping.",
+                "It was roasted earlier than he expected."
+              ],
+              "type": "chi tiết"
+            },
+            {
+              "id": "t4_p7_195",
+              "stem": "What is suggested about Bluebird Café's October 6 order?",
+              "options": [
+                "It was the café's first order with Ridgeback.",
+                "It was placed early enough to be roasted the next day.",
+                "It arrived later than the roaster's stated schedule.",
+                "It qualified for Ridgeback's lowest price level."
+              ],
+              "type": "kết nối thông tin"
+            }
+          ]
+        },
+        {
+          "id": "t4_p7_15",
+          "part": "Part 7 Triple",
+          "docType": "Triple Passage (Notice + Form + E-mail)",
+          "title": "[Part 7 Ba #3] Thông báo mời đề xuất tranh tường của hội đồng thành phố + Đơn dự tuyển + Email kết quả (5 câu — kết nối 3 bài)",
+          "passage": "=== PASSAGE 1: NOTICE ===\nCity of Marlow — Call for Mural Proposals\n\nThe Marlow City Council, in partnership with the Delacroix Art Gallery, invites artists to submit proposals for three new public murals to be painted this summer. The selected designs will be painted on the following walls:\n\nSite A: Eastside Bus Terminal, north wall (12 m × 4 m)\nSite B: Marlow Public Library, parking garage entrance (8 m × 3 m)\nSite C: Riverside Community Center, gymnasium wall facing Pine Street (15 m × 6 m)\n\nArtists selected will receive a commission of $8,000 for Site B, $12,000 for Site A, or $18,000 for Site C. All paint and equipment will be provided by the city. Designs should reflect the history or character of the surrounding neighborhood.\n\nArtists may submit proposals for no more than two sites. Each proposal must include a color sketch, a short written description of the design, and photographs of at least three previously completed works. Artists who have not previously completed an outdoor mural must partner with an experienced muralist. Proposals must be received by the Delacroix Art Gallery by April 30. Finalists will be notified on May 20 and will present their designs at the City Council's public meeting on June 3.\n\n===\n=== PASSAGE 2: FORM ===\nMural Proposal Submission Form\nName: Yuna Takeda\nSite(s) applied for: Site A, Site C\nDesign title(s): \"The Last Ferry\" (Site A); \"Riverside Rhythms\" (Site C)\nOutdoor mural experience: None — collaborating with Owen Pritchard (completed murals in Dalton and Hayes City)\nDate submitted: April 28\nAttached: color sketches (2), design descriptions (2), photographs of previous works (4)\n\nComments: \"The Last Ferry\" shows the passenger ferry that carried workers across the river before the Eastside bridge was built in 1958. I am currently studying photographs from that period in the city archives to make the details as accurate as possible.\n\n===\n=== PASSAGE 3: E-MAIL ===\nTo: Yuna Takeda <ytakeda@artmail.com>\nFrom: Lorraine Beck <lbeck@delacroixgallery.org>\nDate: May 20\nSubject: Mural proposals\n\nDear Ms. Takeda,\n\nI am pleased to let you know that the selection committee has chosen your design for the Eastside Bus Terminal as one of three finalists for that site. Committee members were particularly impressed by the historical research behind your proposal. Unfortunately, your proposal for the community center was not selected.\n\nAs a finalist, you will be asked to give a ten-minute presentation of your design at the upcoming council meeting, and Mr. Pritchard is welcome to join you. Please also bring a revised sketch reflecting one change requested by the committee: the city's maintenance department has asked that the bottom meter of the wall be left unpainted because that area is cleaned frequently.\n\nBest regards,\nLorraine Beck\nExhibitions Coordinator, Delacroix Art Gallery",
+          "questions": [
+            {
+              "id": "t4_p7_196",
+              "stem": "According to the notice, what is NOT required in each proposal?",
+              "options": [
+                "A drawing in color",
+                "Photographs of earlier projects",
+                "An estimate of the cost of materials",
+                "A written explanation of the design"
+              ],
+              "type": "NOT/TRUE"
+            },
+            {
+              "id": "t4_p7_197",
+              "stem": "Why did Ms. Takeda most likely list Mr. Pritchard on the form?",
+              "options": [
+                "She was required to work with an experienced partner.",
+                "He is a member of the selection committee.",
+                "He provided her with photographs from the city archives.",
+                "He will paint the mural at Site C by himself."
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_198",
+              "stem": "How much will Ms. Takeda receive if her design is ultimately selected?",
+              "options": [
+                "$8,000",
+                "$12,000",
+                "$18,000",
+                "$30,000"
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_199",
+              "stem": "When will Ms. Takeda most likely give her presentation?",
+              "options": [
+                "On April 28",
+                "On April 30",
+                "On May 20",
+                "On June 3"
+              ],
+              "type": "kết nối thông tin"
+            },
+            {
+              "id": "t4_p7_200",
+              "stem": "What did the selection committee most likely value in Ms. Takeda's proposal?",
+              "options": [
+                "Her use of material from city records",
+                "Her experience painting murals in other cities",
+                "The large size of her planned design",
+                "Her plan to complete the work at a low cost"
+              ],
+              "type": "kết nối thông tin"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

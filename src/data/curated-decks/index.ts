@@ -36,7 +36,8 @@ export const CURATED_DECKS: CuratedDeckMeta[] = [
     title: "600 từ vựng thiết yếu cho TOEIC",
     englishTitle: "600 ESSENTIAL WORDS for the TOEIC",
     subtitle: "Master Vocabulary for Success",
-    description: "Trọn bộ 615 từ vựng nền tảng theo 50 chủ đề kinh doanh, công sở kinh điển (Contracts, Marketing, Warranties, Salaries...). Kèm phiên âm IPA và ví dụ song ngữ.",
+    description:
+      "Trọn bộ 615 từ vựng nền tảng theo 50 chủ đề kinh doanh, công sở kinh điển (Contracts, Marketing, Warranties, Salaries...). Kèm phiên âm IPA và ví dụ song ngữ.",
     totalCards: essential600Data.length,
     badge: "PHỔ BIẾN NHẤT",
     badgeType: "primary",
@@ -46,10 +47,11 @@ export const CURATED_DECKS: CuratedDeckMeta[] = [
   },
   {
     id: "ets-vocab",
-    title: "Từ vựng ETS TOEIC Part 5",
-    englishTitle: "ETS TOEIC High-Frequency Vocabulary",
+    title: "Từ vựng ETS TOEIC",
+    englishTitle: "ETS TOEIC Vocabulary (1.700+ Words)",
     subtitle: "Build Your Advanced English Foundation",
-    description: "Tuyển tập các từ vựng xuất hiện tần suất cao nhất trong đề thi ETS (ETS 2020 - 2024), trọng tâm vào các bẫy từ loại và ngữ cảnh Part 5 & 6.",
+    description:
+      "Kho 1.700+ từ vựng then chốt xuất hiện liên tục trong đề thi ETS (ETS 2020 - 2026), trọng tâm vào từ loại và ngữ cảnh thương mại thực chiến.",
     totalCards: etsVocabData.length,
     badge: "ĐỀ THI THẬT",
     badgeType: "pro",
@@ -59,12 +61,13 @@ export const CURATED_DECKS: CuratedDeckMeta[] = [
   },
   {
     id: "common-idioms",
-    title: "Thành Ngữ & Cụm Từ TOEIC Phổ Biến",
-    englishTitle: "Common TOEIC Idioms & Collocations",
+    title: "Thành Ngữ TOEIC Phổ Biến",
+    englishTitle: "Common TOEIC Idioms & Collocations (114 Idioms)",
     subtitle: "Master Figurative Language & Boost Band Score",
-    description: "Bộ cụm động từ (Phrasal Verbs) và thành ngữ công sở (Business Collocations) ăn điểm nhất trong đề thi TOEIC để làm nhanh các câu Part 5 & 7.",
+    description:
+      "114 thành ngữ và cụm động từ công sở điểm 800+ xuất hiện trong Part 3, 4, 7 để làm nhanh các câu hỏi ngữ cảnh.",
     totalCards: commonIdiomsData.length,
-    badge: "BỨT PHÁ ĐIỂM",
+    badge: "MỤC TIÊU 800+",
     badgeType: "accent",
     color: "#047857",
     icon: "sparkles",
@@ -75,7 +78,8 @@ export const CURATED_DECKS: CuratedDeckMeta[] = [
     title: "Từ vựng Tiếng Anh IT & Công Nghệ",
     englishTitle: "English for Information Technology",
     subtitle: "Tech Vocabulary & Coding Collocations",
-    description: "Bộ 778 từ vựng tiếng Anh chuyên ngành CNTT, lập trình, mạng, an ninh mạng và quản lý dự án phần mềm. Tối ưu cho sinh viên IT & kỹ sư công nghệ thi TOEIC.",
+    description:
+      "Bộ 778 từ vựng tiếng Anh chuyên ngành CNTT, lập trình, mạng, an ninh mạng và quản lý dự án phần mềm. Tối ưu cho sinh viên IT & kỹ sư công nghệ thi TOEIC.",
     totalCards: itVocabData.length,
     badge: "DÀNH CHO DÂN IT",
     badgeType: "accent",
