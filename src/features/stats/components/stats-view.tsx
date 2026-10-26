@@ -229,7 +229,7 @@ export function StatsView({ stats, dailyActivity }: StatsViewProps) {
                 <div className="relative pt-4 pb-1" aria-hidden="true">
                   <svg
                     viewBox="0 0 420 130"
-                    className="w-full h-32 sm:h-36 overflow-visible"
+                    className="w-full h-32 sm:h-36 overflow-hidden"
                   >
                     {/* Đường lưới nền mờ */}
                     <line

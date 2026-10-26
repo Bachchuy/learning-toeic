@@ -36,7 +36,14 @@
     --font-ipa: "Segoe UI", -apple-system, BlinkMacSystemFont, "Lucida Sans Unicode", "DejaVu Sans", var(--font-be-vietnam-pro), sans-serif;
   }
 
+  html {
+    scrollbar-gutter: stable;
+    overflow-y: scroll;
+  }
+
   body {
+    scrollbar-gutter: stable;
+    overflow-y: scroll;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

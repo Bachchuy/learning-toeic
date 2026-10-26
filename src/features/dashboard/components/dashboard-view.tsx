@@ -282,7 +282,7 @@ export function DashboardView({ summary }: DashboardViewProps) {
           </div>
 
           {/* B. THẺ TÓM TẮT TIẾN ĐỘ & HOẠT ĐỘNG 14 NGÀY */}
-          <Card className="p-5 bg-white border border-[#E2E8F0] shadow-xs space-y-4">
+          <Card className="p-5 bg-white border border-[#E2E8F0] shadow-xs space-y-4 overflow-hidden">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-slate-600" />
