@@ -33,7 +33,7 @@ export default function RootLayout({
       lang="vi"
       className={`${beVietnamPro.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[var(--color-bg-page)] text-[var(--color-text-primary)] font-sans">
+      <body className="min-h-full flex flex-col bg-[var(--color-bg-page)] text-[var(--color-text-primary)] font-sans pb-4">
         <Suspense fallback={<main className="flex-1 w-full">{children}</main>}>
           <AppNav>{children}</AppNav>
         </Suspense>

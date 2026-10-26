@@ -42,8 +42,7 @@
   }
 
   body {
-    scrollbar-gutter: stable;
-    overflow-y: scroll;
+    min-height: 100vh;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

@@ -228,7 +228,7 @@ export function ReviewView({
       </div>
 
       {/* 2. BỐ CỤC 2 CỘT CHUẨN PARROTO (Image 3) */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 w-full flex-1 flex flex-col lg:flex-row gap-6 items-start">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 pb-12 w-full flex-1 flex flex-col lg:flex-row gap-6 items-start">
         {/* CỘT TRÁI: DANH SÁCH CHỦ ĐỀ (~30-50 THẺ MỖI CHỦ ĐỀ) */}
         <aside className="hidden lg:flex w-80 shrink-0 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs p-4 flex-col max-h-[calc(100vh-120px)] sticky top-20">
           <div className="flex items-center justify-between mb-3 px-1">
@@ -243,7 +243,7 @@ export function ReviewView({
             </span>
           </div>
 
-          <div className="overflow-y-auto space-y-1.5 pr-1 no-scrollbar flex-1">
+          <div className="overflow-y-auto space-y-1.5 pr-1 no-scrollbar flex-1 pb-4">
             {topics.length === 0 ? (
               <div className="p-4 text-center text-xs text-slate-400">
                 Chưa có danh sách chủ đề

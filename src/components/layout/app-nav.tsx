@@ -169,8 +169,8 @@ export function AppNav({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-20 md:pb-8">
+      {/* Main Content Area — thêm không gian đệm đáy pb-12 để các animation nở an toàn không chạm mép */}
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-24 md:pb-12">
         {children}
       </main>
 
