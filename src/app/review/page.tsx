@@ -10,7 +10,11 @@ export const metadata = {
   description: "Ôn tập ngắt quãng từ vựng TOEIC với thuật toán FSRS và câu ngữ cảnh đục lỗ",
 };
 
-export default async function ReviewPage() {
+interface ReviewPageProps {
+  searchParams: Promise<{ notebookId?: string }>;
+}
+
+export default async function ReviewPage({ searchParams }: ReviewPageProps) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -20,14 +24,18 @@ export default async function ReviewPage() {
     redirect("/login?next=/review");
   }
 
-  const { cards, nextDueFormatted, totalCardsCount } =
-    await getReviewCardsAction();
+  const { notebookId } = (await searchParams) || {};
+
+  const { cards, nextDueFormatted, totalCardsCount, notebookName } =
+    await getReviewCardsAction(notebookId);
 
   return (
     <ReviewView
       initialCards={cards}
       nextDueFormatted={nextDueFormatted}
       totalCardsCount={totalCardsCount}
+      notebookName={notebookName}
+      notebookId={notebookId}
     />
   );
 }

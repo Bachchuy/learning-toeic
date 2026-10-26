@@ -1,6 +1,7 @@
 import essential600Data from "./essential-600-words.json";
 import etsVocabData from "./ets-part5-vocab.json";
 import commonIdiomsData from "./common-toeic-idioms.json";
+import itVocabData from "./it-vocab.json";
 
 export interface CuratedVocabItem {
   word: string;
@@ -25,7 +26,7 @@ export interface CuratedDeckMeta {
   badge: string;
   badgeType: "primary" | "pro" | "accent";
   color: string;
-  icon: "book" | "sparkles" | "award";
+  icon: "book" | "sparkles" | "award" | "code";
   items: CuratedVocabItem[];
 }
 
@@ -68,6 +69,19 @@ export const CURATED_DECKS: CuratedDeckMeta[] = [
     color: "#047857",
     icon: "sparkles",
     items: commonIdiomsData as CuratedVocabItem[],
+  },
+  {
+    id: "it-vocab",
+    title: "Từ vựng Tiếng Anh IT & Công Nghệ",
+    englishTitle: "English for Information Technology",
+    subtitle: "Tech Vocabulary & Coding Collocations",
+    description: "Bộ 778 từ vựng tiếng Anh chuyên ngành CNTT, lập trình, mạng, an ninh mạng và quản lý dự án phần mềm. Tối ưu cho sinh viên IT & kỹ sư công nghệ thi TOEIC.",
+    totalCards: itVocabData.length,
+    badge: "DÀNH CHO DÂN IT",
+    badgeType: "accent",
+    color: "#4338CA",
+    icon: "code",
+    items: itVocabData as CuratedVocabItem[],
   },
 ];
 

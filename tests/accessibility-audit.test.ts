@@ -20,7 +20,10 @@ describe("Milestone M12: Accessibility (WCAG 2.1 AA) & Keyboard Audit", () => {
 
     it("màn hình ôn tập FSRS (Review Screen) hỗ trợ phím Space lật thẻ và phím 1-4 chấm thẻ", () => {
       const reviewViewPath = path.join(srcDir, "features/review/components/review-view.tsx");
-      const content = fs.readFileSync(reviewViewPath, "utf-8");
+      const flashcardPath = path.join(srcDir, "features/review/components/flashcard-mode-card.tsx");
+      const content =
+        fs.readFileSync(reviewViewPath, "utf-8") +
+        (fs.existsSync(flashcardPath) ? fs.readFileSync(flashcardPath, "utf-8") : "");
 
       expect(content).toContain('"Space"');
       expect(content).toContain('"1"');

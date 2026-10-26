@@ -117,7 +117,7 @@ async function main() {
     console.log(`📁 Đã tìm thấy sổ từ có sẵn: "${deck.title}" (ID: ${notebookId})`);
   }
 
-  // 4. Kiểm tra các từ đã có để tránh trùng
+  // 4. Lọc và chuẩn hóa danh sách từ cần nạp (Deduplicate lemma trong chính bộ thẻ và so với sổ người dùng)
   const { data: existingEntries } = await supabase
     .from("vocab_entries")
     .select("lemma")
@@ -127,12 +127,29 @@ async function main() {
     (existingEntries || []).map((e: { lemma: string }) => e.lemma)
   );
 
-  const itemsToInsert = deck.items.filter((item) => {
-    const lemma = normalizeLemma(item.word);
-    return lemma && !existingLemmas.has(lemma);
-  });
+  const seenLemmas = new Set(existingLemmas);
+  const itemsToInsert: typeof deck.items = [];
 
-  console.log(`🔍 Thống kê: ${deck.items.length} thẻ tổng | ${existingLemmas.size} từ đã có | ${itemsToInsert.length} từ mới cần thêm`);
+  for (const item of deck.items) {
+    const lemma = normalizeLemma(item.word);
+    if (!lemma) continue;
+    if (seenLemmas.has(lemma)) {
+      const existingIdx = itemsToInsert.findIndex(
+        (i) => normalizeLemma(i.word) === lemma
+      );
+      if (existingIdx >= 0) {
+        itemsToInsert[existingIdx] = {
+          ...itemsToInsert[existingIdx],
+          meaning: `${itemsToInsert[existingIdx].meaning}; ${item.meaning}`,
+        };
+      }
+      continue;
+    }
+    seenLemmas.add(lemma);
+    itemsToInsert.push({ ...item });
+  }
+
+  console.log(`🔍 Thống kê: ${deck.items.length} thẻ gốc | ${existingLemmas.size} từ đã có | ${itemsToInsert.length} từ độc bản cần nạp`);
 
   if (itemsToInsert.length === 0) {
     console.log("✅ Tất cả từ vựng trong bộ thẻ này đã có sẵn trong sổ từ của bạn.");
@@ -165,7 +182,7 @@ async function main() {
 
     const { error: insertError } = await supabase
       .from("vocab_entries")
-      .insert(rows);
+      .upsert(rows, { onConflict: "user_id,lemma", ignoreDuplicates: true });
 
     if (insertError) {
       console.error(`❌ Lỗi batch ${i / CHUNK_SIZE + 1}:`, insertError.message);

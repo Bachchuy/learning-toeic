@@ -713,11 +713,29 @@ export async function importCuratedDeckAction(deckId: string): Promise<{
     (userEntries || []).map((e: { lemma: string }) => e.lemma)
   );
 
-  // 3. Lọc danh sách từ cần nạp
-  const itemsToInsert = deck.items.filter((item) => {
+  // 3. Lọc và chuẩn hóa danh sách từ cần nạp (Deduplicate lemma trong chính bộ thẻ và so với sổ người dùng)
+  const seenLemmas = new Set(existingLemmas);
+  const itemsToInsert: typeof deck.items = [];
+
+  for (const item of deck.items) {
     const lemma = normalizeLemma(item.word);
-    return lemma && !existingLemmas.has(lemma);
-  });
+    if (!lemma) continue;
+    if (seenLemmas.has(lemma)) {
+      // Nếu từ xuất hiện nhiều lần (ví dụ vừa là noun vừa là verb), gộp nghĩa
+      const existingIdx = itemsToInsert.findIndex(
+        (i) => normalizeLemma(i.word) === lemma
+      );
+      if (existingIdx >= 0) {
+        itemsToInsert[existingIdx] = {
+          ...itemsToInsert[existingIdx],
+          meaning: `${itemsToInsert[existingIdx].meaning}; ${item.meaning}`,
+        };
+      }
+      continue;
+    }
+    seenLemmas.add(lemma);
+    itemsToInsert.push({ ...item });
+  }
 
   // 4. Batch insert theo từng chunk 50 từ (Postgres trigger tự động tạo review_cards FSRS)
   const CHUNK_SIZE = 50;
@@ -745,7 +763,7 @@ export async function importCuratedDeckAction(deckId: string): Promise<{
 
     const { error: insertError } = await supabase
       .from("vocab_entries")
-      .insert(rows);
+      .upsert(rows, { onConflict: "user_id,lemma", ignoreDuplicates: true });
 
     if (insertError) {
       console.error("Lỗi khi batch insert bộ thẻ:", insertError);

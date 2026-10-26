@@ -14,13 +14,14 @@ import type { ReviewCardItem } from "./types";
 /**
  * Server Action: Lấy danh sách thẻ từ vựng đến hạn ôn tập (FSRS Spaced Repetition)
  * BẤT BIẾN §4.6b, D-03, D-22, D-24:
- * - Lấy các thẻ có due <= now() của user hiện tại
+ * - Lấy các thẻ có due <= now() của user hiện tại (hoặc lọc theo notebookId của bộ thẻ)
  * - Tính toán thời gian xem trước (preview) cho 4 nút Lại / Khó / Tốt / Dễ bằng thư viện FSRS
  */
-export async function getReviewCardsAction(): Promise<{
+export async function getReviewCardsAction(notebookId?: string): Promise<{
   cards: ReviewCardItem[];
   nextDueFormatted?: string;
   totalCardsCount: number;
+  notebookName?: string;
   error?: string;
 }> {
   const supabase = await createClient();
@@ -38,14 +39,51 @@ export async function getReviewCardsAction(): Promise<{
 
   const now = new Date();
 
-  // 1. Đếm tổng số thẻ mà người dùng đang có
-  const { count: totalCardsCount } = await supabase
+  let notebookName: string | undefined;
+  let targetVocabIds: string[] | undefined;
+
+  if (notebookId) {
+    const [{ data: nb }, { data: vEntries }] = await Promise.all([
+      supabase
+        .from("notebooks")
+        .select("name")
+        .eq("id", notebookId)
+        .eq("user_id", user.id)
+        .single(),
+      supabase
+        .from("vocab_entries")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("notebook_id", notebookId),
+    ]);
+
+    notebookName = nb?.name;
+    targetVocabIds = vEntries?.map((v) => v.id) || [];
+
+    if (targetVocabIds.length === 0) {
+      return {
+        cards: [],
+        totalCardsCount: 0,
+        notebookName,
+        error: undefined,
+      };
+    }
+  }
+
+  // 1. Đếm tổng số thẻ mà người dùng đang có (hoặc thuộc sổ này)
+  let countQuery = supabase
     .from("review_cards")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id);
 
+  if (targetVocabIds && targetVocabIds.length > 0) {
+    countQuery = countQuery.in("vocab_entry_id", targetVocabIds);
+  }
+
+  const { count: totalCardsCount } = await countQuery;
+
   // 2. Lấy danh sách thẻ đến hạn ôn tập (due <= now())
-  const { data, error } = await supabase
+  let cardsQuery = supabase
     .from("review_cards")
     .select(`
       id,
@@ -70,29 +108,86 @@ export async function getReviewCardsAction(): Promise<{
         metadata
       )
     `)
-    .eq("user_id", user.id)
+    .eq("user_id", user.id);
+
+  if (targetVocabIds && targetVocabIds.length > 0) {
+    cardsQuery = cardsQuery.in("vocab_entry_id", targetVocabIds);
+  }
+
+  const { data: initialData, error } = await cardsQuery
     .lte("due", now.toISOString())
     .order("due", { ascending: true });
+
+  let data = initialData;
 
   if (error) {
     return {
       cards: [],
       totalCardsCount: totalCardsCount ?? 0,
+      notebookName,
       error: "Không thể tải danh sách thẻ ôn lúc này.",
     };
+  }
+
+  // Nếu người dùng chọn học riêng một bộ thẻ (notebookId) mà chưa có thẻ nào đến hạn,
+  // tự động lấy tối đa 50 thẻ của bộ này để học tự do / củng cố (Cram Mode)
+  if (
+    notebookId &&
+    (!data || data.length === 0) &&
+    targetVocabIds &&
+    targetVocabIds.length > 0
+  ) {
+    const { data: cramData } = await supabase
+      .from("review_cards")
+      .select(`
+        id,
+        vocab_entry_id,
+        user_id,
+        state,
+        stability,
+        difficulty,
+        due,
+        last_review,
+        reps,
+        lapses,
+        vocab_entries (
+          id,
+          word,
+          lemma,
+          meaning,
+          context_sentence,
+          context_translation,
+          part_of_speech,
+          phonetic,
+          metadata
+        )
+      `)
+      .eq("user_id", user.id)
+      .in("vocab_entry_id", targetVocabIds)
+      .order("last_review", { ascending: true, nullsFirst: true })
+      .limit(50);
+
+    if (cramData && cramData.length > 0) {
+      data = cramData;
+    }
   }
 
   // 3. Nếu không có thẻ nào đến hạn, tìm thời điểm thẻ sớm nhất kế tiếp
   let nextDueFormatted: string | undefined;
   if (!data || data.length === 0) {
-    const { data: upcoming } = await supabase
+    let upcomingQuery = supabase
       .from("review_cards")
       .select("due")
       .eq("user_id", user.id)
       .gt("due", now.toISOString())
       .order("due", { ascending: true })
-      .limit(1)
-      .single();
+      .limit(1);
+
+    if (targetVocabIds && targetVocabIds.length > 0) {
+      upcomingQuery = upcomingQuery.in("vocab_entry_id", targetVocabIds);
+    }
+
+    const { data: upcoming } = await upcomingQuery.single();
 
     if (upcoming?.due) {
       const d = new Date(upcoming.due);

@@ -54,7 +54,7 @@ export function VocabListView({
   const router = useRouter();
   const [entries, setEntries] = useState<VocabEntry[]>(initialEntries);
   const [notebooks, setNotebooks] = useState<Notebook[]>(initialNotebooks);
-  const [curatedDecks, setCuratedDecks] = useState<CuratedDeckStatus[]>(initialCuratedDecks);
+  const [curatedDecks] = useState<CuratedDeckStatus[]>(initialCuratedDecks);
   const [isCuratedModalOpen, setIsCuratedModalOpen] = useState(false);
   const [selectedNotebookFilter, setSelectedNotebookFilter] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -219,7 +219,7 @@ export function VocabListView({
             <Layers className="w-4 h-4 text-[#2563EB]" />
             <span>Kho Bộ Thẻ TOEIC</span>
             <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-[#2563EB] text-white">
-              3 bộ
+              4 bộ
             </span>
           </Button>
 
@@ -735,6 +735,9 @@ export function VocabListView({
         isOpen={isCuratedModalOpen}
         onClose={() => setIsCuratedModalOpen(false)}
         decks={curatedDecks}
+        onSelectNotebookFilter={(nbId) => {
+          setSelectedNotebookFilter(nbId);
+        }}
         onImportSuccess={() => {
           router.refresh();
         }}

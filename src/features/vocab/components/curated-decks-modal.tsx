@@ -16,8 +16,8 @@ import {
   Loader2,
   X,
   Layers,
-  ArrowRight,
   Clock,
+  Code2,
 } from "lucide-react";
 
 interface CuratedDecksModalProps {
@@ -25,6 +25,7 @@ interface CuratedDecksModalProps {
   onClose: () => void;
   decks: CuratedDeckStatus[];
   onImportSuccess?: () => void;
+  onSelectNotebookFilter?: (notebookId: string) => void;
 }
 
 export function CuratedDecksModal({
@@ -32,6 +33,7 @@ export function CuratedDecksModal({
   onClose,
   decks: initialDecks,
   onImportSuccess,
+  onSelectNotebookFilter,
 }: CuratedDecksModalProps) {
   const router = useRouter();
   const [decks, setDecks] = useState<CuratedDeckStatus[]>(initialDecks);
@@ -39,6 +41,7 @@ export function CuratedDecksModal({
   const [importResult, setImportResult] = useState<{
     deckTitle: string;
     count: number;
+    notebookId?: string;
   } | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -66,10 +69,19 @@ export function CuratedDecksModal({
         setImportResult({
           deckTitle,
           count: res.importedCount || 0,
+          notebookId: res.notebook?.id,
         });
 
         if (onImportSuccess) {
           onImportSuccess();
+        }
+
+        // Chuyển thẳng sang phiên học Flashcard của bộ này
+        if (res.notebook?.id) {
+          setTimeout(() => {
+            onClose();
+            router.push(`/review?notebookId=${res.notebook?.id}`);
+          }, 800);
         }
       } else {
         alert(res.message);
@@ -84,7 +96,7 @@ export function CuratedDecksModal({
       aria-labelledby="curated-decks-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
     >
-      <div className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-[#FFFFFF] rounded-2xl shadow-2xl border border-[#E2E8F0] flex flex-col">
+      <div className="relative w-full max-w-6xl max-h-[92vh] overflow-y-auto bg-[#FFFFFF] rounded-2xl shadow-2xl border border-[#E2E8F0] flex flex-col">
         {/* Header Modal */}
         <div className="sticky top-0 z-10 flex items-center justify-between p-4 sm:p-6 bg-white border-b border-[#E2E8F0]">
           <div>
@@ -138,9 +150,9 @@ export function CuratedDecksModal({
           </div>
         )}
 
-        {/* Danh sách 3 bộ thẻ (Grid) */}
-        <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
-          {decks.map(({ deck, isImported, userCardsCount }) => {
+        {/* Danh sách 4 bộ thẻ (Grid) */}
+        <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {decks.map(({ deck, isImported, userCardsCount, notebookId }) => {
             const isLoading = loadingDeckId === deck.id;
 
             return (
@@ -157,6 +169,8 @@ export function CuratedDecksModal({
                         ? "#1E40AF"
                         : deck.id === "ets-vocab"
                         ? "#0F172A"
+                        : deck.id === "it-vocab"
+                        ? "#4338CA"
                         : "#047857",
                   }}
                 >
@@ -167,6 +181,7 @@ export function CuratedDecksModal({
                     {deck.icon === "book" && <BookOpen className="w-4 h-4 opacity-80" />}
                     {deck.icon === "award" && <Award className="w-4 h-4 opacity-80" />}
                     {deck.icon === "sparkles" && <Sparkles className="w-4 h-4 opacity-80" />}
+                    {deck.icon === "code" && <Code2 className="w-4 h-4 opacity-80" />}
                   </div>
 
                   <div className="mt-4">
@@ -215,25 +230,44 @@ export function CuratedDecksModal({
                   {/* 3. Action Button */}
                   <div className="pt-2 border-t border-[#E2E8F0]">
                     {isImported ? (
-                      <Button
-                        variant="secondary"
-                        size="default"
-                        className="w-full flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold h-11"
-                        onClick={() => {
-                          onClose();
-                          router.push(`/vocab`);
-                        }}
-                      >
-                        <span>Tiếp tục học trong Sổ từ</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Button>
+                      <div className="space-y-2">
+                        <Button
+                          variant="primary"
+                          size="default"
+                          className="w-full flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold h-11 bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-xs cursor-pointer"
+                          onClick={() => {
+                            onClose();
+                            if (notebookId) {
+                              router.push(`/review?notebookId=${notebookId}`);
+                            } else {
+                              router.push(`/review`);
+                            }
+                          }}
+                        >
+                          <BookOpen className="w-4 h-4 mr-1 shrink-0" />
+                          <span>Học Flashcard ({userCardsCount} thẻ) →</span>
+                        </Button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            if (onSelectNotebookFilter && notebookId) {
+                              onSelectNotebookFilter(notebookId);
+                            }
+                          }}
+                          className="w-full text-center text-xs text-[#475569] hover:text-[#0F172A] hover:underline font-medium py-1 transition-colors cursor-pointer"
+                        >
+                          Xem danh sách từ trong Sổ từ
+                        </button>
+                      </div>
                     ) : (
                       <Button
                         variant="primary"
                         size="default"
                         disabled={isLoading || isPending}
                         onClick={() => handleImport(deck.id, deck.title)}
-                        className="w-full flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold h-11"
+                        className="w-full flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold h-11 cursor-pointer"
                       >
                         {isLoading ? (
                           <>
