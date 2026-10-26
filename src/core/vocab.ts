@@ -202,6 +202,182 @@ export const DUAL_ADJ_ADV_WORDS = new Set([
   "direct",
 ]);
 
+export interface DualPronunciation {
+  nounIpa: string;
+  verbIpa: string;
+  nounMeaning?: string;
+  verbMeaning?: string;
+}
+
+/**
+ * Bảng tra cứu phát âm và ngữ nghĩa chuẩn kép cho các từ TOEIC vừa là Danh từ vừa là Động từ
+ * (Đặc biệt xử lý hiện tượng Initial-stress derivation: danh từ nhấn âm 1, động từ nhấn âm 2)
+ */
+export const DUAL_PRONUNCIATION_MAP: Record<string, DualPronunciation> = {
+  record: {
+    nounIpa: "/ˈrekərd/",
+    verbIpa: "/rɪˈkɔːrd/",
+    nounMeaning: "bản ghi, hồ sơ, kỷ lục",
+    verbMeaning: "ghi âm, ghi chép lại",
+  },
+  present: {
+    nounIpa: "/ˈpreznt/",
+    verbIpa: "/prɪˈzent/",
+    nounMeaning: "món quà, thời điểm hiện tại",
+    verbMeaning: "thuyết trình, trình bày, giới thiệu",
+  },
+  contract: {
+    nounIpa: "/ˈkɑːntrækt/",
+    verbIpa: "/kənˈtrækt/",
+    nounMeaning: "bản hợp đồng, giao kèo thương mại",
+    verbMeaning: "ký hợp đồng; co lại, thu hẹp",
+  },
+  conduct: {
+    nounIpa: "/ˈkɑːndʌkt/",
+    verbIpa: "/kənˈdʌkt/",
+    nounMeaning: "hạnh kiểm, tư cách đạo đức",
+    verbMeaning: "tiến hành, chỉ đạo, thực hiện khảo sát",
+  },
+  produce: {
+    nounIpa: "/ˈprɑːduːs/",
+    verbIpa: "/prəˈduːs/",
+    nounMeaning: "nông sản, sản vật",
+    verbMeaning: "sản xuất, chế tạo, tạo ra",
+  },
+  project: {
+    nounIpa: "/ˈprɑːdʒekt/",
+    verbIpa: "/prəˈdʒekt/",
+    nounMeaning: "dự án, đề án, kế hoạch",
+    verbMeaning: "dự đoán, phóng chiếu số liệu",
+  },
+  increase: {
+    nounIpa: "/ˈɪŋkriːs/",
+    verbIpa: "/ɪnˈkriːs/",
+    nounMeaning: "sự gia tăng, mức tăng trưởng",
+    verbMeaning: "tăng lên, gia tăng",
+  },
+  decrease: {
+    nounIpa: "/ˈdiːkriːs/",
+    verbIpa: "/dɪˈkriːs/",
+    nounMeaning: "sự sụt giảm, mức suy giảm",
+    verbMeaning: "giảm bớt, sụt giảm",
+  },
+  permit: {
+    nounIpa: "/ˈpɜːrmɪt/",
+    verbIpa: "/pərˈmɪt/",
+    nounMeaning: "giấy phép, sự cho phép chính thức",
+    verbMeaning: "cho phép, cấp phép",
+  },
+  export: {
+    nounIpa: "/ˈekspɔːrt/",
+    verbIpa: "/ɪkˈspɔːrt/",
+    nounMeaning: "hàng xuất khẩu, kim ngạch xuất khẩu",
+    verbMeaning: "xuất khẩu ra thị trường quốc tế",
+  },
+  import: {
+    nounIpa: "/ˈɪmpɔːrt/",
+    verbIpa: "/ɪmˈpɔːrt/",
+    nounMeaning: "hàng nhập khẩu, sự nhập khẩu",
+    verbMeaning: "nhập khẩu từ nước ngoài",
+  },
+  refund: {
+    nounIpa: "/ˈriːfʌnd/",
+    verbIpa: "/rɪˈfʌnd/",
+    nounMeaning: "tiền hoàn lại, khoản bồi hoàn",
+    verbMeaning: "hoàn tiền, trả lại tiền cho khách",
+  },
+  transport: {
+    nounIpa: "/ˈtrænspɔːrt/",
+    verbIpa: "/trænˈspɔːrt/",
+    nounMeaning: "phương tiện vận chuyển, giao thông",
+    verbMeaning: "vận chuyển, chuyên chở hàng hóa",
+  },
+  transfer: {
+    nounIpa: "/ˈtrænsfɜːr/",
+    verbIpa: "/trænsˈfɜːr/",
+    nounMeaning: "sự chuyển nhượng, điều chuyển công tác",
+    verbMeaning: "chuyển giao, điều chuyển nhân sự",
+  },
+  discount: {
+    nounIpa: "/ˈdɪskaʊnt/",
+    verbIpa: "/dɪsˈkaʊnt/",
+    nounMeaning: "khoản chiết khấu, mức giảm giá",
+    verbMeaning: "chiết khấu, giảm giá bán",
+  },
+  conflict: {
+    nounIpa: "/ˈkɑːnflɪkt/",
+    verbIpa: "/kənˈflɪkt/",
+    nounMeaning: "sự xung đột, mối bất đồng",
+    verbMeaning: "xung đột, mâu thuẫn, đối lập",
+  },
+  progress: {
+    nounIpa: "/ˈprɑːɡres/",
+    verbIpa: "/prəˈɡres/",
+    nounMeaning: "sự tiến bộ, tiến độ công việc",
+    verbMeaning: "tiến bộ, phát triển",
+  },
+  survey: {
+    nounIpa: "/ˈsɜːrveɪ/",
+    verbIpa: "/sərˈveɪ/",
+    nounMeaning: "cuộc khảo sát, phiếu thăm dò ý kiến",
+    verbMeaning: "khảo sát, nhìn nhận, đánh giá tổng quan",
+  },
+  schedule: {
+    nounIpa: "/ˈskedʒuːl/",
+    verbIpa: "/ˈskedʒuːl/",
+    nounMeaning: "lịch trình, thời gian biểu",
+    verbMeaning: "lên lịch, sắp xếp thời gian",
+  },
+  plan: {
+    nounIpa: "/plæn/",
+    verbIpa: "/plæn/",
+    nounMeaning: "kế hoạch, dự tính",
+    verbMeaning: "lập kế hoạch, lên phương án",
+  },
+  experience: {
+    nounIpa: "/ɪkˈspɪriəns/",
+    verbIpa: "/ɪkˈspɪriəns/",
+    nounMeaning: "kinh nghiệm, trải nghiệm",
+    verbMeaning: "trải nghiệm, trải qua",
+  },
+  access: {
+    nounIpa: "/ˈækses/",
+    verbIpa: "/ˈækses/",
+    nounMeaning: "quyền truy cập, lối vào",
+    verbMeaning: "truy cập, tiếp cận dữ liệu",
+  },
+  address: {
+    nounIpa: "/ˈædres/",
+    verbIpa: "/əˈdres/",
+    nounMeaning: "địa chỉ; bài diễn văn",
+    verbMeaning: "giải quyết vấn đề; gửi đến",
+  },
+  support: {
+    nounIpa: "/səˈpɔːrt/",
+    verbIpa: "/səˈpɔːrt/",
+    nounMeaning: "sự hỗ trợ, trợ giúp",
+    verbMeaning: "hỗ trợ, ủng hộ",
+  },
+  review: {
+    nounIpa: "/rɪˈvjuː/",
+    verbIpa: "/rɪˈvjuː/",
+    nounMeaning: "bản đánh giá, sự xem xét",
+    verbMeaning: "đánh giá, xem xét lại",
+  },
+  update: {
+    nounIpa: "/ˈʌpdeɪt/",
+    verbIpa: "/ʌpˈdeɪt/",
+    nounMeaning: "bản cập nhật, thông tin mới nhất",
+    verbMeaning: "cập nhật, bổ sung dữ liệu mới",
+  },
+};
+
+export function getDualPronunciation(word: string): DualPronunciation | null {
+  if (!word) return null;
+  const clean = word.trim().toLowerCase();
+  return DUAL_PRONUNCIATION_MAP[clean] || null;
+}
+
 /**
  * Phân loại từ loại (POS Category) chuẩn hóa:
  * - Hỗ trợ đầy đủ từ loại kép (noun_verb: DANH TỪ · ĐỘNG TỪ, noun_adj, adj_adv)

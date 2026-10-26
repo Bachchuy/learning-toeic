@@ -15,9 +15,14 @@ import {
 } from "lucide-react";
 import type { ReviewCardItem, ReviewSessionSummary } from "../types";
 import { submitCardRatingAction } from "../actions";
-import { getPosBadgeInfo, generateNaturalExplanation } from "@/core/vocab";
+import {
+  getPosBadgeInfo,
+  generateNaturalExplanation,
+  getDualPronunciation,
+} from "@/core/vocab";
 import { resolvePhonetic } from "@/core/vocabDictionary";
 import { playPronunciation } from "@/lib/audio";
+import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
 
 interface ReviewViewProps {
   initialCards: ReviewCardItem[];
@@ -197,6 +202,7 @@ export function ReviewView({
     currentCard?.word || "",
     currentCard?.phonetic || currentCard?.metadata?.phonetic
   );
+  const dual = currentCard ? getDualPronunciation(currentCard.word) : null;
   const posInfo = getPosBadgeInfo(
     currentCard?.part_of_speech,
     currentCard?.meaning,
@@ -506,11 +512,26 @@ export function ReviewView({
                       </button>
                     </div>
 
-                    {/* Phiên âm IPA chuẩn ngữ âm */}
-                    {phoneticDisplay && (
-                      <div className="text-base font-ipa font-normal text-slate-600 tracking-wide">
-                        {phoneticDisplay}
+                    {/* Phiên âm IPA chuẩn ngữ âm: Hỗ trợ hiển thị và phát âm song song cho Từ loại kép */}
+                    {dual ? (
+                      <div className="flex items-center justify-center gap-2.5 pt-1.5 flex-wrap">
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs">
+                          <span className="font-bold font-mono">DANH TỪ:</span>
+                          <span className="font-ipa">{dual.nounIpa}</span>
+                          <AudioSpeakerButton word={currentCard?.word || ""} posHint="noun" label="n" size="sm" />
+                        </div>
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs">
+                          <span className="font-bold font-mono">ĐỘNG TỪ:</span>
+                          <span className="font-ipa">{dual.verbIpa}</span>
+                          <AudioSpeakerButton word={currentCard?.word || ""} posHint="verb" label="v" size="sm" />
+                        </div>
                       </div>
+                    ) : (
+                      phoneticDisplay && (
+                        <div className="text-base font-ipa font-normal text-slate-600 tracking-wide">
+                          {phoneticDisplay}
+                        </div>
+                      )
                     )}
                   </div>
 
@@ -582,10 +603,25 @@ export function ReviewView({
                     </button>
                   </div>
 
-                  {phoneticDisplay && (
-                    <div className="text-sm font-ipa font-normal text-slate-600 tracking-wide">
-                      {phoneticDisplay}
+                  {dual ? (
+                    <div className="flex items-center justify-center gap-2.5 pt-1 flex-wrap">
+                      <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 text-xs">
+                        <span className="font-bold font-mono">[n]:</span>
+                        <span className="font-ipa">{dual.nounIpa}</span>
+                        <AudioSpeakerButton word={currentCard?.word || ""} posHint="noun" label="n" size="sm" />
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs">
+                        <span className="font-bold font-mono">[v]:</span>
+                        <span className="font-ipa">{dual.verbIpa}</span>
+                        <AudioSpeakerButton word={currentCard?.word || ""} posHint="verb" label="v" size="sm" />
+                      </div>
                     </div>
+                  ) : (
+                    phoneticDisplay && (
+                      <div className="text-sm font-ipa font-normal text-slate-600 tracking-wide">
+                        {phoneticDisplay}
+                      </div>
+                    )
                   )}
                 </div>
 
@@ -593,6 +629,20 @@ export function ReviewView({
                 <div className="text-xl sm:text-2xl font-bold text-[#2563EB] tracking-tight border-y border-slate-100 py-3">
                   {currentCard?.meaning}
                 </div>
+
+                {/* Diễn giải chi tiết nét nghĩa kép nếu có */}
+                {dual && dual.nounMeaning && dual.verbMeaning && (
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 text-left space-y-1.5 max-w-md mx-auto">
+                    <div className="flex items-start gap-1.5">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-mono font-bold shrink-0">Danh từ</span>
+                      <span className="font-medium">{dual.nounMeaning}</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-mono font-bold shrink-0">Động từ</span>
+                      <span className="font-medium">{dual.verbMeaning}</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* 3. Diễn giải chi tiết tự nhiên theo phân loại từ vựng */}
                 {detailedExplanation && (

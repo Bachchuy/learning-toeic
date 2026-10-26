@@ -5,9 +5,11 @@ import type { VocabEntry } from "@/features/vocab/types";
 import {
   getPosBadgeInfo,
   generateNaturalExplanation,
+  getDualPronunciation,
 } from "@/core/vocab";
 import { resolvePhonetic } from "@/core/vocabDictionary";
 import { playPronunciation } from "@/lib/audio";
+import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
 import {
   X,
   Calendar,
@@ -111,6 +113,7 @@ export function VocabDetailModal({
     entry.word,
     entry.phonetic || metadata?.phonetic
   );
+  const dual = getDualPronunciation(entry.word);
   const posInfo = getPosBadgeInfo(entry.part_of_speech, entry.meaning, entry.word);
   const topicDisplay = metadata?.topic || "TOEIC Essential Vocabulary";
 
@@ -225,17 +228,52 @@ export function VocabDetailModal({
                   </span>
                 </div>
 
-                {/* Phiên âm IPA chuẩn ngữ âm */}
-                {phoneticDisplay && (
-                  <div className="text-[14px] sm:text-[15px] font-ipa font-normal text-slate-600 tracking-wide select-all">
-                    {phoneticDisplay}
+                {/* Phiên âm IPA: Hỗ trợ hiển thị và phát âm song song nếu là từ loại kép */}
+                {dual ? (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs">
+                        <span className="font-bold font-mono">DANH TỪ:</span>
+                        <span className="font-ipa">{dual.nounIpa}</span>
+                        <AudioSpeakerButton word={entry.word} posHint="noun" label="n" size="sm" />
+                      </div>
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs">
+                        <span className="font-bold font-mono">ĐỘNG TỪ:</span>
+                        <span className="font-ipa">{dual.verbIpa}</span>
+                        <AudioSpeakerButton word={entry.word} posHint="verb" label="v" size="sm" />
+                      </div>
+                    </div>
                   </div>
+                ) : (
+                  phoneticDisplay && (
+                    <div className="text-[14px] sm:text-[15px] font-ipa font-normal text-slate-600 tracking-wide select-all">
+                      {phoneticDisplay}
+                    </div>
+                  )
                 )}
 
                 {/* Nghĩa tiếng Việt trọng tâm */}
                 <div className="text-xl sm:text-2xl font-bold text-[#2563EB] tracking-tight pt-0.5">
                   {entry.meaning}
                 </div>
+
+                {/* Chi tiết nét nghĩa kép nếu có */}
+                {dual && dual.nounMeaning && dual.verbMeaning && (
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1.5 max-w-xl">
+                    <div className="flex items-start gap-1.5">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-mono font-bold shrink-0">
+                        Danh từ
+                      </span>
+                      <span className="font-medium">{dual.nounMeaning}</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-mono font-bold shrink-0">
+                        Động từ
+                      </span>
+                      <span className="font-medium">{dual.verbMeaning}</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Diễn giải ngữ nghĩa học thuật */}
                 <p className="text-sm sm:text-[15px] text-slate-600 leading-relaxed max-w-2xl pt-1">

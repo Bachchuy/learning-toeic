@@ -7,14 +7,14 @@ import "./globals.css";
 const beVietnamPro = Be_Vietnam_Pro({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin", "vietnamese"],
-  variable: "--font-sans",
+  variable: "--font-be-vietnam-pro",
   display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "600"],
   subsets: ["latin"],
-  variable: "--font-mono",
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 

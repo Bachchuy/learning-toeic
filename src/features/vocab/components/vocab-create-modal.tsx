@@ -5,6 +5,7 @@ import { lookupWordAction } from "@/features/dictionary/actions";
 import { saveVocabAction } from "@/features/vocab/actions";
 import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
 import type { Notebook, VocabEntry } from "@/features/vocab/types";
+import { DUAL_NOUN_VERB_WORDS } from "@/core/vocab";
 import {
   X,
   Plus,
@@ -47,10 +48,25 @@ function VocabCreateModalForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // Tự động nhận diện cụm từ hoặc từ loại kép khi người dùng gõ phím
+  const handleWordChange = (val: string) => {
+    setWord(val);
+    const clean = val.trim().toLowerCase();
+    if (clean.includes(" ") || clean.includes("-")) {
+      setPartOfSpeech("phrase");
+      setAudioUrl(""); // Với cụm từ, luôn phát âm toàn bộ cụm qua Web Speech API
+    } else if (DUAL_NOUN_VERB_WORDS.has(clean)) {
+      setPartOfSpeech("noun_verb");
+    }
+  };
+
   // Tra cứu tự động bằng Smart Dictionary
   const handleAutoLookup = async () => {
     const trimmed = word.trim();
     if (!trimmed || trimmed.length < 2) return;
+
+    const isPhrase = trimmed.includes(" ") || trimmed.includes("-");
+    const isDual = DUAL_NOUN_VERB_WORDS.has(trimmed.toLowerCase());
 
     setIsSearching(true);
     setSearchFeedback(null);
@@ -59,24 +75,48 @@ function VocabCreateModalForm({
     try {
       const entry = await lookupWordAction(trimmed);
       if (entry) {
-        if (entry.meaning_vi && !meaning) {
+        if (entry.meaning_vi) {
           setMeaning(entry.meaning_vi);
         }
         if (entry.phonetic) {
           setPhonetic(entry.phonetic);
         }
         if (entry.part_of_speech) {
-          setPartOfSpeech(entry.part_of_speech.split(",")[0].trim() || "noun");
+          setPartOfSpeech(entry.part_of_speech);
+        } else if (isPhrase) {
+          setPartOfSpeech("phrase");
+        } else if (isDual) {
+          setPartOfSpeech("noun_verb");
         }
-        if (entry.audio_url) {
+
+        // Với cụm từ: tuyệt đối không lưu audio của từ đơn lẻ bóc tách
+        if (isPhrase) {
+          setAudioUrl("");
+        } else if (entry.audio_url) {
           setAudioUrl(entry.audio_url);
         }
-        if (entry.examples && entry.examples.length > 0 && !contextSentence) {
+
+        if (entry.examples && entry.examples.length > 0) {
           setContextSentence(entry.examples[0].en);
+        } else if (isPhrase && !contextSentence) {
+          setContextSentence(`Example with "${trimmed}".`);
         }
-        setSearchFeedback("Đã tìm thấy dữ liệu phát âm & định nghĩa chuẩn!");
+
+        if (isPhrase) {
+          setSearchFeedback("Đã nhận diện Cụm từ: phát âm toàn bộ cụm bằng Web Speech API chuẩn US!");
+        } else if (entry.part_of_speech === "noun_verb" || isDual) {
+          setSearchFeedback("Đã nhận diện Từ loại kép (Danh từ & Động từ) kèm phiên âm và nghĩa đầy đủ!");
+        } else {
+          setSearchFeedback("Đã tìm thấy dữ liệu phát âm & định nghĩa chuẩn!");
+        }
       } else {
-        setSearchFeedback("Không tìm thấy từ này trong từ điển. Bạn hãy tự điền nghĩa nhé.");
+        if (isPhrase) {
+          setPartOfSpeech("phrase");
+          setAudioUrl("");
+          setSearchFeedback("Đã nhận diện Cụm từ: bạn hãy bổ sung nghĩa tiếng Việt nhé.");
+        } else {
+          setSearchFeedback("Không tìm thấy từ này trong từ điển. Bạn hãy tự điền nghĩa nhé.");
+        }
       }
     } catch {
       setSearchFeedback("Lỗi tra từ điển tạm thời.");
@@ -168,10 +208,10 @@ function VocabCreateModalForm({
           <div className="space-y-1.5">
             <label className="font-semibold text-slate-700 flex items-center justify-between">
               <span>Từ vựng tiếng Anh (Word) *</span>
-              {audioUrl && (
+              {word.trim().length > 0 && (
                 <div className="flex items-center gap-1.5 text-blue-600 font-normal">
-                  <AudioSpeakerButton word={word} audioUrl={audioUrl} size="sm" />
-                  <span>Nghe thử phát âm US</span>
+                  <AudioSpeakerButton word={word.trim()} audioUrl={audioUrl || undefined} size="sm" />
+                  <span>{audioUrl ? "Nghe phát âm US" : "Nghe phát âm toàn bộ"}</span>
                 </div>
               )}
             </label>
@@ -179,9 +219,9 @@ function VocabCreateModalForm({
               <input
                 type="text"
                 value={word}
-                onChange={(e) => setWord(e.target.value)}
+                onChange={(e) => handleWordChange(e.target.value)}
                 onBlur={handleAutoLookup}
-                placeholder="Ví dụ: implement, eligible, accommodate..."
+                placeholder="Ví dụ: Nice to meet you, record, schedule..."
                 className="w-full h-10 px-3 rounded-xl border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none text-sm font-medium text-slate-900 placeholder:text-slate-400"
                 autoFocus
               />
@@ -216,7 +256,7 @@ function VocabCreateModalForm({
                 type="text"
                 value={phonetic}
                 onChange={(e) => setPhonetic(e.target.value)}
-                placeholder="/ˈɪmplɪment/"
+                placeholder="Ví dụ: /naɪs tuː miːt juː/ hoặc [n] /ˈrekərd/ · [v] /rɪˈkɔːrd/"
                 className="w-full h-9.5 px-3 rounded-xl border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none text-xs font-mono text-slate-800"
               />
             </div>
@@ -229,8 +269,11 @@ function VocabCreateModalForm({
               >
                 <option value="noun">Danh từ (Noun)</option>
                 <option value="verb">Động từ (Verb)</option>
+                <option value="noun_verb">Danh từ & Động từ (Noun & Verb)</option>
                 <option value="adjective">Tính từ (Adjective)</option>
+                <option value="noun_adj">Danh từ & Tính từ (Noun & Adj)</option>
                 <option value="adverb">Trạng từ (Adverb)</option>
+                <option value="adj_adv">Tính từ & Trạng từ (Adj & Adv)</option>
                 <option value="phrase">Cụm từ (Phrase)</option>
               </select>
             </div>

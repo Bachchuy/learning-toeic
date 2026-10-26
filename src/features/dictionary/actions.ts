@@ -8,6 +8,8 @@ import {
   type DictionaryEntry,
   type FreeDictApiResponseItem,
 } from "@/core/dictionary";
+import { getDualPronunciation } from "@/core/vocab";
+import { resolvePhonetic } from "@/core/vocabDictionary";
 
 /**
  * Server Action: Tra cứu từ điển thông minh (Hybrid Smart Cache)
@@ -55,38 +57,56 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
       };
     }
 
-    // 2. Chưa có trong cache -> Gọi Free Dictionary API bên ngoài
+    // 2. Nhận diện loại từ (Cụm từ hoặc Từ loại kép)
+    const isPhrase = word.includes(" ") || word.includes("-");
+    const dual = getDualPronunciation(word);
+    const resolvedIpa = resolvePhonetic(word);
+
+    // 3. Chưa có trong cache -> Gọi Free Dictionary API bên ngoài (nếu là từ đơn)
     let apiEntry: Partial<DictionaryEntry> | null = null;
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 giây timeout
+    if (!isPhrase) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 giây timeout
 
-      const res = await fetch(
-        `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`,
-        { signal: controller.signal }
-      );
-      clearTimeout(timeoutId);
+        const res = await fetch(
+          `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`,
+          { signal: controller.signal }
+        );
+        clearTimeout(timeoutId);
 
-      if (res.ok) {
-        const json = (await res.json()) as FreeDictApiResponseItem[];
-        if (json && json.length > 0) {
-          apiEntry = parseFreeDictResponse(json[0]);
+        if (res.ok) {
+          const json = (await res.json()) as FreeDictApiResponseItem[];
+          if (json && json.length > 0) {
+            apiEntry = parseFreeDictResponse(json[0]);
+          }
         }
+      } catch {
+        // Không kết nối được API bên ngoài -> fallback sang từ điển nội bộ
       }
-    } catch {
-      // Không kết nối được API bên ngoài -> fallback sang từ điển nội bộ
     }
 
-    // 3. Kết hợp với kho từ vựng TOEIC tuyển chọn (nếu có)
+    // 4. Kết hợp với kho từ vựng TOEIC tuyển chọn và hệ thống ngữ âm kép
     const curated = CURATED_TOEIC_TERMS[word];
     const newEntry: DictionaryEntry = {
       word,
-      phonetic: apiEntry?.phonetic || "",
-      part_of_speech: curated?.part_of_speech || apiEntry?.part_of_speech || "",
-      meaning_vi: curated?.meaning_vi || apiEntry?.meaning_vi || "",
+      phonetic:
+        curated?.phonetic ||
+        apiEntry?.phonetic ||
+        (dual ? `[n] ${dual.nounIpa} · [v] ${dual.verbIpa}` : resolvedIpa) ||
+        "",
+      part_of_speech:
+        curated?.part_of_speech ||
+        (dual ? "noun_verb" : isPhrase ? "phrase" : apiEntry?.part_of_speech || ""),
+      meaning_vi:
+        curated?.meaning_vi ||
+        (dual ? `[n] ${dual.nounMeaning} · [v] ${dual.verbMeaning}` : apiEntry?.meaning_vi || ""),
       definition_en: apiEntry?.definition_en || "",
-      audio_url: apiEntry?.audio_url || "",
-      examples: apiEntry?.examples || [],
+      audio_url: isPhrase ? "" : (apiEntry?.audio_url || ""),
+      examples:
+        curated?.examples && curated.examples.length > 0
+          ? curated.examples
+          : apiEntry?.examples || [],
       word_family: curated?.word_family || apiEntry?.word_family || [],
       collocations: curated?.collocations || apiEntry?.collocations || [],
       lookup_count: 1,

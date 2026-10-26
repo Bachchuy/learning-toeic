@@ -4,11 +4,15 @@
  * 2. Dự phòng tự động bằng Web Speech API (HTML5 SpeechSynthesis en-US)
  */
 
-export async function playPronunciation(word: string, audioUrl?: string): Promise<void> {
+export async function playPronunciation(
+  word: string,
+  audioUrl?: string,
+  posHint?: "noun" | "verb"
+): Promise<void> {
   if (!word && !audioUrl) return;
 
-  // 1. Thử phát bằng Audio URL nếu có
-  if (audioUrl && typeof window !== "undefined") {
+  // 1. Thử phát bằng Audio URL nếu có (chỉ ưu tiên khi không chỉ định posHint đặc thù)
+  if (audioUrl && typeof window !== "undefined" && !posHint) {
     try {
       const audio = new Audio(audioUrl);
       const playPromise = audio.play();
@@ -21,13 +25,15 @@ export async function playPronunciation(word: string, audioUrl?: string): Promis
     }
   }
 
-  // 2. Dự phòng bằng Web Speech API native của trình duyệt
+  // 2. Dự phòng bằng Web Speech API native của trình duyệt (Hỗ trợ phân biệt Danh từ / Động từ)
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
     try {
       window.speechSynthesis.cancel(); // Dừng câu đang đọc dở nếu có
-      const utterance = new SpeechSynthesisUtterance(word);
+      // Với động từ có trọng âm âm tiết 2 (record, conduct, present), tiền tố "to " kích hoạt trọng âm động từ chuẩn xác
+      const spokenText = posHint === "verb" ? `to ${word}` : word;
+      const utterance = new SpeechSynthesisUtterance(spokenText);
       utterance.lang = "en-US";
-      utterance.rate = 0.9; // Tốc độ vừa phải chuẩn giáo dục
+      utterance.rate = 0.88; // Tốc độ vừa phải chuẩn giáo dục
       window.speechSynthesis.speak(utterance);
     } catch {
       // Trình duyệt không hỗ trợ Web Speech API

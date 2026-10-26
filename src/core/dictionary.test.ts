@@ -93,5 +93,27 @@ describe("Smart Dictionary Core Service", () => {
         expect(item.collocations.length).toBeGreaterThanOrEqual(2);
       }
     });
+
+    it("đảm bảo các cụm từ (Phrases) có đầy đủ phiên âm nhiều từ và ví dụ thực tế", () => {
+      const phrases = ["nice to meet you", "look forward to", "in charge of", "take advantage of"];
+      for (const p of phrases) {
+        const item = CURATED_TOEIC_TERMS[p];
+        expect(item).toBeDefined();
+        expect(item.part_of_speech).toBe("phrase");
+        expect(item.phonetic).toBeDefined();
+        expect(item.examples && item.examples.length > 0).toBe(true);
+      }
+    });
+
+    it("đảm bảo các từ loại kép (Danh từ & Động từ) có phân định nghĩa kép rõ ràng", () => {
+      const duals = ["record", "present", "contract", "conduct"];
+      for (const d of duals) {
+        const item = CURATED_TOEIC_TERMS[d];
+        expect(item).toBeDefined();
+        expect(item.part_of_speech).toBe("noun_verb");
+        expect(item.meaning_vi).toContain("[n]");
+        expect(item.meaning_vi).toContain("[v]");
+      }
+    });
   });
 });

@@ -3,7 +3,12 @@
 import { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
 import type { VocabEntry, Notebook } from "@/features/vocab/types";
-import { getPosBadgeInfo, getPosCategory, type PosCategory } from "@/core/vocab";
+import {
+  getPosBadgeInfo,
+  getPosCategory,
+  getDualPronunciation,
+  type PosCategory,
+} from "@/core/vocab";
 import { resolvePhonetic } from "@/core/vocabDictionary";
 import {
   updateVocabMeaningAction,
@@ -446,6 +451,7 @@ export function VocabListView({
           const isDue =
             item.card?.due && new Date(item.card.due).getTime() <= currentTime;
           const posInfo = getPosBadgeInfo(item.part_of_speech, item.meaning, item.word);
+          const dual = getDualPronunciation(item.word);
           const phonetic = resolvePhonetic(
             item.word,
             item.phonetic || item.metadata?.phonetic
@@ -469,13 +475,22 @@ export function VocabListView({
                         {item.word}
                       </button>
 
-                      <AudioSpeakerButton word={item.word} size="sm" />
-
-                      {/* Phiên âm IPA chuẩn quốc tế cho từ đơn và cụm từ */}
-                      {phonetic && (
-                        <span className="text-[13px] font-ipa font-normal text-slate-500 tracking-wide select-all">
-                          {phonetic}
-                        </span>
+                      {dual ? (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <AudioSpeakerButton word={item.word} posHint="noun" label="n" size="sm" />
+                          <span className="text-[12px] font-ipa text-slate-500">{dual.nounIpa}</span>
+                          <AudioSpeakerButton word={item.word} posHint="verb" label="v" size="sm" />
+                          <span className="text-[12px] font-ipa text-slate-500">{dual.verbIpa}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <AudioSpeakerButton word={item.word} size="sm" />
+                          {phonetic && (
+                            <span className="text-[13px] font-ipa font-normal text-slate-500 tracking-wide select-all">
+                              {phonetic}
+                            </span>
+                          )}
+                        </>
                       )}
 
                       {/* Huy hiệu phân loại từ loại chuẩn: Danh · Động · Tính · Trạng */}

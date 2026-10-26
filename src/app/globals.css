@@ -33,6 +33,19 @@
     --status-insufficient-text: #475569;
     --status-insufficient-bg: #F1F5F9;
   }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  input,
+  button,
+  select,
+  textarea {
+    font-family: inherit;
+  }
 }
 
 @theme inline {
@@ -50,9 +63,9 @@
 
   --color-bg-learn: var(--color-bg-learn);
 
-  --font-sans: var(--font-sans), system-ui, sans-serif;
-  --font-mono: var(--font-mono), monospace;
-  --font-ipa: "Segoe UI", -apple-system, BlinkMacSystemFont, "Lucida Sans Unicode", "DejaVu Sans", var(--font-sans), sans-serif;
+  --font-sans: var(--font-be-vietnam-pro), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "Geist Mono", monospace;
+  --font-ipa: "Segoe UI", -apple-system, BlinkMacSystemFont, "Lucida Sans Unicode", "DejaVu Sans", var(--font-be-vietnam-pro), sans-serif;
 }
 
 .font-ipa {

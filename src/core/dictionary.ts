@@ -92,10 +92,187 @@ export const CURATED_TOEIC_TERMS: Record<
   {
     meaning_vi: string;
     part_of_speech: string;
+    phonetic?: string;
     collocations: string[];
     word_family: WordFamilyItem[];
+    examples?: DictionaryExample[];
   }
 > = {
+  // --- Cụm từ thông dụng trong giao tiếp và công sở TOEIC ---
+  "nice to meet you": {
+    meaning_vi: "Rất vui được gặp bạn (lời chào khi lần đầu gặp gỡ đối tác)",
+    part_of_speech: "phrase",
+    phonetic: "/naɪs tuː miːt juː/",
+    collocations: ["nice to meet you in person", "pleased to meet you"],
+    word_family: [],
+    examples: [
+      {
+        en: "Nice to meet you, Mr. Jenkins. Welcome to our Chicago headquarters.",
+        vi: "Rất vui được gặp ông, ông Jenkins. Chào mừng ông đến trụ sở Chicago của chúng tôi.",
+      },
+    ],
+  },
+  "look forward to": {
+    meaning_vi: "Trông mong, chờ đợi (hợp tác, phản hồi, cuộc họp)",
+    part_of_speech: "phrase",
+    phonetic: "/lʊk ˈfɔːrwərd tuː/",
+    collocations: ["look forward to hearing from you", "look forward to working together"],
+    word_family: [],
+    examples: [
+      {
+        en: "We look forward to receiving your proposal by Friday.",
+        vi: "Chúng tôi rất mong nhận được đề xuất của quý công ty trước thứ Sáu.",
+      },
+    ],
+  },
+  "in charge of": {
+    meaning_vi: "Chịu trách nhiệm, phụ trách (phòng ban, dự án)",
+    part_of_speech: "phrase",
+    phonetic: "/ɪn tʃɑːrdʒ əv/",
+    collocations: ["in charge of sales", "placed in charge of the project"],
+    word_family: [],
+    examples: [
+      {
+        en: "Ms. Tanaka is in charge of international marketing.",
+        vi: "Bà Tanaka phụ trách mảng tiếp thị quốc tế.",
+      },
+    ],
+  },
+  "take advantage of": {
+    meaning_vi: "Tận dụng, đón đầu cơ hội (ưu đãi, giảm giá, chương trình đào tạo)",
+    part_of_speech: "phrase",
+    phonetic: "/teɪk ədˈvæntɪdʒ əv/",
+    collocations: ["take advantage of special discounts", "take advantage of the opportunity"],
+    word_family: [],
+    examples: [
+      {
+        en: "Employees should take advantage of the free training seminars.",
+        vi: "Nhân viên nên tận dụng các buổi hội thảo đào tạo miễn phí.",
+      },
+    ],
+  },
+  "due to": {
+    meaning_vi: "Bởi vì, do nguyên nhân từ",
+    part_of_speech: "phrase",
+    phonetic: "/duː tuː/",
+    collocations: ["due to inclement weather", "due to technical difficulties"],
+    word_family: [],
+    examples: [
+      {
+        en: "The workshop was rescheduled due to unexpected flight cancellations.",
+        vi: "Buổi hội thảo đã được dời lịch do sự cố hủy chuyến bay bất ngờ.",
+      },
+    ],
+  },
+  "as well as": {
+    meaning_vi: "Cũng như, đi cùng với",
+    part_of_speech: "phrase",
+    phonetic: "/æz wel æz/",
+    collocations: ["executives as well as staff"],
+    word_family: [],
+    examples: [
+      {
+        en: "The package includes flight tickets as well as hotel accommodations.",
+        vi: "Gói dịch vụ bao gồm vé máy bay cũng như chỗ nghỉ tại khách sạn.",
+      },
+    ],
+  },
+
+  // --- Từ loại kép (Danh từ & Động từ) có trọng âm hoặc nét nghĩa kép ---
+  record: {
+    meaning_vi: "[n] Bản ghi, hồ sơ, kỷ lục · [v] Ghi âm, ghi chép lại",
+    part_of_speech: "noun_verb",
+    phonetic: "[n] /ˈrekərd/ · [v] /rɪˈkɔːrd/",
+    collocations: ["keep track of records", "record the transaction"],
+    word_family: [
+      { pos: "n", word: "record" },
+      { pos: "v", word: "record" },
+      { pos: "n", word: "recorder" },
+    ],
+    examples: [
+      {
+        en: "The secretary will record the meeting minutes in the official database.",
+        vi: "Thư ký sẽ ghi chép lại biên bản cuộc họp vào cơ sở dữ liệu chính thức.",
+      },
+    ],
+  },
+  present: {
+    meaning_vi: "[n] Món quà; hiện tại · [v] Thuyết trình, trình bày",
+    part_of_speech: "noun_verb",
+    phonetic: "[n] /ˈpreznt/ · [v] /prɪˈzent/",
+    collocations: ["present a proposal", "at the present time"],
+    word_family: [
+      { pos: "v", word: "present" },
+      { pos: "n", word: "presentation" },
+      { pos: "n", word: "presenter" },
+    ],
+  },
+  contract: {
+    meaning_vi: "[n] Bản hợp đồng · [v] Ký hợp đồng; thu hẹp, co lại",
+    part_of_speech: "noun_verb",
+    phonetic: "[n] /ˈkɑːntrækt/ · [v] /kənˈtrækt/",
+    collocations: ["sign a contract", "renew a contract", "contract with a supplier"],
+    word_family: [
+      { pos: "n", word: "contract" },
+      { pos: "n", word: "contractor" },
+      { pos: "adj", word: "contractual" },
+    ],
+  },
+  conduct: {
+    meaning_vi: "[n] Hạnh kiểm, tác phong · [v] Tiến hành, thực hiện (khảo sát, nghiên cứu)",
+    part_of_speech: "noun_verb",
+    phonetic: "[n] /ˈkɑːndʌkt/ · [v] /kənˈdʌkt/",
+    collocations: ["conduct an investigation", "conduct a survey", "code of conduct"],
+    word_family: [
+      { pos: "v", word: "conduct" },
+      { pos: "n", word: "conductor" },
+    ],
+  },
+  produce: {
+    meaning_vi: "[n] Nông sản, hoa màu · [v] Sản xuất, chế tạo",
+    part_of_speech: "noun_verb",
+    phonetic: "[n] /ˈprɑːduːs/ · [v] /prəˈduːs/",
+    collocations: ["organic produce", "produce high-quality goods"],
+    word_family: [
+      { pos: "v", word: "produce" },
+      { pos: "n", word: "product" },
+      { pos: "n", word: "production" },
+      { pos: "adj", word: "productive" },
+    ],
+  },
+  project: {
+    meaning_vi: "[n] Dự án, đề án · [v] Dự đoán, phóng chiếu số liệu",
+    part_of_speech: "noun_verb",
+    phonetic: "[n] /ˈprɑːdʒekt/ · [v] /prəˈdʒekt/",
+    collocations: ["manage a project", "project quarterly revenue"],
+    word_family: [
+      { pos: "n", word: "project" },
+      { pos: "n", word: "projection" },
+    ],
+  },
+  schedule: {
+    meaning_vi: "[n] Lịch trình, thời gian biểu · [v] Lên lịch, sắp xếp thời gian",
+    part_of_speech: "noun_verb",
+    phonetic: "/ˈskedʒuːl/",
+    collocations: ["ahead of schedule", "schedule an appointment", "tight schedule"],
+    word_family: [
+      { pos: "n", word: "schedule" },
+      { pos: "v", word: "reschedule" },
+    ],
+  },
+  plan: {
+    meaning_vi: "[n] Kế hoạch, dự tính · [v] Lập kế hoạch, lên phương án",
+    part_of_speech: "noun_verb",
+    phonetic: "/plæn/",
+    collocations: ["contingency plan", "plan carefully", "strategic plan"],
+    word_family: [
+      { pos: "n", word: "plan" },
+      { pos: "n", word: "planner" },
+      { pos: "n", word: "planning" },
+    ],
+  },
+
+  // --- Từ vựng TOEIC thông dụng khác ---
   implement: {
     meaning_vi: "Thi hành, thực hiện, triển khai (chính sách, kế hoạch)",
     part_of_speech: "verb",
@@ -220,15 +397,18 @@ export function parseFreeDictResponse(
   const meaningVi = curated ? curated.meaning_vi : "";
   const wordFamily = curated ? curated.word_family : [];
   const collocations = curated ? curated.collocations : [];
+  const finalPhonetic = curated?.phonetic || phonetic;
+  const finalExamples =
+    curated?.examples && curated.examples.length > 0 ? curated.examples : examples;
 
   return {
     word,
-    phonetic,
+    phonetic: finalPhonetic,
     part_of_speech: curated ? curated.part_of_speech : partOfSpeech,
     meaning_vi: meaningVi,
     definition_en: definitionEn,
     audio_url: audioUrl,
-    examples,
+    examples: finalExamples,
     word_family: wordFamily,
     collocations,
   };
