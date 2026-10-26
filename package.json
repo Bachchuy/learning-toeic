@@ -14,7 +14,9 @@
     "format:check": "prettier --check .",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed-questions.ts",
-    "db:setup": "npm run db:migrate && npm run db:seed"
+    "db:seed-batch": "tsx scripts/seed-batch-questions.ts",
+    "ai:generate": "tsx scripts/generate-questions-pipeline.ts",
+    "db:setup": "npm run db:migrate && npm run db:seed && npm run db:seed-batch"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
