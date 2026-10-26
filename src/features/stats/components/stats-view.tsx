@@ -45,7 +45,7 @@ export function StatsView({ stats, dailyActivity }: StatsViewProps) {
           <div className="text-[11px] font-mono font-bold uppercase tracking-[0.08em] text-[#475569] mb-1.5 flex items-center gap-2">
             <span>Độ vững kỹ năng</span>
             <span className="text-slate-300">•</span>
-            <span>Mô hình Wilson (95% tin cậy)</span>
+            <span>Mô hình Đánh giá Thích ứng (Cửa sổ 20 câu)</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
             Thống kê &amp; Chẩn đoán Điểm số
@@ -116,7 +116,7 @@ export function StatsView({ stats, dailyActivity }: StatsViewProps) {
             <span className="text-sm font-normal text-[#64748B]"> / 16</span>
           </div>
           <div className="text-[11px] text-[#047857] mt-0.5 font-mono font-semibold">
-            Độ vững ≥ 75%
+            Độ thành thạo ≥ 75%
           </div>
         </Card>
       </div>
@@ -162,7 +162,7 @@ export function StatsView({ stats, dailyActivity }: StatsViewProps) {
                   <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
                     {weakestTopic.totalAttempts >= 5 ? (
                       <>
-                        Độ vững hiện tại:{" "}
+                        Độ thành thạo hiện tại:{" "}
                         <span className="font-mono font-bold text-rose-700">
                           {weakestTopic.masteryPercentage}%
                         </span>{" "}
@@ -354,44 +354,44 @@ export function StatsView({ stats, dailyActivity }: StatsViewProps) {
             <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
               <HelpCircle className="w-4 h-4 text-slate-500" />
               <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#0F172A]">
-                Ý nghĩa 4 mức nhãn Độ vững Wilson
+                Ý nghĩa 4 mức nhãn Độ thành thạo
               </h3>
             </div>
 
             <div className="space-y-2.5 text-xs text-[#475569]">
               <div className="flex items-start gap-2.5">
                 <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-[#ECFDF5] text-[#047857] border border-[#A7F3D0] shrink-0">
-                  Vững
+                  Thành thạo
                 </span>
                 <p className="leading-relaxed">
-                  <strong className="text-[#0F172A]">Vững (≥ 75%):</strong> Làm đúng ổn định, nắm chắc quy tắc ngữ pháp.
+                  <strong className="text-[#0F172A]">Thành thạo (≥ 75% hoặc Fast-Track):</strong> Làm đúng ổn định, tự tin xử lý cả câu bẫy ngữ pháp.
                 </p>
               </div>
 
               <div className="flex items-start gap-2.5">
                 <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] shrink-0">
-                  Khá
+                  Khá chắc
                 </span>
                 <p className="leading-relaxed">
-                  <strong className="text-[#0F172A]">Khá (50% – 74%):</strong> Nắm được kiến thức cơ bản, đôi khi còn nhầm lẫn bẫy đề.
+                  <strong className="text-[#0F172A]">Khá chắc (50% – 74%):</strong> Nắm được kiến thức cơ bản, phong độ ổn định trong các câu gần nhất.
                 </p>
               </div>
 
               <div className="flex items-start gap-2.5">
                 <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-[#FFF1F2] text-[#BE123C] border-[#FECDD3] shrink-0">
-                  Cần ôn
+                  Cần củng cố
                 </span>
                 <p className="leading-relaxed">
-                  <strong className="text-[#0F172A]">Cần ôn (&lt; 50%):</strong> Tỷ lệ sai còn cao, cần ưu tiên luyện tập thêm.
+                  <strong className="text-[#0F172A]">Cần củng cố (&lt; 50%):</strong> Tỷ lệ sai còn cao trên mẫu đã làm, cần ưu tiên luyện tập thêm.
                 </p>
               </div>
 
               <div className="flex items-start gap-2.5">
                 <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-[#F1F5F9] text-[#475569] border-[#E2E8F0] shrink-0">
-                  Chưa đủ DL
+                  Khởi động
                 </span>
                 <p className="leading-relaxed">
-                  <strong className="text-[#0F172A]">Chưa đủ dữ liệu (&lt; 5 câu):</strong> Cần làm thêm để hệ thống chẩn đoán chính xác.
+                  <strong className="text-[#0F172A]">Đang khởi động (&lt; 5 câu):</strong> Đang thu thập mẫu ban đầu, chưa xếp hạng để đảm bảo khách quan.
                 </p>
               </div>
             </div>
@@ -412,7 +412,7 @@ export function StatsView({ stats, dailyActivity }: StatsViewProps) {
                 </h3>
               </div>
               <span className="text-[11px] font-mono text-[#64748B]">
-                Sắp xếp từ yếu đến vững
+                Sắp xếp từ yếu đến thành thạo
               </span>
             </div>
 
@@ -451,7 +451,7 @@ export function StatsView({ stats, dailyActivity }: StatsViewProps) {
                             </span>
                           </div>
                           <div className="text-[11px] font-mono text-[#64748B]">
-                            Làm đúng {topic.correctAttempts}/{topic.totalAttempts} câu ({accuracy}%) • Wilson: {topic.masteryPercentage}%
+                            Làm đúng {topic.correctAttempts}/{topic.totalAttempts} câu ({accuracy}%) • Độ thành thạo: {topic.masteryPercentage}%
                           </div>
                         </div>
 

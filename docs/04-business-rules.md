@@ -55,12 +55,12 @@
 - Phím tắt: Space lật thẻ; 1–4 chấm. Hết thẻ: màn hình hoàn tất kèm lịch hẹn kế tiếp. Lỗi lưu: toast, không sang thẻ sau.
 - Ngoài MVP: tối ưu tham số FSRS theo từng người (cần đủ lịch sử chấm thẻ).
 
-### 4.7 Độ vững và thống kê
+### 4.7 Độ vững và thống kê (Mô hình Adaptive Rolling Mastery - D-25)
 
-- `mastery_pct = 100 × wilson_lower(đúng, tổng)` theo từng người dùng và chủ điểm, z = 1,96.
-- Nhãn: dưới 5 lượt → Chưa đủ dữ liệu (X/5); dưới 50 → Cần ôn; 50 đến dưới 75 → Khá; từ 75 → Vững.
+- `mastery_pct`: Tính theo mô hình Adaptive Rolling Mastery (z = 1.0, cửa sổ trượt tối đa 20 lượt gần nhất, có cơ chế Fast-track cho học viên xuất sắc n >= 8 đúng >= 90%).
+- Nhãn: dưới 5 lượt → "Đang khởi động" (X/5); dưới 50 → "Cần củng cố"; 50 đến dưới 75 → "Khá chắc"; từ 75 hoặc Fast-track → "Thành thạo".
 - Dashboard: thẻ luyện tập đề xuất (chủ điểm yếu nhất đủ dữ liệu; người mới chưa có dữ liệu thì đề xuất chủ điểm phổ biến), thẻ nhắc ôn, Top 3 chủ điểm cần chú ý (mobile), chuỗi ngày.
-- `/stats`: thẻ cảnh báo điểm yếu, biểu đồ 14 ngày (SVG, có bảng ẩn cho trình đọc màn hình), Nhóm 1 (đủ dữ liệu) và Nhóm 2 (chưa đủ dữ liệu), nút \[Luyện chủ điểm yếu nhất ngay\].
+- `/stats`: thẻ gợi ý chủ điểm cải thiện, biểu đồ 14 ngày (SVG, có bảng ẩn cho trình đọc màn hình), Nhóm 1 (đã có dữ liệu) và Nhóm 2 (đang khởi động), nút [Luyện ngay]. Xóa bỏ mọi thuật ngữ toán học ("Wilson") trên giao diện người dùng.
 
 ### 4.8 Hồ sơ
 

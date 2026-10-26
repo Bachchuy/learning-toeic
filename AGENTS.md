@@ -10,7 +10,7 @@ Không đọc `archive/` trừ khi INDEX không đủ và user yêu cầu tra s�
 Bất biến của project (không cần tra INDEX):
 • Đáp án không rời server trước khi nộp
 • Drill không ghi DB, không đổi mastery
-• Mastery = Wilson z=1.96; ngưỡng 5 / 50 / 75
+• Mastery = Adaptive Rolling Mastery (z=1.0, window 20, fast-track n>=8 & >=90%, ngưỡng 5 / 50 / 75 - D-25)
 • Không bấm giờ trong MVP
 • Mỗi màn hình chỉ một nút Primary
 • Không màu ngoài token; không màu làm tín hiệu duy nhất
@@ -105,7 +105,7 @@ Khi thực hiện task, agent tự động đóng đúng vai trò chuyên trách
 - **Nhiệm vụ**: Logic thuật toán học tập thuần túy, lập lịch FSRS, cận dưới Wilson, state reducer.
 - **Tài liệu & Skills**: `docs/04-business-rules.md`, `docs/A-test-data.md`.
 - **Phạm vi file**: `src/core/` (`fsrs.ts`, `wilson.ts`, `practiceReducer.ts`, `drill.ts`), unit tests Vitest.
-- **Bất biến**: Drill không ghi DB & không đổi mastery; Wilson z=1.96 với ngưỡng 5/50/75; FSRS dùng `ts-fsrs` ở server, không tự viết lại công thức.
+- **Bất biến**: Drill không ghi DB & không đổi mastery; Mastery theo Adaptive Rolling Mastery (z=1.0, window 20, fast-track n>=8 & >=90% - D-25); FSRS dùng `ts-fsrs` ở server, không tự viết lại công thức.
 
 ### 🔍 Role 4: QA & Compliance Auditor
 - **Nhiệm vụ**: Kiểm thử theo Definition of Done (DoD), Accessibility audit (axe, WCAG 2.1 AA), E2E test Playwright.

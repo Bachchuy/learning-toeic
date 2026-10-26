@@ -99,7 +99,7 @@ export function DashboardView({ summary }: DashboardViewProps) {
                   "Chủ điểm thường gặp nhất trong đề thi TOEIC. Cùng khởi động với 10 câu ngắn để hệ thống hiểu rõ điểm mạnh của bạn nhé."
                 ) : (
                   <>
-                    Độ vững hiện tại đang ở mức{" "}
+                    Độ thành thạo hiện tại đang ở mức{" "}
                     <span className="font-mono font-bold text-amber-700">
                       {recommendedTopic?.masteryPercentage}%
                     </span>
@@ -245,7 +245,7 @@ export function DashboardView({ summary }: DashboardViewProps) {
                         <div className="text-[11px] font-mono text-[#64748B]">
                           {isInsufficient
                             ? `${topic.totalAttempts}/5 câu (Cần làm thêm ${5 - topic.totalAttempts} câu)`
-                            : `Làm đúng ${topic.correctAttempts}/${topic.totalAttempts} câu • Độ vững: ${topic.masteryPercentage}%`}
+                            : `Làm đúng ${topic.correctAttempts}/${topic.totalAttempts} câu • Độ thành thạo: ${topic.masteryPercentage}%`}
                         </div>
                       </div>
 
@@ -332,7 +332,7 @@ export function DashboardView({ summary }: DashboardViewProps) {
             <div className="flex items-center justify-between text-xs font-mono text-[#64748B] pt-1">
               <span>Đã hoàn thành: {totalQuestionsAnswered} câu</span>
               {averageMasteryScore > 0 && (
-                <span>Độ vững TB: {averageMasteryScore}%</span>
+                <span>Độ thành thạo TB: {averageMasteryScore}%</span>
               )}
             </div>
           </Card>

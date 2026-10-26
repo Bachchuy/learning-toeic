@@ -47,33 +47,36 @@ describe("Milestone M12: System Invariants & Integration Audit", () => {
     });
   });
 
-  describe("Invariant 3: Mastery = Wilson z=1.96 với các ngưỡng 5 / 50 / 75", () => {
-    it("tuân thủ nghiêm ngặt bảng giá trị tham chiếu Phụ lục A (docs/A-test-data.md)", () => {
-      // Dưới 5 lượt làm -> Chưa đủ dữ liệu
+  describe("Invariant 3: Mastery = Adaptive Rolling Mastery (z=1.0, window 20, fast-track n>=8 - D-25)", () => {
+    it("tuân thủ chuẩn mực đánh giá thích ứng D-25 (thay thế D-04): ngưỡng 5 / 50 / 75 và fast-track", () => {
+      // Dưới 5 lượt làm -> Đang khởi động (insufficient)
       expect(getMasteryLabel(0, 0)).toBe("insufficient");
       expect(getMasteryLabel(1, 100)).toBe("insufficient");
       expect(getMasteryLabel(4, 100)).toBe("insufficient");
 
       // Bắt đầu từ 5 lượt:
-      // 8/10 -> 49.0% -> "needs_review" (< 50)
+      // 6/10 -> 44.3% -> "needs_review" (< 50)
+      const p6_10 = calculateMasteryPercentage(6, 10);
+      expect(p6_10).toBe(44.3);
+      expect(getMasteryLabel(10, p6_10)).toBe("needs_review");
+
+      // 8/10 -> 64.9% -> "proficient" (50 <= score < 75) - Không còn bị dìm thành Cần ôn
       const p8_10 = calculateMasteryPercentage(8, 10);
-      expect(p8_10).toBe(49.0);
-      expect(getMasteryLabel(10, p8_10)).toBe("needs_review");
+      expect(p8_10).toBe(64.9);
+      expect(getMasteryLabel(10, p8_10)).toBe("proficient");
 
-      // 8/9 -> 56.5% -> "proficient" (50 <= score < 75)
-      const p8_9 = calculateMasteryPercentage(8, 9);
-      expect(p8_9).toBe(56.5);
-      expect(getMasteryLabel(9, p8_9)).toBe("proficient");
+      // 17/20 -> 75.4% -> "mastered" (>= 75)
+      const p17_20 = calculateMasteryPercentage(17, 20);
+      expect(p17_20).toBe(75.4);
+      expect(getMasteryLabel(20, p17_20)).toBe("mastered");
 
-      // 18/20 -> 69.9% -> "proficient" (50 <= score < 75)
-      const p18_20 = calculateMasteryPercentage(18, 20);
-      expect(p18_20).toBe(69.9);
-      expect(getMasteryLabel(20, p18_20)).toBe("proficient");
-
-      // 40/40 -> 91.2% -> "mastered" (>= 75)
+      // 40/40 -> cửa sổ trượt 20 câu đạt Thành thạo tuyệt đối
       const p40_40 = calculateMasteryPercentage(40, 40);
-      expect(p40_40).toBe(91.2);
+      expect(p40_40).toBeGreaterThanOrEqual(75);
       expect(getMasteryLabel(40, p40_40)).toBe("mastered");
+
+      // Fast-track: làm đúng 8/8 câu đạt thẳng "mastered"
+      expect(getMasteryLabel(8, 88.9, 1.0)).toBe("mastered");
     });
   });
 
