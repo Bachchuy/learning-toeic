@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { logoutAction } from "@/features/auth/actions";
 import { updateProfileAction, exportUserDataAction, deleteAccountAction } from "../actions";
 import type { UserProfileData } from "../types";
@@ -229,6 +230,40 @@ export function ProfileView({ initialProfile }: ProfileViewProps) {
           </form>
         </CardContent>
       </Card>
+
+      {/* ========================================================
+          Thẻ Dành riêng cho Quản trị viên (Admin Portal)
+          ======================================================== */}
+      {profile.role === "admin" && (
+        <Card className="border-[#BFDBFE] bg-[#EFF6FF]/40 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold text-[#1E40AF] flex items-center gap-2">
+                <Shield className="w-5 h-5 text-[#2563EB]" />
+                Khu vực Quản trị viên
+              </CardTitle>
+              <Badge variant="neutral" showIcon={false} className="text-xs font-mono text-[#2563EB] bg-white border-[#BFDBFE]">
+                ADMIN
+              </Badge>
+            </div>
+            <CardDescription className="text-xs text-[#334155]">
+              Bạn đang đăng nhập với quyền quản trị. Truy cập hàng đợi duyệt đề thi để kiểm định chất lượng và xuất bản câu hỏi.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/admin/review">
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full border-[#2563EB] text-[#2563EB] hover:bg-[#EFF6FF] flex items-center justify-center gap-2"
+              >
+                <Shield className="w-4 h-4" />
+                Mở Hàng đợi duyệt đề (/admin/review)
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ========================================================
           Thẻ 2: Dữ liệu cá nhân (Data Ownership)
