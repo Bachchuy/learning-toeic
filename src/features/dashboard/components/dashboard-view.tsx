@@ -60,7 +60,13 @@ export function DashboardView({ summary }: DashboardViewProps) {
               Chuỗi ngày học
             </div>
             <div className="text-lg font-mono font-bold text-[#0F172A] leading-tight">
-              {streakDays} <span className="text-xs font-normal text-[#64748B]">ngày liên tiếp</span>
+              {streakDays > 0 ? (
+                <>
+                  {streakDays} <span className="text-xs font-normal text-[#64748B]">ngày liên tiếp</span>
+                </>
+              ) : (
+                <span className="text-sm font-semibold text-[#2563EB]">Cùng khởi động hôm nay!</span>
+              )}
             </div>
           </div>
         </div>
@@ -76,7 +82,7 @@ export function DashboardView({ summary }: DashboardViewProps) {
           <Card className="p-6 bg-white border border-[#2563EB]/40 shadow-sm relative overflow-hidden space-y-4">
             <div className="flex items-center justify-between">
               <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]">
-                {isNewLearner ? "Đề xuất bắt đầu" : "Chủ điểm cần cải thiện"}
+                {isNewLearner ? "Khởi động hôm nay" : "Chủ điểm nên ưu tiên"}
               </span>
               <Sparkles className="w-4 h-4 text-[#2563EB]" />
             </div>
@@ -90,14 +96,14 @@ export function DashboardView({ summary }: DashboardViewProps) {
               </h2>
               <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
                 {isNewLearner ? (
-                  "Chủ điểm ngữ pháp nền tảng chiếm tỷ trọng lớn trong đề thi. Bắt đầu với phiên 10 câu để hệ thống chẩn đoán độ vững."
+                  "Chủ điểm thường gặp nhất trong đề thi TOEIC. Cùng khởi động với 10 câu ngắn để hệ thống hiểu rõ điểm mạnh của bạn nhé."
                 ) : (
                   <>
-                    Độ vững hiện tại đạt{" "}
-                    <span className="font-mono font-bold text-rose-700">
+                    Độ vững hiện tại đang ở mức{" "}
+                    <span className="font-mono font-bold text-amber-700">
                       {recommendedTopic?.masteryPercentage}%
                     </span>
-                    . Luyện phiên này giúp bù đắp ngay phần kiến thức còn thiếu sót.
+                    . Dành khoảng 5-7 phút làm phiên này sẽ giúp bạn tự tin hơn rất nhiều ở dạng bài này.
                   </>
                 )}
               </p>
@@ -238,8 +244,8 @@ export function DashboardView({ summary }: DashboardViewProps) {
                         </div>
                         <div className="text-[11px] font-mono text-[#64748B]">
                           {isInsufficient
-                            ? `${topic.totalAttempts}/5 câu (Chưa đủ mẫu)`
-                            : `Làm đúng ${topic.correctAttempts}/${topic.totalAttempts} câu • Wilson: ${topic.masteryPercentage}%`}
+                            ? `${topic.totalAttempts}/5 câu (Cần làm thêm ${5 - topic.totalAttempts} câu)`
+                            : `Làm đúng ${topic.correctAttempts}/${topic.totalAttempts} câu • Độ vững: ${topic.masteryPercentage}%`}
                         </div>
                       </div>
 

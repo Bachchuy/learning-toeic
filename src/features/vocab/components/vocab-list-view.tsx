@@ -530,10 +530,10 @@ export function VocabListView({ initialEntries }: VocabListViewProps) {
           </div>
           <div className="space-y-1.5 max-w-md mx-auto">
             <h3 className="text-lg font-bold text-[#0F172A]">
-              Sổ từ vựng đang trống
+              Bạn chưa có từ vựng nào trong sổ
             </h3>
             <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
-              Lưu từ đầu tiên từ phần giải thích sau khi làm bài luyện Part 5 để hệ thống tự động lập lịch ôn tập FSRS cho bạn.
+              Mỗi khi gặp từ mới trong lúc giải đề, hãy bấm nút Lưu từ. Hệ thống sẽ tự động xếp lịch ôn ngắt quãng giúp bạn ghi nhớ tự nhiên và lâu dài.
             </p>
           </div>
           <div className="pt-2">

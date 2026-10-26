@@ -137,11 +137,11 @@ export function PracticeResultView({ review }: PracticeResultViewProps) {
                   <Sparkles className="w-4 h-4" />
                 </span>
                 <h2 className="text-base sm:text-lg font-bold text-[#312E81]">
-                  Ôn lại câu sai ngay lập tức
+                  Củng cố nhanh điểm chưa chắc
                 </h2>
               </div>
               <p className="text-xs sm:text-sm text-[#4338CA] leading-relaxed">
-                Bạn có <span className="font-bold">{wrongCount} câu</span> chưa trả lời đúng trong phiên này. Làm lại ngay để khắc sâu kiến thức ngữ pháp.
+                Có <span className="font-bold">{wrongCount} câu</span> bạn vừa phân vân lúc nãy. Làm lại ngay khi kiến thức còn nóng sẽ giúp bạn nhớ sâu và tự tin hơn.
               </p>
             </div>
 
@@ -153,7 +153,7 @@ export function PracticeResultView({ review }: PracticeResultViewProps) {
               onClick={() => setIsDrillActive(true)}
             >
               <RotateCcw className="w-4 h-4 mr-2" />
-              Luyện lại {wrongCount} câu sai ngay
+              Củng cố {wrongCount} câu này ngay
             </Button>
           </div>
         </Card>

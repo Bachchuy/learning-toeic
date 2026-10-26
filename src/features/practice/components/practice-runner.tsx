@@ -76,7 +76,7 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
     } catch {
       dispatch({
         type: "SUBMIT_ERROR",
-        payload: { error: "Lỗi kết nối mạng. Vui lòng thử lại." },
+        payload: { error: "Đường truyền hơi chậm một chút. Lựa chọn của bạn vẫn được giữ nguyên, hãy bấm Thử lại nhé." },
       });
     }
   }, [sessionId, currentQuestion, state.selectedIndex, state.status]);

@@ -255,10 +255,10 @@ export function ReviewView({
 
           <div className="space-y-2">
             <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
-              Không có thẻ nào cần ôn!
+              Trí nhớ của bạn đang rất tốt!
             </h1>
             <p className="text-sm text-[#475569] leading-relaxed">
-              Bạn đã hoàn thành tất cả các thẻ ôn tập ngắt quãng đến hạn hôm nay.
+              Hôm nay bạn không còn thẻ nào đến hạn ôn tập. Toàn bộ từ vựng đã được củng cố theo đúng chu kỳ FSRS tối ưu.
             </p>
           </div>
 
@@ -312,10 +312,10 @@ export function ReviewView({
 
           <div className="space-y-1.5">
             <h1 className="text-2xl sm:text-3xl font-bold text-[#0F172A] tracking-tight">
-              Hoàn thành phiên ôn tập!
+              Tuyệt vời! Bạn đã hoàn thành phiên ôn tập
             </h1>
             <p className="text-sm text-[#475569]">
-              Bạn đã ôn luyện xuất sắc {sessionSummary.totalReviewed} lượt từ vựng.
+              Bộ não của bạn vừa củng cố vững chắc {sessionSummary.totalReviewed} lượt từ vựng hôm nay.
             </p>
           </div>
 

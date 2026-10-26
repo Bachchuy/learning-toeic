@@ -68,7 +68,7 @@ export function AnswerOption({
       aria-checked={state === "selected"}
       disabled={disabled}
       onClick={onClick}
-      className={`w-full min-h-[52px] px-4 py-3 rounded-lg border flex items-start sm:items-center justify-between text-left transition-all cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[var(--color-primary-default)] focus-visible:outline-offset-2 ${containerClasses}`}
+      className={`w-full min-h-[52px] px-4 py-3 rounded-lg border flex items-start sm:items-center justify-between text-left transition-all active:scale-[0.99] duration-150 ease-out cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-[var(--color-primary-default)] focus-visible:outline-offset-2 ${containerClasses}`}
     >
       <div className="flex items-start sm:items-center gap-3 flex-1 pr-2">
         {/* Keycap A/B/C/D — 28×28px radius-6px mono (§5.5) */}
