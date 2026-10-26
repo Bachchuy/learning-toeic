@@ -102,76 +102,85 @@ export function AppNav({ children }: { children: React.ReactNode }) {
     pathname === "/login";
 
   if (isFocusScreen) {
-    return <main className="flex-1 w-full">{children}</main>;
+    return (
+      <main className="h-screen w-full overflow-y-auto scrollbar-gutter-stable bg-[var(--color-bg-page)]">
+        {children}
+      </main>
+    );
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="h-screen w-full flex flex-col md:flex-row overflow-hidden bg-[var(--color-bg-page)]">
       {/* ========================================================
           Desktop Left Sidebar (240px) - chỉ hiện trên màn hình md+ (≥768px/1024px)
+          Cố định tuyệt đối theo viewport h-screen, không bao giờ bị unmount hoặc co giật
           ======================================================== */}
       <aside
         aria-label="Điều hướng chính"
-        className="hidden md:flex flex-col w-60 border-r border-[#E2E8F0] bg-white p-5 sticky top-0 h-screen select-none"
+        className="hidden md:flex flex-col w-60 border-r border-[#E2E8F0] bg-white p-5 h-screen shrink-0 select-none justify-between overflow-hidden"
       >
-        {/* Brand Header */}
-        <div className="flex items-center gap-2.5 mb-8 px-2">
-          {/* Logo mark — chữ T trên nền primary, Swiss precision square */}
-          <div className="w-8 h-8 rounded-[6px] bg-[var(--color-primary-default)] flex items-center justify-center text-white font-bold text-sm font-mono shrink-0">
-            T
-          </div>
-          <div>
-            <div className="font-bold text-[15px] tracking-tight text-[var(--color-text-primary)] leading-none">
-              TOEIC
+        <div>
+          {/* Brand Header */}
+          <div className="flex items-center gap-2.5 mb-8 px-2">
+            {/* Logo mark — chữ T trên nền primary, Swiss precision square */}
+            <div className="w-8 h-8 rounded-[6px] bg-[var(--color-primary-default)] flex items-center justify-center text-white font-bold text-sm font-mono shrink-0">
+              T
             </div>
-            <div className="text-[10px] font-mono text-[var(--color-text-secondary)] tracking-[0.06em] uppercase mt-0.5">
-              Swiss LearningGrid
+            <div>
+              <div className="font-bold text-[15px] tracking-tight text-[var(--color-text-primary)] leading-none">
+                TOEIC
+              </div>
+              <div className="text-[10px] font-mono text-[var(--color-text-secondary)] tracking-[0.06em] uppercase mt-0.5">
+                Swiss LearningGrid
+              </div>
             </div>
           </div>
+
+          {/* Navigation Items */}
+          <nav className="space-y-1">
+            {NAV_ITEMS.map((item) => {
+              const active =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative ${
+                    active
+                      ? "bg-[var(--color-primary-subtle)] text-[var(--color-primary-default)] font-semibold"
+                      : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)]"
+                  }`}
+                >
+                  {/* Active left-bar — Swiss precision mark */}
+                  {active && (
+                    <span
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[var(--color-primary-default)] rounded-r-full"
+                      aria-hidden="true"
+                    />
+                  )}
+                  {item.icon(active)}
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative ${
-                  active
-                    ? "bg-[var(--color-primary-subtle)] text-[var(--color-primary-default)] font-semibold"
-                    : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)]"
-                }`}
-              >
-                {/* Active left-bar — Swiss precision mark */}
-                {active && (
-                  <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[var(--color-primary-default)] rounded-r-full"
-                    aria-hidden="true"
-                  />
-                )}
-                {item.icon(active)}
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
         {/* Bottom Profile / Quick Info */}
-        <div className="pt-4 border-t border-[#E2E8F0] px-2 text-xs text-[#475569] flex items-center justify-between">
+        <div className="pt-4 border-t border-[#E2E8F0] px-2 text-xs text-[#475569] flex items-center justify-between shrink-0">
           <span className="font-mono">v0.1.0 (MVP)</span>
           <span className="inline-block w-2 h-2 rounded-full bg-[#047857]" />
         </div>
       </aside>
 
-      {/* Main Content Area — thêm không gian đệm đáy pb-12 để các animation nở an toàn không chạm mép */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-24 md:pb-12">
-        {children}
+      {/* Main Content Area — Scroll container DUY NHẤT của toàn hệ thống */}
+      <main className="flex-1 h-screen overflow-y-auto scrollbar-gutter-stable w-full px-4 py-6 md:px-8 md:py-8 pb-24 md:pb-12">
+        <div className="max-w-5xl mx-auto w-full">
+          {children}
+        </div>
       </main>
 
       {/* ========================================================

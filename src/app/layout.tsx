@@ -31,12 +31,14 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${beVietnamPro.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${beVietnamPro.variable} ${jetbrainsMono.variable} h-screen overflow-hidden antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[var(--color-bg-page)] text-[var(--color-text-primary)] font-sans pb-4">
-        <Suspense fallback={<main className="flex-1 w-full">{children}</main>}>
-          <AppNav>{children}</AppNav>
-        </Suspense>
+      <body className="h-screen overflow-hidden flex flex-col bg-[var(--color-bg-page)] text-[var(--color-text-primary)] font-sans">
+        <AppNav>
+          <Suspense fallback={<div className="flex-1 w-full min-h-[400px] flex items-center justify-center p-8 text-sm text-slate-400">Đang tải dữ liệu...</div>}>
+            {children}
+          </Suspense>
+        </AppNav>
       </body>
     </html>
   );
