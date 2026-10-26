@@ -17,7 +17,7 @@ export function Card({
     default: "bg-white border border-[#E2E8F0] rounded-lg p-5",
     question:
       "bg-white border border-[#E2E8F0] rounded-lg p-5 border-l-[3px] border-l-[#2563EB]",
-    stat: "bg-[#FAFAF7] border border-[#E2E8F0] rounded-lg p-4",
+    stat: "bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4",
   }[variant];
 
   return (
