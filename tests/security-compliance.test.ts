@@ -34,6 +34,7 @@ describe("Milestone M12: Security & RLS Compliance Audit", () => {
         "review_log",
         "dictionary_cache",
         "notebooks",
+        "passages",
       ];
 
       for (const table of coreTables) {

@@ -6,7 +6,7 @@ import { ProfileView } from "@/features/profile/components/profile-view";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Hồ sơ cá nhân | TOEIC AI",
+  title: "Hồ sơ cá nhân | TOEIC",
   description: "Quản lý thông tin học tập, điểm mục tiêu và quyền riêng tư dữ liệu cá nhân.",
 };
 

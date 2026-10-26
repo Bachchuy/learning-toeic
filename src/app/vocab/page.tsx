@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getVocabListAction, getNotebooksAction } from "@/features/vocab/actions";
+import {
+  getVocabListAction,
+  getNotebooksAction,
+  getCuratedDecksAction,
+} from "@/features/vocab/actions";
 import { VocabListView } from "@/features/vocab/components/vocab-list-view";
 
 export const dynamic = "force-dynamic";
@@ -20,16 +24,19 @@ export default async function VocabPage() {
     redirect("/login?next=/vocab");
   }
 
-  const [{ entries, dueCount }, notebooks] = await Promise.all([
-    getVocabListAction(),
-    getNotebooksAction(),
-  ]);
+  const [{ entries, dueCount }, notebooks, { decks: curatedDecks }] =
+    await Promise.all([
+      getVocabListAction(),
+      getNotebooksAction(),
+      getCuratedDecksAction(),
+    ]);
 
   return (
     <VocabListView
       initialEntries={entries}
       initialDueCount={dueCount}
       initialNotebooks={notebooks}
+      initialCuratedDecks={curatedDecks}
     />
   );
 }

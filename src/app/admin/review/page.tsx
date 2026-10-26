@@ -9,7 +9,7 @@ import { ShieldAlert, ArrowLeft } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Hàng đợi duyệt đề (Admin Review) | TOEIC AI",
+  title: "Hàng đợi duyệt đề (Admin Review) | TOEIC",
   description: "Duyệt và kiểm định chất lượng câu hỏi TOEIC trước khi phát hành.",
 };
 

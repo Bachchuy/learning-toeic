@@ -4,6 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { normalizeLemma } from "@/core/vocab";
 import { enrichVocabMetadata } from "@/core/vocabDictionary";
 import { trackEventAction } from "@/features/practice/actions";
+import {
+  CURATED_DECKS,
+  getCuratedDeckById,
+  type CuratedDeckMeta,
+} from "@/data/curated-decks";
 import type {
   SaveVocabParams,
   SaveVocabResult,
@@ -581,4 +586,189 @@ export async function moveVocabToNotebookAction(
 
   return { success: true, message: "Đã chuyển sổ thành công!" };
 }
+
+export interface CuratedDeckStatus {
+  deck: CuratedDeckMeta;
+  isImported: boolean;
+  notebookId?: string;
+  userCardsCount: number;
+}
+
+/**
+ * Lấy danh sách các bộ thẻ mẫu chuẩn (Curated Decks) kèm trạng thái học của user
+ */
+export async function getCuratedDecksAction(): Promise<{
+  decks: CuratedDeckStatus[];
+  error?: string;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      decks: CURATED_DECKS.map((deck) => ({
+        deck,
+        isImported: false,
+        userCardsCount: 0,
+      })),
+    };
+  }
+
+  // Lấy các notebook của user kèm số lượng từ
+  const { data: notebooks } = await supabase
+    .from("notebooks")
+    .select(`
+      id,
+      name,
+      vocab_entries(count)
+    `)
+    .eq("user_id", user.id);
+
+  const notebookMap = new Map<string, { id: string; count: number }>();
+  if (notebooks) {
+    for (const nb of notebooks) {
+      const rawEntries = nb.vocab_entries as unknown as Array<{ count: number }> | undefined;
+      const count = rawEntries?.[0]?.count ?? 0;
+      notebookMap.set(nb.name, { id: nb.id, count });
+    }
+  }
+
+  const results: CuratedDeckStatus[] = CURATED_DECKS.map((deck) => {
+    const existing = notebookMap.get(deck.title);
+    return {
+      deck,
+      isImported: !!existing && existing.count > 0,
+      notebookId: existing?.id,
+      userCardsCount: existing?.count || 0,
+    };
+  });
+
+  return { decks: results };
+}
+
+/**
+ * Server Action: Nạp bộ thẻ chuẩn vào Sổ từ vựng cá nhân
+ * - Tạo notebook tương ứng (nếu chưa có)
+ * - Tự động lọc trùng các từ đã có trong sổ
+ * - Batch insert vào vocab_entries
+ * - Kích hoạt Postgres Trigger tạo thẻ FSRS trong review_cards
+ */
+export async function importCuratedDeckAction(deckId: string): Promise<{
+  success: boolean;
+  message: string;
+  notebook?: Notebook;
+  importedCount?: number;
+  existingCount?: number;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Vui lòng đăng nhập để nạp bộ thẻ." };
+  }
+
+  const deck = getCuratedDeckById(deckId);
+  if (!deck) {
+    return { success: false, message: "Không tìm thấy bộ thẻ yêu cầu." };
+  }
+
+  // 1. Tìm hoặc tạo Sổ từ vựng tương ứng cho người dùng
+  const { data: existingNotebooks } = await supabase
+    .from("notebooks")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("name", deck.title);
+
+  let notebook = existingNotebooks?.[0];
+  if (!notebook) {
+    const { data: newNotebook, error: nbError } = await supabase
+      .from("notebooks")
+      .insert({
+        user_id: user.id,
+        name: deck.title,
+        description: deck.description,
+        color: deck.color,
+        icon: deck.icon,
+      })
+      .select()
+      .single();
+
+    if (nbError || !newNotebook) {
+      return { success: false, message: "Không thể tạo sổ cho bộ thẻ này." };
+    }
+    notebook = newNotebook;
+  }
+
+  // 2. Lấy danh sách lemma đã có của người dùng để tránh trùng khóa unique(user_id, lemma)
+  const { data: userEntries } = await supabase
+    .from("vocab_entries")
+    .select("id, lemma, notebook_id")
+    .eq("user_id", user.id);
+
+  const existingLemmas = new Set(
+    (userEntries || []).map((e: { lemma: string }) => e.lemma)
+  );
+
+  // 3. Lọc danh sách từ cần nạp
+  const itemsToInsert = deck.items.filter((item) => {
+    const lemma = normalizeLemma(item.word);
+    return lemma && !existingLemmas.has(lemma);
+  });
+
+  // 4. Batch insert theo từng chunk 50 từ (Postgres trigger tự động tạo review_cards FSRS)
+  const CHUNK_SIZE = 50;
+  let totalInserted = 0;
+
+  for (let i = 0; i < itemsToInsert.length; i += CHUNK_SIZE) {
+    const chunk = itemsToInsert.slice(i, i + CHUNK_SIZE);
+    const rows = chunk.map((item) => ({
+      user_id: user.id,
+      word: item.word.trim(),
+      lemma: normalizeLemma(item.word),
+      meaning: item.meaning.trim(),
+      context_sentence: item.example ? item.example.trim() : "",
+      part_of_speech: item.part_of_speech || "",
+      phonetic: item.phonetic || "",
+      context_translation: item.example_translation ? item.example_translation.trim() : "",
+      metadata: {
+        topic: item.topic,
+        detailed_explanation: item.explanation,
+        image_url: item.image_url,
+        audio_url: item.audio_url,
+      },
+      notebook_id: notebook.id,
+    }));
+
+    const { error: insertError } = await supabase
+      .from("vocab_entries")
+      .insert(rows);
+
+    if (insertError) {
+      console.error("Lỗi khi batch insert bộ thẻ:", insertError);
+    } else {
+      totalInserted += rows.length;
+    }
+  }
+
+  await trackEventAction("vocab_saved", {
+    deck_id: deck.id,
+    imported_count: totalInserted,
+  });
+
+  return {
+    success: true,
+    message:
+      totalInserted > 0
+        ? `Đã nạp thành công ${totalInserted} thẻ vào sổ "${deck.title}"!`
+        : `Tất cả các thẻ trong bộ "${deck.title}" đã có sẵn trong sổ từ của bạn.`,
+    notebook,
+    importedCount: totalInserted,
+    existingCount: deck.items.length - totalInserted,
+  };
+}
+
 

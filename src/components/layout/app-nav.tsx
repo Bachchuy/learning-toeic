@@ -122,7 +122,7 @@ export function AppNav({ children }: { children: React.ReactNode }) {
           </div>
           <div>
             <div className="font-bold text-[15px] tracking-tight text-[var(--color-text-primary)] leading-none">
-              TOEIC AI
+              TOEIC
             </div>
             <div className="text-[10px] font-mono text-[var(--color-text-secondary)] tracking-[0.06em] uppercase mt-0.5">
               Swiss LearningGrid

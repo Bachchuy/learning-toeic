@@ -1,0 +1,122 @@
+[
+  {
+    "word": "compliance",
+    "part_of_speech": "n.",
+    "meaning": "Sự tuân thủ đúng quy định, sự phục tùng",
+    "phonetic": "/kəmˈplaɪəns/",
+    "explanation": "the state of obeying an order, rule, or request",
+    "example": "Inspectors visited the pharmaceutical plant to verify compliance with FDA regulations.",
+    "example_translation": "Các thanh tra viên đã đến thăm nhà máy dược phẩm để xác minh sự tuân thủ các quy định của FDA.",
+    "topic": "Auditing & Quality Control"
+  },
+  {
+    "word": "initiative",
+    "part_of_speech": "n.",
+    "meaning": "Sáng kiến, chương trình hành động mới",
+    "phonetic": "/ɪˈnɪʃətɪv/",
+    "explanation": "a new plan or process to achieve something or solve a problem",
+    "example": "The marketing director launched a green packaging initiative to appeal to eco-conscious consumers.",
+    "example_translation": "Giám đốc tiếp thị đã phát động một sáng kiến bao bì thân thiện với môi trường để thu hút người tiêu dùng.",
+    "topic": "Corporate Strategy"
+  },
+  {
+    "word": "mandatory",
+    "part_of_speech": "adj.",
+    "meaning": "Bắt buộc, mang tính cưỡng chế theo luật",
+    "phonetic": "/ˈmændətɔːri/",
+    "explanation": "required by law or rule; compulsory",
+    "example": "Attendance at the monthly workplace safety seminar is mandatory for all lab technicians.",
+    "example_translation": "Việc tham dự hội thảo an toàn lao động hằng tháng là bắt buộc đối với tất cả kỹ thuật viên phòng thí nghiệm.",
+    "topic": "Human Resources"
+  },
+  {
+    "word": "tentative",
+    "part_of_speech": "adj.",
+    "meaning": "Dự kiến, tạm thời (chưa cố định)",
+    "phonetic": "/ˈtentətɪv/",
+    "explanation": "not certain or fixed; provisional",
+    "example": "Management released a tentative agenda for next month's regional distributor summit.",
+    "example_translation": "Ban quản lý đã công bố một chương trình nghị sự dự kiến cho hội nghị thượng đỉnh các nhà phân phối khu vực vào tháng tới.",
+    "topic": "Conferences & Planning"
+  },
+  {
+    "word": "comprehensive",
+    "part_of_speech": "adj.",
+    "meaning": "Toàn diện, bao quát mọi mặt",
+    "phonetic": "/ˌkɑːmprɪˈhensɪv/",
+    "explanation": "complete and including everything that is necessary",
+    "example": "New recruits undergo a comprehensive three-week onboarding training program.",
+    "example_translation": "Các nhân viên mới tuyển dụng trải qua một chương trình đào tạo hội nhập toàn diện kéo dài ba tuần.",
+    "topic": "Employee Training"
+  },
+  {
+    "word": "eligible",
+    "part_of_speech": "adj.",
+    "meaning": "Đủ điều kiện, đạt tiêu chuẩn",
+    "phonetic": "/ˈelɪdʒəbl/",
+    "explanation": "having the necessary qualities or fulfilling the conditions",
+    "example": "Full-time employees are eligible for tuition reimbursement after completing one year of service.",
+    "example_translation": "Nhân viên chính thức đủ điều kiện được hoàn trả học phí sau khi hoàn thành một năm công tác.",
+    "topic": "Benefits & Policies"
+  },
+  {
+    "word": "prominent",
+    "part_of_speech": "adj.",
+    "meaning": "Xuất chúng, lỗi lạc, nổi tiếng",
+    "phonetic": "/ˈprɑːmɪnənt/",
+    "explanation": "famous, well-known, or easily noticeable",
+    "example": "The firm hired a prominent architectural firm to redesign its metropolitan headquarters.",
+    "example_translation": "Công ty đã thuê một công ty kiến trúc nổi tiếng để thiết kế lại trụ sở chính tại đô thị.",
+    "topic": "Business Development"
+  },
+  {
+    "word": "specialize",
+    "part_of_speech": "v.",
+    "meaning": "Chuyên về một lĩnh vực hoặc sản phẩm",
+    "phonetic": "/ˈspeʃəlaɪz/",
+    "explanation": "to spend most of your time studying or doing one particular subject or business",
+    "example": "The consulting agency specializes in supply chain logistics for renewable energy firms.",
+    "example_translation": "Công ty tư vấn chuyên về logistics chuỗi cung ứng cho các công ty năng lượng tái tạo.",
+    "topic": "Enterprise Services"
+  },
+  {
+    "word": "substantial",
+    "part_of_speech": "adj.",
+    "meaning": "Đáng kể, quan trọng (về số lượng hoặc giá trị)",
+    "phonetic": "/səbˈstænʃl/",
+    "explanation": "large in size, value, or importance",
+    "example": "The retail chain reported a substantial increase in online sales during the holiday season.",
+    "example_translation": "Chuỗi bán lẻ đã báo cáo mức tăng trưởng đáng kể trong doanh số bán hàng trực tuyến vào mùa lễ hội.",
+    "topic": "Financial Performance"
+  },
+  {
+    "word": "confidential",
+    "part_of_speech": "adj.",
+    "meaning": "Bảo mật, tuyệt mật",
+    "phonetic": "/ˌkɑːnfɪˈdenʃl/",
+    "explanation": "secret, especially in an official, business, or military context",
+    "example": "Client financial portfolios must remain strictly confidential and protected by encryption.",
+    "example_translation": "Hồ sơ tài chính của khách hàng phải được giữ bí mật tuyệt đối và được bảo vệ bằng mã hóa.",
+    "topic": "Security & Ethics"
+  },
+  {
+    "word": "unprecedented",
+    "part_of_speech": "adj.",
+    "meaning": "Chưa từng có tiền lệ",
+    "phonetic": "/ʌnˈpresɪdentɪd/",
+    "explanation": "never having happened or existed before",
+    "example": "The company experienced unprecedented demand for its innovative cloud software solution.",
+    "example_translation": "Công ty đã chứng kiến nhu cầu chưa từng có tiền lệ đối với giải pháp phần mềm đám mây sáng tạo của mình.",
+    "topic": "Market Trends"
+  },
+  {
+    "word": "designated",
+    "part_of_speech": "adj.",
+    "meaning": "Được chỉ định, được phân công rõ ràng",
+    "phonetic": "/ˈdezɪɡneɪtɪd/",
+    "explanation": "officially chosen or reserved for a specific purpose or role",
+    "example": "Visitors must park their vehicles solely in the designated guest parking stalls.",
+    "example_translation": "Khách tham quan phải đỗ xe duy nhất tại các ô đỗ xe dành cho khách đã được chỉ định.",
+    "topic": "Workplace Guidelines"
+  }
+]

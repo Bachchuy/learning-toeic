@@ -1,0 +1,152 @@
+[
+  {
+    "word": "in charge of",
+    "part_of_speech": "phrase",
+    "meaning": "Chịu trách nhiệm, phụ trách chính",
+    "phonetic": "/ɪn tʃɑːrdʒ ʌv/",
+    "explanation": "responsible for something or someone",
+    "example": "Ms. Tanaka is in charge of organizing the international sales symposium.",
+    "example_translation": "Bà Tanaka chịu trách nhiệm tổ chức hội nghị chuyên đề bán hàng quốc tế.",
+    "topic": "Business Administration"
+  },
+  {
+    "word": "comply with",
+    "part_of_speech": "phrase",
+    "meaning": "Tuân thủ, tuân theo (quy định, luật lệ)",
+    "phonetic": "/kəmˈplaɪ wɪð/",
+    "explanation": "to act in accordance with rules, wishes, or commands",
+    "example": "All factory personnel must strictly comply with regional safety protocols.",
+    "example_translation": "Tất cả nhân viên nhà máy phải tuân thủ nghiêm ngặt các quy định an toàn khu vực.",
+    "topic": "Regulations & Law"
+  },
+  {
+    "word": "look forward to",
+    "part_of_speech": "phrase",
+    "meaning": "Háo hức, mong chờ một sự kiện sắp tới",
+    "phonetic": "/lʊk ˈfɔːrwərd tuː/",
+    "explanation": "to feel pleased and excited about something that is going to happen",
+    "example": "We look forward to receiving your constructive feedback on the project draft.",
+    "example_translation": "Chúng tôi rất mong nhận được phản hồi mang tính xây dựng của bạn về bản thảo dự án.",
+    "topic": "Business Correspondence"
+  },
+  {
+    "word": "keep track of",
+    "part_of_speech": "phrase",
+    "meaning": "Theo dõi, nắm bắt diễn biến",
+    "phonetic": "/kiːp træk ʌv/",
+    "explanation": "to remain fully aware or informed of a situation or inventory",
+    "example": "The software automates daily operations to help managers keep track of warehouse supplies.",
+    "example_translation": "Phần mềm tự động hóa hoạt động hằng ngày giúp các quản lý theo dõi lượng vật tư trong kho.",
+    "topic": "Office Technology"
+  },
+  {
+    "word": "in accordance with",
+    "part_of_speech": "phrase",
+    "meaning": "Phù hợp với, đối chiếu theo đúng (hợp đồng, quy chế)",
+    "phonetic": "/ɪn əˈkɔːrdəns wɪð/",
+    "explanation": "following or matching a system, law, or rule",
+    "example": "The severance packages were disbursed in accordance with corporate guidelines.",
+    "example_translation": "Các gói trợ cấp thôi việc đã được chi trả theo đúng hướng dẫn của tập đoàn.",
+    "topic": "Contracts & Agreements"
+  },
+  {
+    "word": "take advantage of",
+    "part_of_speech": "phrase",
+    "meaning": "Tận dụng, chớp lấy cơ hội hoặc nguồn lực",
+    "phonetic": "/teɪk ədˈvæntɪdʒ ʌv/",
+    "explanation": "to make good use of an opportunity or resource",
+    "example": "Investors should take advantage of favorable foreign exchange rates this quarter.",
+    "example_translation": "Các nhà đầu tư nên tận dụng tỷ giá hối đoái thuận lợi trong quý này.",
+    "topic": "Finance & Investment"
+  },
+  {
+    "word": "subject to",
+    "part_of_speech": "adj.",
+    "meaning": "Phụ thuộc vào, có thể bị thay đổi bởi",
+    "phonetic": "/səbˈdʒekt tuː/",
+    "explanation": "likely to be affected by something, or dependent on approval",
+    "example": "Flight departure schedules are subject to change due to severe adverse weather.",
+    "example_translation": "Lịch khởi hành chuyến bay có thể bị thay đổi do thời tiết xấu nghiêm trọng.",
+    "topic": "Travel & Logistics"
+  },
+  {
+    "word": "ahead of schedule",
+    "part_of_speech": "phrase",
+    "meaning": "Sớm hơn dự kiến, trước tiến độ",
+    "phonetic": "/əˈhed ʌv ˈskedʒuːl/",
+    "explanation": "finished or occurring earlier than initially planned",
+    "example": "The engineering crew finished the bridge construction two weeks ahead of schedule.",
+    "example_translation": "Đội ngũ kỹ sư đã hoàn thành việc xây cầu sớm hơn tiến độ dự kiến hai tuần.",
+    "topic": "Project Management"
+  },
+  {
+    "word": "call off",
+    "part_of_speech": "phrase",
+    "meaning": "Hủy bỏ (cuộc họp, sự kiện)",
+    "phonetic": "/kɔːl ɔːf/",
+    "explanation": "to decide that a planned event will not happen (cancel)",
+    "example": "The chairperson decided to call off the quarterly meeting due to power outages.",
+    "example_translation": "Chủ tọa đã quyết định hủy cuộc họp định kỳ theo quý do sự cố mất điện.",
+    "topic": "Conferences & Meetings"
+  },
+  {
+    "word": "put off",
+    "part_of_speech": "phrase",
+    "meaning": "Trì hoãn, hoãn lại sang ngày khác",
+    "phonetic": "/pʊt ɔːf/",
+    "explanation": "to postpone or delay something to a later date",
+    "example": "We cannot put off this strategic decision any longer without risking market share.",
+    "example_translation": "Chúng ta không thể trì hoãn quyết định chiến lược này lâu hơn nữa mà không gây rủi ro cho thị phần.",
+    "topic": "Corporate Strategy"
+  },
+  {
+    "word": "on behalf of",
+    "part_of_speech": "phrase",
+    "meaning": "Thay mặt cho, đại diện cho",
+    "phonetic": "/ɑːn bɪˈhæf ʌv/",
+    "explanation": "as a representative of someone or an organization",
+    "example": "On behalf of the board of directors, I would like to extend our deepest gratitude.",
+    "example_translation": "Thay mặt cho hội đồng quản trị, tôi muốn gửi lời cảm ơn sâu sắc nhất.",
+    "topic": "Corporate Governance"
+  },
+  {
+    "word": "out of order",
+    "part_of_speech": "phrase",
+    "meaning": "Bị hỏng, ngưng hoạt động",
+    "phonetic": "/aʊt ʌv ˈɔːrdər/",
+    "explanation": "broken or not functioning properly",
+    "example": "Please use the service elevator at the end of the hall because the main lift is out of order.",
+    "example_translation": "Vui lòng sử dụng thang máy dịch vụ ở cuối hành lang vì thang máy chính đang bị hỏng.",
+    "topic": "Facility Management"
+  },
+  {
+    "word": "at your earliest convenience",
+    "part_of_speech": "phrase",
+    "meaning": "Càng sớm càng tốt (văn phong lịch sự trong thư từ)",
+    "phonetic": "/æt jʊr ˈɜːrliɪst kənˈviːniəns/",
+    "explanation": "as soon as you can easily do it",
+    "example": "Please review the attached employment agreement and return a signed copy at your earliest convenience.",
+    "example_translation": "Vui lòng xem lại hợp đồng lao động đính kèm và gửi lại bản đã ký càng sớm càng tốt.",
+    "topic": "Business Correspondence"
+  },
+  {
+    "word": "fall within",
+    "part_of_speech": "phrase",
+    "meaning": "Nằm trong phạm vi, thuộc thẩm quyền",
+    "phonetic": "/fɔːl wɪˈðɪn/",
+    "explanation": "to be included in a particular category, range, or jurisdiction",
+    "example": "Routine office maintenance expenses fall within the administrative department budget.",
+    "example_translation": "Chi phí bảo trì văn phòng định kỳ nằm trong phạm vi ngân sách của phòng hành chính.",
+    "topic": "Budget & Accounting"
+  },
+  {
+    "word": "stand out",
+    "part_of_speech": "phrase",
+    "meaning": "Nổi bật, vượt trội so với số đông",
+    "phonetic": "/stænd aʊt/",
+    "explanation": "to be much more impressive or noticeable than others",
+    "example": "Her extensive background in international logistics made her resume stand out from other candidates.",
+    "example_translation": "Kinh nghiệm phong phú của cô ấy trong lĩnh vực logistics quốc tế đã làm hồ sơ của cô ấy nổi bật so với các ứng viên khác.",
+    "topic": "Recruitment & Hiring"
+  }
+]

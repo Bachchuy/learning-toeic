@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TOEIC AI Platform",
+  title: "TOEIC Platform",
   description: "Hệ thống luyện thi TOEIC thông minh với FSRS và Adaptive Rolling Mastery",
 };
 

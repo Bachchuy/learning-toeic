@@ -6,7 +6,7 @@ import { ReviewView } from "@/features/review/components/review-view";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Ôn tập FSRS Spaced Repetition | TOEIC AI",
+  title: "Ôn tập FSRS Spaced Repetition | TOEIC",
   description: "Ôn tập ngắt quãng từ vựng TOEIC với thuật toán FSRS và câu ngữ cảnh đục lỗ",
 };
 

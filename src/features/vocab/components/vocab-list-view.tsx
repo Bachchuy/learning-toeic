@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { VocabEntry, Notebook } from "@/features/vocab/types";
 import {
   getPosBadgeInfo,
@@ -13,10 +14,12 @@ import { resolvePhonetic } from "@/core/vocabDictionary";
 import {
   updateVocabMeaningAction,
   deleteVocabAction,
+  type CuratedDeckStatus,
 } from "@/features/vocab/actions";
 import { VocabDetailModal } from "./vocab-detail-modal";
 import { VocabCreateModal } from "./vocab-create-modal";
 import { NotebookManagerModal } from "./notebook-manager-modal";
+import { CuratedDecksModal } from "./curated-decks-modal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
@@ -33,20 +36,26 @@ import {
   Plus,
   Folder,
   FolderPlus,
+  Layers,
 } from "lucide-react";
 
 interface VocabListViewProps {
   initialEntries: VocabEntry[];
   initialDueCount?: number;
   initialNotebooks?: Notebook[];
+  initialCuratedDecks?: CuratedDeckStatus[];
 }
 
 export function VocabListView({
   initialEntries,
   initialNotebooks = [],
+  initialCuratedDecks = [],
 }: VocabListViewProps) {
+  const router = useRouter();
   const [entries, setEntries] = useState<VocabEntry[]>(initialEntries);
   const [notebooks, setNotebooks] = useState<Notebook[]>(initialNotebooks);
+  const [curatedDecks, setCuratedDecks] = useState<CuratedDeckStatus[]>(initialCuratedDecks);
+  const [isCuratedModalOpen, setIsCuratedModalOpen] = useState(false);
   const [selectedNotebookFilter, setSelectedNotebookFilter] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isNotebookManagerOpen, setIsNotebookManagerOpen] = useState(false);
@@ -200,6 +209,20 @@ export function VocabListView({
 
         {/* Nhóm nút hành động ở Header */}
         <div className="flex items-center gap-2 flex-wrap shrink-0">
+          <Button
+            variant="secondary"
+            size="default"
+            onClick={() => setIsCuratedModalOpen(true)}
+            className="flex items-center gap-1.5 border-[#2563EB]/30 bg-[#EFF6FF] text-[#2563EB] hover:bg-[#DBEAFE] transition-colors"
+            title="Khám phá kho bộ thẻ từ vựng TOEIC có sẵn"
+          >
+            <Layers className="w-4 h-4 text-[#2563EB]" />
+            <span>Kho Bộ Thẻ TOEIC</span>
+            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-[#2563EB] text-white">
+              3 bộ
+            </span>
+          </Button>
+
           <Button
             variant="secondary"
             size="default"
@@ -705,6 +728,16 @@ export function VocabListView({
         onClose={() => setIsNotebookManagerOpen(false)}
         notebooks={notebooks}
         onNotebooksChanged={(updated) => setNotebooks(updated)}
+      />
+
+      {/* Modal Kho Bộ Thẻ Từ Vựng Chuẩn (Curated Decks) */}
+      <CuratedDecksModal
+        isOpen={isCuratedModalOpen}
+        onClose={() => setIsCuratedModalOpen(false)}
+        decks={curatedDecks}
+        onImportSuccess={() => {
+          router.refresh();
+        }}
       />
     </div>
   );
