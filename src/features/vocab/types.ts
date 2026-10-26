@@ -1,3 +1,14 @@
+export interface Notebook {
+  id: string;
+  user_id: string;
+  name: string;
+  description?: string;
+  color: string;
+  icon: string;
+  created_at: string;
+  word_count?: number;
+}
+
 export interface WordFamilyMember {
   pos: string;
   word: string;
@@ -30,6 +41,7 @@ export interface VocabEntry {
   context_translation?: string;
   metadata?: VocabMetadata;
   source_question_id: string | null;
+  notebook_id?: string | null;
   created_at: string;
   card?: {
     id: string;
@@ -50,6 +62,7 @@ export interface SaveVocabParams {
   phonetic?: string;
   contextTranslation?: string;
   questionId?: string;
+  notebookId?: string | null;
 }
 
 export interface SaveVocabResult {
@@ -71,6 +84,7 @@ export interface SaveBatchVocabParams {
   contextSentence: string;
   contextTranslation?: string;
   questionId?: string;
+  notebookId?: string | null;
 }
 
 export interface SaveBatchVocabResult {

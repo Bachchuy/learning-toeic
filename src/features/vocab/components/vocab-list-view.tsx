@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
-import type { VocabEntry } from "@/features/vocab/types";
+import type { VocabEntry, Notebook } from "@/features/vocab/types";
 import { getPosBadgeInfo, getPosCategory, type PosCategory } from "@/core/vocab";
 import { resolvePhonetic } from "@/core/vocabDictionary";
 import {
@@ -10,6 +10,8 @@ import {
   deleteVocabAction,
 } from "@/features/vocab/actions";
 import { VocabDetailModal } from "./vocab-detail-modal";
+import { VocabCreateModal } from "./vocab-create-modal";
+import { NotebookManagerModal } from "./notebook-manager-modal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
@@ -23,15 +25,26 @@ import {
   Check,
   X,
   ExternalLink,
+  Plus,
+  Folder,
+  FolderPlus,
 } from "lucide-react";
 
 interface VocabListViewProps {
   initialEntries: VocabEntry[];
   initialDueCount?: number;
+  initialNotebooks?: Notebook[];
 }
 
-export function VocabListView({ initialEntries }: VocabListViewProps) {
+export function VocabListView({
+  initialEntries,
+  initialNotebooks = [],
+}: VocabListViewProps) {
   const [entries, setEntries] = useState<VocabEntry[]>(initialEntries);
+  const [notebooks, setNotebooks] = useState<Notebook[]>(initialNotebooks);
+  const [selectedNotebookFilter, setSelectedNotebookFilter] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isNotebookManagerOpen, setIsNotebookManagerOpen] = useState(false);
   const [filterTab, setFilterTab] = useState<"all" | "due">("all");
   const [selectedPosFilter, setSelectedPosFilter] = useState<"all" | PosCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,9 +83,16 @@ export function VocabListView({ initialEntries }: VocabListViewProps) {
     return counts;
   }, [entries]);
 
-  // Lọc theo search, tab và từ loại
+  // Lọc theo search, tab, từ loại và sổ tự tạo
   const filteredEntries = useMemo(() => {
     return entries.filter((item) => {
+      // 0. Lọc theo Sổ từ vựng tự tạo
+      if (selectedNotebookFilter !== null) {
+        if (item.notebook_id !== selectedNotebookFilter) {
+          return false;
+        }
+      }
+
       // 1. Lọc theo tab Đến hạn / Tất cả
       if (filterTab === "due") {
         if (!item.card?.due || new Date(item.card.due).getTime() > currentTime) {
@@ -124,7 +144,7 @@ export function VocabListView({ initialEntries }: VocabListViewProps) {
 
       return true;
     });
-  }, [entries, filterTab, selectedPosFilter, searchQuery, currentTime]);
+  }, [entries, filterTab, selectedPosFilter, selectedNotebookFilter, searchQuery, currentTime]);
 
   // Xử lý lưu chỉnh sửa nghĩa tại chỗ
   const handleSaveMeaning = (vocabId: string) => {
@@ -173,15 +193,39 @@ export function VocabListView({ initialEntries }: VocabListViewProps) {
           </p>
         </div>
 
-        {/* Nút sang ôn tập */}
-        {dueCount > 0 && (
-          <Link href="/review" className="shrink-0">
-            <Button variant="primary" size="cta" className="shadow-sm">
-              <Calendar className="w-4 h-4 mr-2" />
-              Ôn {dueCount} thẻ đến hạn ngay →
-            </Button>
-          </Link>
-        )}
+        {/* Nhóm nút hành động ở Header */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          <Button
+            variant="secondary"
+            size="default"
+            onClick={() => setIsNotebookManagerOpen(true)}
+            className="flex items-center gap-1.5"
+            title="Quản lý và tạo sổ riêng"
+          >
+            <FolderPlus className="w-4 h-4 text-indigo-600" />
+            <span>Quản lý sổ</span>
+          </Button>
+
+          <Button
+            variant={dueCount > 0 ? "secondary" : "primary"}
+            size="default"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-1.5"
+            title="Thêm từ mới vào sổ"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Thêm từ mới</span>
+          </Button>
+
+          {dueCount > 0 && (
+            <Link href="/review">
+              <Button variant="primary" size="default" className="shadow-sm">
+                <Calendar className="w-4 h-4 mr-1.5" />
+                Ôn {dueCount} thẻ →
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* 2. Banner nhắc ôn tập FSRS (§5.6 M6) */}
@@ -277,6 +321,49 @@ export function VocabListView({ initialEntries }: VocabListViewProps) {
           </button>
         </div>
       </div>
+
+      {/* 3a. Bộ lọc Sổ từ vựng tự tạo (Notebooks) */}
+      {notebooks.length > 0 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 mr-1 shrink-0 flex items-center gap-1">
+            <Folder className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Sổ:</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setSelectedNotebookFilter(null)}
+            className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+              selectedNotebookFilter === null
+                ? "bg-slate-900 text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            Tất cả ({entries.length})
+          </button>
+          {notebooks.map((nb) => {
+            const isSelected = selectedNotebookFilter === nb.id;
+            return (
+              <button
+                key={nb.id}
+                type="button"
+                onClick={() => setSelectedNotebookFilter(nb.id)}
+                className={`px-3 py-1 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer shrink-0 border flex items-center gap-1.5 ${
+                  isSelected
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ backgroundColor: nb.color }}
+                />
+                <span>{nb.name}</span>
+                <span className="text-[10px] opacity-70">({nb.word_count ?? 0})</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* 3b. Bộ lọc phân loại từ vựng: Danh từ · Động từ · Tính từ · Trạng từ · Cụm từ */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
@@ -575,6 +662,34 @@ export function VocabListView({ initialEntries }: VocabListViewProps) {
           setEditMeaning(entry.meaning);
         }}
         onDeleteClick={(id) => setConfirmDeleteId(id)}
+      />
+
+      {/* Modal Thêm từ vựng mới trực tiếp */}
+      <VocabCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        notebooks={notebooks}
+        selectedNotebookId={selectedNotebookFilter}
+        onVocabCreated={(newEntry) => {
+          setEntries((prev) => [newEntry, ...prev]);
+          if (newEntry.notebook_id) {
+            setNotebooks((prev) =>
+              prev.map((nb) =>
+                nb.id === newEntry.notebook_id
+                  ? { ...nb, word_count: (nb.word_count ?? 0) + 1 }
+                  : nb
+              )
+            );
+          }
+        }}
+      />
+
+      {/* Modal Quản lý & Tạo sổ từ vựng mới */}
+      <NotebookManagerModal
+        isOpen={isNotebookManagerOpen}
+        onClose={() => setIsNotebookManagerOpen(false)}
+        notebooks={notebooks}
+        onNotebooksChanged={(updated) => setNotebooks(updated)}
       />
     </div>
   );

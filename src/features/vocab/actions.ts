@@ -11,6 +11,7 @@ import type {
   SaveBatchVocabResult,
   VocabEntry,
   VocabMetadata,
+  Notebook,
 } from "./types";
 
 /**
@@ -77,6 +78,7 @@ export async function saveVocabAction(
       context_translation: contextTranslation,
       metadata,
       source_question_id: params.questionId || null,
+      notebook_id: params.notebookId || null,
     })
     .select()
     .single();
@@ -173,6 +175,7 @@ export async function saveBatchVocabAction(
       context_translation: contextTranslation,
       metadata,
       source_question_id: params.questionId || null,
+      notebook_id: params.notebookId || null,
     });
 
     if (error) {
@@ -244,6 +247,7 @@ export async function getVocabListAction(
       context_translation,
       metadata,
       source_question_id,
+      notebook_id,
       created_at,
       review_cards (
         id,
@@ -293,6 +297,7 @@ export async function getVocabListAction(
     context_translation?: string;
     metadata?: VocabMetadata;
     source_question_id: string | null;
+    notebook_id?: string | null;
     created_at: string;
     review_cards: RawCardRow | RawCardRow[] | null;
   }
@@ -336,6 +341,7 @@ export async function getVocabListAction(
       context_translation: item.context_translation || "",
       metadata,
       source_question_id: item.source_question_id,
+      notebook_id: item.notebook_id ?? null,
       created_at: item.created_at,
       card: card
         ? {
@@ -430,3 +436,149 @@ export async function deleteVocabAction(
 
   return { success: true, message: "Đã xóa từ khỏi sổ từ vựng" };
 }
+
+interface RawNotebookRow {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  color: string | null;
+  icon: string | null;
+  created_at: string;
+  vocab_entries?: { count: number }[];
+}
+
+/**
+ * Lấy danh sách sổ từ vựng của người dùng kèm số lượng từ
+ */
+export async function getNotebooksAction(): Promise<Notebook[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("notebooks")
+    .select("*, vocab_entries(count)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+
+  const rows = data as unknown as RawNotebookRow[];
+
+  return rows.map((nb) => ({
+    id: nb.id,
+    user_id: nb.user_id,
+    name: nb.name,
+    description: nb.description || "",
+    color: nb.color || "#2563EB",
+    icon: nb.icon || "folder",
+    created_at: nb.created_at,
+    word_count: nb.vocab_entries?.[0]?.count ?? 0,
+  }));
+}
+
+/**
+ * Tạo sổ từ vựng mới
+ */
+export async function createNotebookAction(
+  name: string,
+  description?: string,
+  color?: string
+): Promise<{ success: boolean; notebook?: Notebook; message: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Vui lòng đăng nhập để tạo sổ." };
+  }
+
+  const trimmed = name.trim();
+  if (!trimmed) {
+    return { success: false, message: "Tên sổ không được để trống." };
+  }
+
+  const { data, error } = await supabase
+    .from("notebooks")
+    .insert({
+      user_id: user.id,
+      name: trimmed,
+      description: description?.trim() || "",
+      color: color || "#2563EB",
+    })
+    .select()
+    .single();
+
+  if (error || !data) {
+    return { success: false, message: "Không thể tạo sổ lúc này." };
+  }
+
+  return {
+    success: true,
+    notebook: { ...data, word_count: 0 },
+    message: "Tạo sổ từ vựng thành công!",
+  };
+}
+
+/**
+ * Xóa sổ từ vựng (Các từ trong sổ sẽ chuyển về trạng thái không phân loại)
+ */
+export async function deleteNotebookAction(
+  notebookId: string
+): Promise<{ success: boolean; message: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Vui lòng đăng nhập." };
+  }
+
+  const { error } = await supabase
+    .from("notebooks")
+    .delete()
+    .eq("id", notebookId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return { success: false, message: "Không thể xóa sổ lúc này." };
+  }
+
+  return { success: true, message: "Đã xóa sổ từ vựng." };
+}
+
+/**
+ * Di chuyển từ vựng sang một sổ khác
+ */
+export async function moveVocabToNotebookAction(
+  vocabId: string,
+  notebookId: string | null
+): Promise<{ success: boolean; message: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Vui lòng đăng nhập." };
+  }
+
+  const { error } = await supabase
+    .from("vocab_entries")
+    .update({ notebook_id: notebookId })
+    .eq("id", vocabId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return { success: false, message: "Không thể chuyển sổ lúc này." };
+  }
+
+  return { success: true, message: "Đã chuyển sổ thành công!" };
+}
+
