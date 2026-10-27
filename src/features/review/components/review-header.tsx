@@ -25,6 +25,10 @@ interface ReviewHeaderProps {
   onSelectMode: (mode: ReviewStudyMode) => void;
   currentIndex: number;
   totalCards: number;
+  completedCards?: number;
+  currentTurn?: number;
+  totalTurns?: number;
+  progressPct?: number;
   notebookName?: string;
   topicName?: string;
   onOpenShortcuts: () => void;
@@ -37,13 +41,25 @@ export function ReviewHeader({
   onSelectMode,
   currentIndex,
   totalCards,
+  completedCards = 0,
+  currentTurn,
+  totalTurns,
+  progressPct: customProgressPct,
   notebookName,
   topicName,
   onOpenShortcuts,
   onOpenSettings,
   onOpenSetup,
 }: ReviewHeaderProps) {
-  const progressPct = totalCards > 0 ? Math.round(((currentIndex + 1) / totalCards) * 100) : 0;
+  // Tính tiến độ phần trăm: ưu tiên dùng progressPct tính theo số thẻ duy nhất đã hoàn thành
+  const progressPct =
+    customProgressPct !== undefined
+      ? customProgressPct
+      : totalCards > 0
+      ? Math.min(100, Math.round((completedCards / totalCards) * 100))
+      : 0;
+
+  const displayTurn = currentTurn !== undefined ? currentTurn : currentIndex + 1;
 
   const modes: Array<{
     id: ReviewStudyMode;
@@ -104,11 +120,14 @@ export function ReviewHeader({
 
         {/* Right: Counter & Công cụ */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          {/* Badge tiến độ: X / N THẺ */}
+          {/* Badge tiến độ: Thẻ đã thuộc & Lượt ôn */}
           <div className="text-right">
-            <span className="text-[11px] sm:text-xs font-mono font-bold text-slate-800">
-              {currentIndex} / {totalCards} THẺ
-            </span>
+            <div className="text-[11px] sm:text-xs font-mono font-bold text-slate-900">
+              {completedCards} / {totalCards} THẺ
+            </div>
+            <div className="text-[10px] font-mono text-slate-500 font-medium">
+              Lượt {displayTurn}{totalTurns ? `/${totalTurns}` : ""}
+            </div>
           </div>
 
           <div className="h-4 w-px bg-slate-200 mx-0.5 hidden sm:block" />

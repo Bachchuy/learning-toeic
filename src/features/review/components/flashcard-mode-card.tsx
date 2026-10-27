@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { ReviewCardItem } from "../types";
-import { resolvePhonetic } from "@/core/vocabDictionary";
+import { resolvePhonetic } from "@/core/phonetic";
 import {
   getPosBadgeInfo,
   generateNaturalExplanation,
@@ -118,21 +118,21 @@ export function FlashcardModeCard({
   };
 
   return (
-    <div className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col min-h-[400px] sm:min-h-[440px] justify-between p-6 sm:p-9 relative transition-all">
+    <div className="w-full bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col min-h-[330px] sm:min-h-[360px] justify-between p-4 sm:p-6 relative transition-all">
       {/* 1. Card Top: Badges */}
-      <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-4">
+      <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
         <span
-          className={`px-2.5 py-1 rounded-md text-xs font-mono font-bold uppercase tracking-wider border ${posInfo.badgeClass}`}
+          className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider border ${posInfo.badgeClass}`}
         >
           {posInfo.shortBadge}
         </span>
-        <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+        <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
           Lượt ôn: {card.reps ?? 0}
         </span>
       </div>
 
       {/* 2. Card Center: Mặt trước / Mặt sau */}
-      <div className="py-6 sm:py-8 flex flex-col items-center justify-center text-center space-y-4 flex-1">
+      <div className="py-3 sm:py-4 flex flex-col items-center justify-center text-center space-y-3 flex-1">
         {!isFlipped ? (
           /* MẶT TRƯỚC: TỪ VỰNG */
           <div className="space-y-4 animate-in fade-in duration-150 w-full flex flex-col items-center">

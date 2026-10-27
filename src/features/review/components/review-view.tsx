@@ -62,6 +62,12 @@ export function ReviewView({
   const [isPending, startTransition] = useTransition();
   const [ratingError, setRatingError] = useState<string | null>(null);
 
+  // Phân biệt rạch ròi giữa THẺ DUY NHẤT (Unique Cards) và LƯỢT DUYỆT (Review Turns)
+  // Tổng số thẻ duy nhất trong phiên ôn hiện tại (mẫu số cố định, không bị phình to khi bấm Lại)
+  const [totalSessionCards, setTotalSessionCards] = useState<number>(() => initialCards.length);
+  // Tập hợp các thẻ đã ghi nhớ thành công (Good/Easy và không bị re-queue học ngắn hạn)
+  const [completedCardIds, setCompletedCardIds] = useState<Set<string>>(() => new Set<string>());
+
   // Phím tắt bàn phím hỗ trợ WCAG 2.1 AA (§5.9 & D-22): "Space" lật thẻ, "1", "2", "3", "4" chấm thẻ FSRS
   // Đã được tích hợp phân tầng trong FlashcardModeCard, QuizModeCard và ShortcutsModal
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
@@ -103,6 +109,8 @@ export function ReviewView({
           studyAll: true,
         });
         setQueue(res.cards);
+        setTotalSessionCards(res.cards.length);
+        setCompletedCardIds(new Set<string>());
         setCurrentIndex(0);
         setSessionSummary({
           totalReviewed: 0,
@@ -154,6 +162,20 @@ export function ReviewView({
             };
           });
 
+          // Cập nhật tập hợp thẻ đã thuộc thành công (Mastered Cards)
+          // Nếu đánh giá tốt (Good 3 / Easy 4) và không phải bước học ngắn hạn (< 15 phút),
+          // thẻ được công nhận đã hoàn thành phiên. Nếu chọn Lại (1) hoặc học ngắn hạn,
+          // loại bỏ khỏi completedCardIds để tiếp tục học củng cố.
+          if ((rating === 3 || rating === 4) && !res.isShortTermLearningStep) {
+            setCompletedCardIds((prev) => new Set(prev).add(currentCard.id));
+          } else {
+            setCompletedCardIds((prev) => {
+              const next = new Set(prev);
+              next.delete(currentCard.id);
+              return next;
+            });
+          }
+
           // Xử lý hàng đợi OQ-2: Nếu chọn Again (1) hoặc đang ở bước học ngắn hạn,
           // xếp lại thẻ vào cuối hàng đợi để người học củng cố trí nhớ ngay trong phiên
           if (rating === 1 || res.isShortTermLearningStep) {
@@ -189,9 +211,24 @@ export function ReviewView({
     });
   };
 
-  // Tiến độ hoàn thành của phiên hiện tại (0 -> 100%)
+  // Phân biệt rạch ròi giữa THẺ DUY NHẤT (Unique Cards) và LƯỢT DUYỆT (Review Turns)
+  // 1. Thẻ duy nhất: Cố định mẫu số theo kích thước phiên ban đầu, tử số là số thẻ đã thuộc thành công
+  const totalUniqueCards = totalSessionCards > 0 ? totalSessionCards : queue.length;
+  const completedCardsCount = isSessionComplete
+    ? totalUniqueCards
+    : Math.min(totalUniqueCards, completedCardIds.size);
+
+  // 2. Lượt duyệt: Tăng dần theo hàng đợi FSRS (khi bấm 'Lại' thì thêm lượt)
+  const currentTurn = queue.length > 0 ? Math.min(currentIndex + 1, queue.length) : 0;
+  const totalTurns = queue.length;
+
+  // 3. Tiến độ thực tế (Mastery Progress): Chỉ tăng tịnh tiến theo thẻ đã thuộc, không bị tụt lùi khi thêm lượt
   const progressPct =
-    queue.length > 0 ? Math.round(((currentIndex + 1) / queue.length) * 100) : 0;
+    totalUniqueCards > 0
+      ? isSessionComplete
+        ? 100
+        : Math.min(100, Math.round((completedCardsCount / totalUniqueCards) * 100))
+      : 0;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
@@ -200,7 +237,11 @@ export function ReviewView({
         currentMode={currentMode}
         onSelectMode={setCurrentMode}
         currentIndex={currentIndex}
-        totalCards={queue.length}
+        totalCards={totalUniqueCards}
+        completedCards={completedCardsCount}
+        currentTurn={currentTurn}
+        totalTurns={totalTurns}
+        progressPct={progressPct}
         notebookName={notebookName}
         topicName={activeTopic}
         onOpenShortcuts={() => setIsShortcutsOpen(true)}
@@ -218,7 +259,7 @@ export function ReviewView({
           <Folder className="w-3.5 h-3.5 text-blue-600" />
           <span className="line-clamp-1">Chủ đề: {activeTopic}</span>
           <span className="text-[10px] text-slate-500 font-mono">
-            ({currentIndex + 1}/{queue.length})
+            ({completedCardsCount}/{totalUniqueCards} thẻ)
           </span>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400 rotate-90" />
         </button>
@@ -227,10 +268,10 @@ export function ReviewView({
         </span>
       </div>
 
-      {/* 2. BỐ CỤC 2 CỘT CHUẨN PARROTO (Image 3) */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 pb-12 w-full flex-1 flex flex-col lg:flex-row gap-6 items-start">
+      {/* 2. BỐ CỤC 2 CỘT CHUẨN PARROTO */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-4 pb-6 w-full flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
         {/* CỘT TRÁI: DANH SÁCH CHỦ ĐỀ (~30-50 THẺ MỖI CHỦ ĐỀ) */}
-        <aside className="hidden lg:flex w-80 shrink-0 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs p-4 flex-col max-h-[calc(100vh-120px)] sticky top-20">
+        <aside className="hidden lg:flex w-80 shrink-0 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs p-4 flex-col max-h-[calc(100vh-100px)] sticky top-16">
           <div className="flex items-center justify-between mb-3 px-1">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#475569]">
               DANH SÁCH CHỦ ĐỀ
@@ -321,30 +362,8 @@ export function ReviewView({
 
         {/* CỘT PHẢI: VÙNG HỌC TẬP CHÍNH CỦA CHỦ ĐỀ */}
         <main className="flex-1 w-full flex flex-col items-center">
-          {/* Thanh Tiến Độ theo Chủ Đề (giống Image 3 Parroto) */}
-          <div className="w-full max-w-2xl mb-4 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E2E8F0] shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-xs font-mono font-bold">
-              <span className="text-[#0F172A] uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-600" />
-                <span>
-                  TIẾN ĐỘ - {activeTopic.toUpperCase()}
-                </span>
-              </span>
-              <span className="text-[#2563EB]">
-                {queue.length > 0 ? Math.min(currentIndex + 1, queue.length) : 0} /{" "}
-                {queue.length} THẺ
-              </span>
-            </div>
-            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-              <div
-                className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-          </div>
-
           {ratingError && (
-            <div className="w-full max-w-2xl mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center justify-between animate-in fade-in">
+            <div className="w-full max-w-2xl mb-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center justify-between animate-in fade-in">
               <span>{ratingError}</span>
               <button
                 type="button"

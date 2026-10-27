@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { ReviewCardItem } from "../types";
-import { resolvePhonetic } from "@/core/vocabDictionary";
+import { resolvePhonetic } from "@/core/phonetic";
 import { getPosBadgeInfo } from "@/core/vocab";
 import { playPronunciation } from "@/lib/audio";
 import { evaluateSpellingInput } from "@/core/reviewQuiz";
@@ -102,7 +102,7 @@ export function SpeakingModeCard({
   };
 
   return (
-    <div className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-9 space-y-6 text-center animate-in fade-in duration-200">
+    <div className="w-full bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xs p-4 sm:p-6 space-y-4 text-center animate-in fade-in duration-200">
       {/* 1. Header loại từ */}
       <div className="flex items-center justify-center gap-2">
         <span

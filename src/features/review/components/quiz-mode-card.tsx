@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { ReviewCardItem } from "../types";
 import { generateQuizOptions, type QuizOption } from "@/core/reviewQuiz";
-import { resolvePhonetic } from "@/core/vocabDictionary";
+import { resolvePhonetic } from "@/core/phonetic";
 import { getPosBadgeInfo } from "@/core/vocab";
 import { playPronunciation } from "@/lib/audio";
 import {
@@ -98,9 +98,9 @@ export function QuizModeCard({
   const isCorrect = selectedOption?.isCorrect ?? false;
 
   return (
-    <div className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-9 space-y-6 animate-in fade-in duration-200">
+    <div className="w-full bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xs p-4 sm:p-6 space-y-3.5 sm:space-y-4 animate-in fade-in duration-200">
       {/* 1. Header câu hỏi */}
-      <div className="text-center space-y-3">
+      <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-2">
           <span
             className={`px-2.5 py-0.5 rounded-md text-xs font-mono font-bold uppercase border ${posInfo.badgeClass}`}

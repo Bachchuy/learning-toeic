@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/shared/auth";
 import {
   getReviewCardsAction,
   getReviewTopicsAction,
@@ -24,14 +23,7 @@ interface ReviewPageProps {
 }
 
 export default async function ReviewPage({ searchParams }: ReviewPageProps) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?next=/review");
-  }
+  await requireUser({ redirectTo: "/review" });
 
   const { notebookId, topic, limit, studyAll } = (await searchParams) || {};
   const parsedLimit = limit ? parseInt(limit, 10) : 15; // Mặc định 15 từ mỗi phiên (Micro-learning)

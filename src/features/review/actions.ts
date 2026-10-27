@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getOptionalUser } from "@/shared/auth";
 import {
   previewFSRSRatings,
   calculateFSRSReview,
@@ -29,10 +30,7 @@ export async function getReviewCardsAction(
   topicName?: string;
   error?: string;
 }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return {
@@ -333,10 +331,7 @@ export async function submitCardRatingAction(
   isShortTermLearningStep?: boolean;
   error?: string;
 }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, error: "Vui lòng đăng nhập để chấm thẻ." };
@@ -437,10 +432,7 @@ export async function getReviewTopicsAction(notebookId?: string): Promise<{
   topics: ReviewTopicInfo[];
   error?: string;
 }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { topics: [] };
