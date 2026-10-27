@@ -45,7 +45,7 @@ export async function getReviewCardsAction(
       ? { notebookId: optionsOrNotebookId }
       : optionsOrNotebookId || {};
 
-  const { notebookId, topic, limit = 20, studyAll = false } = options;
+  const { notebookId, topic, limit = 20, studyAll = false, excludeDeck } = options;
 
   const now = new Date();
 
@@ -62,6 +62,17 @@ export async function getReviewCardsAction(
     notebookName = nb?.name;
   }
 
+  let excludedNotebookId: string | undefined;
+  if (excludeDeck === "it-vocab") {
+    const { data: itNb } = await supabase
+      .from("notebooks")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("name", "Từ vựng Tiếng Anh IT & Công Nghệ")
+      .maybeSingle();
+    excludedNotebookId = itNb?.id;
+  }
+
   // 1. Đếm tổng số thẻ mà người dùng đang có theo bộ lọc sổ / chủ đề
   let countQuery = supabase
     .from("review_cards")
@@ -73,6 +84,9 @@ export async function getReviewCardsAction(
   }
   if (topic) {
     countQuery = countQuery.eq("vocab_entries.metadata->>topic", topic);
+  }
+  if (excludedNotebookId) {
+    countQuery = countQuery.neq("vocab_entries.notebook_id", excludedNotebookId);
   }
 
   const { count: totalCardsCount } = await countQuery;
@@ -111,6 +125,9 @@ export async function getReviewCardsAction(
   }
   if (topic) {
     cardsQuery = cardsQuery.eq("vocab_entries.metadata->>topic", topic);
+  }
+  if (excludedNotebookId) {
+    cardsQuery = cardsQuery.neq("vocab_entries.notebook_id", excludedNotebookId);
   }
 
   if (studyAll) {

@@ -35,6 +35,7 @@ export interface ReviewFilterOptions {
   topic?: string;
   limit?: number; // 10, 15, 20, 30, hoặc undefined (tất cả)
   studyAll?: boolean; // Học củng cố tự do (cramming)
+  excludeDeck?: string; // Loại trừ bộ thẻ (VD: 'it-vocab' khi chưa opt-in)
 }
 
 export interface ReviewSessionSummary {

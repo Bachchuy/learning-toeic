@@ -19,13 +19,14 @@ interface ReviewPageProps {
     topic?: string;
     limit?: string;
     studyAll?: string;
+    excludeDeck?: string;
   }>;
 }
 
 export default async function ReviewPage({ searchParams }: ReviewPageProps) {
   await requireUser({ redirectTo: "/review" });
 
-  const { notebookId, topic, limit, studyAll } = (await searchParams) || {};
+  const { notebookId, topic, limit, studyAll, excludeDeck } = (await searchParams) || {};
   const parsedLimit = limit ? parseInt(limit, 10) : 15; // Mặc định 15 từ mỗi phiên (Micro-learning)
 
   const [
@@ -38,6 +39,7 @@ export default async function ReviewPage({ searchParams }: ReviewPageProps) {
       topic,
       limit: parsedLimit,
       studyAll: studyAll === "true",
+      excludeDeck,
     }),
     getNotebooksAction(),
     getReviewTopicsAction(notebookId),

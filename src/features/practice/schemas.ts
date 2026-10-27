@@ -38,6 +38,20 @@ export const QuestionExplanationSchema = z.object({
 });
 
 /**
+ * Lọc bỏ các chuỗi rập khuôn/máy móc cũ nếu chưa được tinh chỉnh bằng AI
+ */
+function sanitizeAnalysisString(text?: string): string | undefined {
+  if (!text) return undefined;
+  if (
+    text.includes("không phù hợp về ngữ nghĩa hoặc không tạo thành cụm từ tự nhiên") ||
+    text.includes("Đáp án đúng. Mang nghĩa và cấu trúc chuẩn xác nhất cho câu.")
+  ) {
+    return undefined; // Ẩn chuỗi rập khuôn máy móc
+  }
+  return text;
+}
+
+/**
  * Hàm phân tích và kiểm tra tính hợp lệ của dữ liệu giải thích.
  * Luôn trả về một QuestionExplanation hợp lệ kể cả khi đầu vào là null, undefined hay dữ liệu rác.
  */
@@ -50,31 +64,51 @@ export function parseExplanation(raw: unknown): QuestionExplanation {
   }
 
   const result = QuestionExplanationSchema.safeParse(raw);
-  if (result.success) {
-    return result.data as QuestionExplanation;
+  const data = result.success ? result.data : (raw as Record<string, unknown>);
+
+  // Làm sạch options_analysis nếu dính chuỗi template cũ
+  let cleanedOptionsAnalysis: Record<"A" | "B" | "C" | "D", string> | undefined = undefined;
+  if (data.options_analysis && typeof data.options_analysis === "object") {
+    const rawAnalysis = data.options_analysis as Record<"A" | "B" | "C" | "D", string>;
+    const cleaned: Partial<Record<"A" | "B" | "C" | "D", string>> = {};
+    let hasAny = false;
+    for (const key of ["A", "B", "C", "D"] as const) {
+      const sanitized = sanitizeAnalysisString(rawAnalysis[key]);
+      if (sanitized) {
+        cleaned[key] = sanitized;
+        hasAny = true;
+      }
+    }
+    if (hasAny) {
+      cleanedOptionsAnalysis = cleaned as Record<"A" | "B" | "C" | "D", string>;
+    }
   }
 
-  // Fallback an toàn nếu dữ liệu không khớp
-  const fallback = raw as Record<string, unknown>;
+  // Làm sạch why_correct_vi nếu dính template rập khuôn
+  let whyCorrect = typeof data.why_correct_vi === "string" ? data.why_correct_vi : "";
+  if (
+    whyCorrect.includes("mang ngữ nghĩa phù hợp nhất với ngữ cảnh của câu và kết hợp tự nhiên với các từ xung quanh") ||
+    whyCorrect.includes("tạo thành cấu trúc so sánh chuẩn xác theo dấu hiệu ngữ pháp trong câu")
+  ) {
+    whyCorrect = "Phương án này tạo nên cấu trúc ngữ pháp chuẩn xác và truyền đạt đúng ý nghĩa trong ngữ cảnh câu.";
+  }
+
   return {
     rule_vi:
-      typeof fallback.rule_vi === "string" && fallback.rule_vi.trim().length > 0
-        ? fallback.rule_vi
+      typeof data.rule_vi === "string" && data.rule_vi.trim().length > 0
+        ? data.rule_vi
         : "Cấu trúc ngữ pháp trọng tâm theo chuẩn đề thi TOEIC Part 5.",
     why_correct_vi:
-      typeof fallback.why_correct_vi === "string" && fallback.why_correct_vi.trim().length > 0
-        ? fallback.why_correct_vi
+      whyCorrect.trim().length > 0
+        ? whyCorrect
         : "Phương án này thỏa mãn hoàn toàn cấu trúc ngữ pháp và ngữ cảnh của câu.",
     full_translation_vi:
-      typeof fallback.full_translation_vi === "string" ? fallback.full_translation_vi : undefined,
-    options_analysis:
-      fallback.options_analysis && typeof fallback.options_analysis === "object"
-        ? (fallback.options_analysis as Record<"A" | "B" | "C" | "D", string>)
-        : undefined,
-    tip_vi: typeof fallback.tip_vi === "string" ? fallback.tip_vi : undefined,
-    example_en: typeof fallback.example_en === "string" ? fallback.example_en : undefined,
-    vocab_hints: Array.isArray(fallback.vocab_hints)
-      ? (fallback.vocab_hints as Array<{ word: string; meaning_vi: string }>)
+      typeof data.full_translation_vi === "string" ? data.full_translation_vi : undefined,
+    options_analysis: cleanedOptionsAnalysis,
+    tip_vi: typeof data.tip_vi === "string" ? data.tip_vi : undefined,
+    example_en: typeof data.example_en === "string" ? data.example_en : undefined,
+    vocab_hints: Array.isArray(data.vocab_hints)
+      ? (data.vocab_hints as Array<{ word: string; meaning_vi: string }>)
       : undefined,
   };
 }
