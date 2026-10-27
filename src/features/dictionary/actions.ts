@@ -9,7 +9,7 @@ import {
   type FreeDictApiResponseItem,
 } from "@/core/dictionary";
 import { getDualPronunciation } from "@/core/vocab";
-import { resolvePhonetic } from "@/core/vocabDictionary";
+import { resolvePhonetic } from "@/core/phonetic";
 
 /**
  * Server Action: Tra cứu từ điển thông minh (Hybrid Smart Cache)
@@ -32,15 +32,18 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
       .maybeSingle();
 
     if (!cacheError && cached) {
-      // Cập nhật số lượt tra cứu
-      supabase
+      // Cập nhật số lượt tra cứu (await thay vì fire-and-forget)
+      const { error: updateError } = await supabase
         .from("dictionary_cache")
         .update({
           lookup_count: (cached.lookup_count || 1) + 1,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", cached.id)
-        .then(() => {});
+        .eq("id", cached.id);
+
+      if (updateError) {
+        console.warn("[DictionaryCache] Lỗi cập nhật lookup_count:", updateError);
+      }
 
       return {
         id: cached.id,
