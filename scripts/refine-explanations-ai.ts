@@ -34,12 +34,14 @@ const supabaseKey =
 const geminiApiKey = process.env.GEMINI_API_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error("❌ Lỗi: Thiếu NEXT_PUBLIC_SUPABASE_URL hoặc SUPABASE_SERVICE_ROLE_KEY");
+  console.error("❌ Lỗi: Thiếu thông tin kết nối Supabase:");
+  console.error(`   - NEXT_PUBLIC_SUPABASE_URL: ${supabaseUrl ? "Đã có" : "THIẾU"}`);
+  console.error(`   - SUPABASE_SERVICE_ROLE_KEY: ${supabaseKey ? "Đã có" : "THIẾU"}`);
   process.exit(1);
 }
 
 if (!geminiApiKey) {
-  console.error("❌ Lỗi: Thiếu GEMINI_API_KEY trong .env.local");
+  console.error("❌ Lỗi: Thiếu GEMINI_API_KEY");
   process.exit(1);
 }
 
