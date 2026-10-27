@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getOptionalUser } from "@/shared/auth";
 import { formatGrammarTagName } from "@/core/grammarTags";
 import {
   calculateMasteryPercentage,
@@ -54,10 +55,7 @@ export interface DashboardSummaryResult {
  * Tách rõ Nhóm 1 (Đủ dữ liệu) và Nhóm 2 (Chưa đủ dữ liệu) theo docs/05-design/screens.md §5.6 M8
  */
 export async function getSkillMasteryStatsAction(): Promise<SkillMasteryStatsResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   // 1. Lấy toàn bộ 16 chủ điểm ngữ pháp
   const { data: allTags, error: tagsError } = await supabase
@@ -185,37 +183,34 @@ export async function getSkillMasteryStatsAction(): Promise<SkillMasteryStatsRes
  * Dành cho biểu đồ SVG thuần túy theo tiêu chuẩn docs/05-design/screens.md §5.6 M8
  */
 export async function getDailyActivityStatsAction(): Promise<DailyActivityItem[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   const days: DailyActivityItem[] = [];
   const now = new Date();
 
-  // Tạo mốc 14 ngày liên tục từ quá khứ đến hôm nay
+  // Tạo mốc 14 ngày liên tục từ quá khứ đến hôm nay theo múi giờ Asia/Ho_Chi_Minh (Bất biến D-16)
   const dateCounts: Record<string, number> = {};
   for (let i = 13; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split("T")[0]; // YYYY-MM-DD
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateStr = d.toLocaleDateString("en-CA", {
+      timeZone: "Asia/Ho_Chi_Minh",
+    });
     dateCounts[dateStr] = 0;
   }
 
   if (user) {
-    const fourteenDaysAgo = new Date(now);
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 13);
-    fourteenDaysAgo.setHours(0, 0, 0, 0);
+    // Lấy dư 15 ngày theo UTC để bao trọn 14 ngày lịch Việt Nam
+    const fifteenDaysAgo = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: attempts } = await supabase
       .from("attempts")
-      .select("created_at")
+      .select("answered_at")
       .eq("user_id", user.id)
-      .gte("created_at", fourteenDaysAgo.toISOString());
+      .gte("answered_at", fifteenDaysAgo);
 
     for (const a of attempts || []) {
       // Chuyển sang múi giờ Asia/Ho_Chi_Minh
-      const attemptDate = new Date(a.created_at);
+      const attemptDate = new Date(a.answered_at);
       const localDateStr = attemptDate.toLocaleDateString("en-CA", {
         timeZone: "Asia/Ho_Chi_Minh",
       });
@@ -231,15 +226,15 @@ export async function getDailyActivityStatsAction(): Promise<DailyActivityItem[]
   });
 
   for (let i = 13; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
     const dateStr = d.toLocaleDateString("en-CA", {
       timeZone: "Asia/Ho_Chi_Minh",
     });
     const isToday = dateStr === todayStr;
-    const dayIndex = d.getDay();
+    const dayIndex = new Date(dateStr + "T12:00:00+07:00").getDay();
     const dayLabel = isToday ? "Hôm nay" : dayNames[dayIndex];
-    const fullDateFormatted = `${d.getDate()}/${d.getMonth() + 1}`;
+    const parts = dateStr.split("-");
+    const fullDateFormatted = `${parseInt(parts[2], 10)}/${parseInt(parts[1], 10)}`;
 
     days.push({
       date: dateStr,
@@ -254,13 +249,81 @@ export async function getDailyActivityStatsAction(): Promise<DailyActivityItem[]
 }
 
 /**
+ * Server Action: Lấy số ngày học liên tục (Streak) của người dùng hiện tại
+ * BẤT BIẾN OQ-6: Tính theo Asia/Ho_Chi_Minh, hợp nhất cả câu luyện và thẻ ôn
+ */
+export async function getUserStreakAction(): Promise<number> {
+  const { user, supabase } = await getOptionalUser();
+  if (!user) return 0;
+
+  const [attemptsRes, reviewsRes] = await Promise.all([
+    supabase
+      .from("attempts")
+      .select("answered_at")
+      .eq("user_id", user.id)
+      .order("answered_at", { ascending: false }),
+    supabase
+      .from("card_reviews")
+      .select("reviewed_at")
+      .eq("user_id", user.id)
+      .order("reviewed_at", { ascending: false }),
+  ]);
+
+  const activeDates = new Set<string>();
+  for (const a of attemptsRes.data || []) {
+    const d = new Date(a.answered_at).toLocaleDateString("en-CA", {
+      timeZone: "Asia/Ho_Chi_Minh",
+    });
+    activeDates.add(d);
+  }
+  for (const r of reviewsRes.data || []) {
+    const d = new Date(r.reviewed_at).toLocaleDateString("en-CA", {
+      timeZone: "Asia/Ho_Chi_Minh",
+    });
+    activeDates.add(d);
+  }
+
+  if (activeDates.size === 0) return 0;
+
+  const today = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+  const yesterdayDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const yesterday = yesterdayDate.toLocaleDateString("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+
+  const hasActivityToday = activeDates.has(today);
+  const hasActivityYesterday = activeDates.has(yesterday);
+
+  let streakDays = 0;
+  if (hasActivityToday || hasActivityYesterday) {
+    let checkDate = new Date();
+    if (!hasActivityToday) {
+      checkDate = yesterdayDate;
+    }
+
+    while (true) {
+      const dateStr = checkDate.toLocaleDateString("en-CA", {
+        timeZone: "Asia/Ho_Chi_Minh",
+      });
+      if (activeDates.has(dateStr)) {
+        streakDays++;
+        checkDate = new Date(checkDate.getTime() - 24 * 60 * 60 * 1000);
+      } else {
+        break;
+      }
+    }
+  }
+
+  return streakDays;
+}
+
+/**
  * Server Action: Lấy tổng hợp thông số Dashboard cho trang chủ M2
  */
 export async function getDashboardSummaryAction(): Promise<DashboardSummaryResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   // 1. Thống kê độ vững và chủ điểm
   const masteryStats = await getSkillMasteryStatsAction();
@@ -280,57 +343,8 @@ export async function getDashboardSummaryAction(): Promise<DashboardSummaryResul
     dueCardsCount = count || 0;
   }
 
-  // 4. Tính toán chuỗi ngày học liên tục (Streak)
-  let streakDays = 0;
-  if (user) {
-    const { data: userAttempts } = await supabase
-      .from("attempts")
-      .select("created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (userAttempts && userAttempts.length > 0) {
-      const activeDates = new Set<string>();
-      for (const a of userAttempts) {
-        const d = new Date(a.created_at).toLocaleDateString("en-CA", {
-          timeZone: "Asia/Ho_Chi_Minh",
-        });
-        activeDates.add(d);
-      }
-
-      const today = new Date().toLocaleDateString("en-CA", {
-        timeZone: "Asia/Ho_Chi_Minh",
-      });
-      const yesterdayDate = new Date();
-      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-      const yesterday = yesterdayDate.toLocaleDateString("en-CA", {
-        timeZone: "Asia/Ho_Chi_Minh",
-      });
-
-      // Nếu hôm nay hoặc hôm qua có học thì chuỗi đang sống
-      const hasActivityToday = activeDates.has(today);
-      const hasActivityYesterday = activeDates.has(yesterday);
-
-      if (hasActivityToday || hasActivityYesterday) {
-        let checkDate = new Date();
-        if (!hasActivityToday) {
-          checkDate = yesterdayDate;
-        }
-
-        while (true) {
-          const dateStr = checkDate.toLocaleDateString("en-CA", {
-            timeZone: "Asia/Ho_Chi_Minh",
-          });
-          if (activeDates.has(dateStr)) {
-            streakDays++;
-            checkDate.setDate(checkDate.getDate() - 1);
-          } else {
-            break;
-          }
-        }
-      }
-    }
-  }
+  // 4. Tính toán chuỗi ngày học liên tục (Streak) - Bất biến OQ-6 (câu luyện hoặc thẻ ôn)
+  const streakDays = await getUserStreakAction();
 
   // Top 3 chủ điểm cần chú ý (PD-08: mobile chỉ hiện Top 3)
   const topAttentionTopics: TopicMasteryItem[] = [];

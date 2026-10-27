@@ -4,8 +4,8 @@ import Link from "next/link";
 import type { DashboardSummaryResult } from "@/features/stats/actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { StreakFlame } from "@/components/ui/streak-flame";
 import {
-  Flame,
   Calendar,
   CheckCircle2,
   TrendingUp,
@@ -31,13 +31,15 @@ export function DashboardView({ summary }: DashboardViewProps) {
   } = summary;
 
   const isNewLearner = totalQuestionsAnswered === 0;
+  const todayActivity = recentActivity.find((d) => d.isToday);
+  const hasStudiedToday = (todayActivity?.count || 0) > 0;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pt-2 pb-16 animate-in fade-in duration-200">
-      {/* 1. Top Header: Chào mừng + Chuỗi ngày học (Streak) */}
+      {/* 1. Top Header: Chào mừng + Chuỗi ngày học (Streak phong cách Duolingo) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-6">
         <div>
-          <div className="text-[11px] font-mono font-bold uppercase tracking-[0.08em] text-[#475569] mb-1.5 flex items-center gap-2">
+          <div className="text-xs font-semibold uppercase tracking-wider text-[#475569] mb-1.5 flex items-center gap-2">
             <span>Luyện thi thích ứng</span>
             <span className="text-slate-300">•</span>
             <span>Phân tích theo dữ liệu thực</span>
@@ -50,22 +52,52 @@ export function DashboardView({ summary }: DashboardViewProps) {
           </p>
         </div>
 
-        {/* Huy hiệu Chuỗi ngày học (Streak) */}
-        <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-[#E2E8F0] shadow-xs self-start sm:self-auto">
-          <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shrink-0">
-            <Flame className="w-5 h-5 fill-amber-500 text-amber-500" />
+        {/* Huy hiệu Chuỗi ngày học (Duolingo Flame Streak) */}
+        <div
+          className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl border transition-all self-start sm:self-auto ${
+            streakDays > 0
+              ? "bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white border-orange-200/90 shadow-[0_4px_16px_rgba(249,115,22,0.12)]"
+              : "bg-white border-[#E2E8F0] shadow-xs"
+          }`}
+        >
+          <div className="relative">
+            <StreakFlame
+              streak={streakDays}
+              size="lg"
+              isLitToday={hasStudiedToday}
+              animate={true}
+            />
           </div>
           <div>
-            <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748B]">
-              Chuỗi ngày học
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#64748B]">
+                Chuỗi ngày học
+              </span>
+              {streakDays > 0 && hasStudiedToday && (
+                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.2 rounded-full">
+                  Đã giữ lửa
+                </span>
+              )}
             </div>
-            <div className="text-lg font-mono font-bold text-[#0F172A] leading-tight">
+            <div className="text-xl sm:text-2xl font-mono font-black text-[#0F172A] leading-tight flex items-baseline gap-1 mt-0.5">
               {streakDays > 0 ? (
                 <>
-                  {streakDays} <span className="text-xs font-normal text-[#64748B]">ngày liên tiếp</span>
+                  <span className="text-orange-600 font-extrabold">{streakDays}</span>
+                  <span className="text-xs font-bold text-slate-700">NGÀY LIÊN TIẾP</span>
                 </>
               ) : (
-                <span className="text-sm font-semibold text-[#2563EB]">Cùng khởi động hôm nay!</span>
+                <span className="text-sm font-bold text-[#2563EB]">Thắp lửa hôm nay!</span>
+              )}
+            </div>
+            <div className="text-[11px] text-[#64748B] mt-0.5">
+              {streakDays > 0 ? (
+                hasStudiedToday ? (
+                  <span className="text-amber-800 font-medium">🔥 Lửa đang rực cháy hôm nay!</span>
+                ) : (
+                  <span className="text-orange-700 font-medium">⏳ Học 1 bài để duy trì chuỗi {streakDays + 1} ngày!</span>
+                )
+              ) : (
+                <span>Làm 1 bài luyện hoặc ôn từ vựng</span>
               )}
             </div>
           </div>
@@ -81,14 +113,14 @@ export function DashboardView({ summary }: DashboardViewProps) {
           {/* A. THẺ LUYỆN PART 5 ĐỀ XUẤT (HERO CARD - CHỨA NÚT PRIMARY DUY NHẤT) */}
           <Card className="p-6 bg-white border border-[#2563EB]/40 shadow-sm relative overflow-hidden space-y-4">
             <div className="flex items-center justify-between">
-              <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]">
+              <span className="px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]">
                 {isNewLearner ? "Khởi động hôm nay" : "Chủ điểm nên ưu tiên"}
               </span>
               <Sparkles className="w-4 h-4 text-[#2563EB]" />
             </div>
 
             <div className="space-y-1.5">
-              <div className="text-xs font-mono text-[#64748B]">
+              <div className="text-xs font-medium text-[#64748B]">
                 Bài luyện đề xuất
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
@@ -284,11 +316,17 @@ export function DashboardView({ summary }: DashboardViewProps) {
           {/* B. THẺ TÓM TẮT TIẾN ĐỘ & HOẠT ĐỘNG 14 NGÀY */}
           <Card className="p-5 bg-white border border-[#E2E8F0] shadow-xs space-y-4 overflow-hidden">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <BarChart3 className="w-4 h-4 text-slate-600" />
                 <h3 className="text-sm font-bold text-[#0F172A]">
                   Tần suất làm bài 14 ngày gần nhất
                 </h3>
+                {streakDays > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 text-orange-700 text-xs font-mono font-bold shadow-xs">
+                    <span className="text-xs leading-none" aria-hidden="true">🔥</span>
+                    <span>Chuỗi {streakDays} ngày</span>
+                  </span>
+                )}
               </div>
               <Link
                 href="/stats"
@@ -305,25 +343,31 @@ export function DashboardView({ summary }: DashboardViewProps) {
                 return (
                   <div
                     key={day.date}
-                    className={`p-2 rounded-lg text-center flex flex-col justify-between h-14 border transition-colors ${
+                    className={`p-1.5 sm:p-2 rounded-xl text-center flex flex-col justify-between h-16 border transition-all relative group ${
                       day.isToday
-                        ? "border-[#2563EB] bg-[#EFF6FF]/60"
+                        ? "border-[#2563EB] bg-[#EFF6FF]/70 shadow-xs ring-2 ring-blue-500/20"
                         : hasActivity
-                        ? "border-slate-200 bg-slate-50"
+                        ? "border-orange-300 bg-gradient-to-b from-orange-50/90 to-amber-50/50 shadow-xs hover:border-orange-400 hover:scale-105"
                         : "border-slate-100 bg-slate-50/40"
                     }`}
                     title={`${day.fullDateFormatted}: ${day.count} câu`}
                   >
-                    <div className="text-[9px] font-mono text-[#64748B]">
-                      {day.dayLabel === "Hôm nay" ? "Nay" : day.dayLabel}
+                    <div className="text-[10px] font-mono text-[#64748B] flex items-center justify-center gap-0.5">
+                      <span>{day.dayLabel === "Hôm nay" ? "Nay" : day.dayLabel}</span>
                     </div>
-                    <div
-                      className={`text-xs font-mono font-bold ${
-                        hasActivity ? "text-[#2563EB]" : "text-slate-300"
-                      }`}
-                    >
-                      {day.count}
-                    </div>
+
+                    {hasActivity ? (
+                      <div className="my-auto flex flex-col items-center justify-center -space-y-0.5">
+                        <span className="text-xs leading-none animate-[flame-flicker_2.4s_ease-in-out_infinite]" aria-hidden="true">🔥</span>
+                        <span className="text-xs font-mono font-black text-orange-600">
+                          {day.count}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="my-auto text-xs font-mono font-bold text-slate-300">
+                        {day.count}
+                      </div>
+                    )}
                   </div>
                 );
               })}
