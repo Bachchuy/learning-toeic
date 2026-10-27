@@ -62,3 +62,26 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+
+
+# ==========================================
+# 8. AI Agent, Skills & Local Misc
+# ==========================================
+# AI IDE & Agent configurations
+/.agent/
+/.agents/
+/.cursor/
+/.cursorrules
+/.claude/
+/CLAUDE.md
+/.gemini/
+/.windsurf/
+/prompts/
+/skills/
+/AGENTS.md
+
+# Local scratch, drafts & non-runtime examples
+/archive/
+/examples/
+/data/
+/FEATURE_INVENTORY.md
