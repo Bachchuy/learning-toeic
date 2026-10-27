@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getOptionalUser } from "@/shared/auth";
 import { normalizeLemma } from "@/core/vocab";
 import { enrichVocabMetadata } from "@/core/vocabDictionary";
 import { trackEventAction } from "@/features/practice/actions";
@@ -30,10 +31,7 @@ import type {
 export async function saveVocabAction(
   params: SaveVocabParams
 ): Promise<SaveVocabResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return {
@@ -124,10 +122,7 @@ export async function saveVocabAction(
 export async function saveBatchVocabAction(
   params: SaveBatchVocabParams
 ): Promise<SaveBatchVocabResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return {
@@ -228,57 +223,83 @@ export async function getVocabListAction(
   filter: "all" | "due" = "all",
   searchQuery: string = ""
 ): Promise<{ entries: VocabEntry[]; dueCount: number; error?: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { entries: [], dueCount: 0, error: "Chưa đăng nhập" };
   }
 
-  // Truy vấn từ vựng của user kèm thông tin thẻ review_cards
-  let query = supabase
+  // 1. Đếm chính xác tổng số từ vựng của user để bypass giới hạn mặc định 1000 rows của PostgREST
+  let countQuery = supabase
     .from("vocab_entries")
-    .select(`
-      id,
-      user_id,
-      word,
-      lemma,
-      meaning,
-      context_sentence,
-      part_of_speech,
-      phonetic,
-      context_translation,
-      metadata,
-      source_question_id,
-      notebook_id,
-      created_at,
-      review_cards (
-        id,
-        state,
-        stability,
-        difficulty,
-        due,
-        reps,
-        lapses
-      )
-    `)
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
 
   if (searchQuery.trim()) {
     const q = searchQuery.trim().toLowerCase();
-    query = query.or(`word.ilike.%${q}%,meaning.ilike.%${q}%`);
+    countQuery = countQuery.or(`word.ilike.%${q}%,meaning.ilike.%${q}%`);
   }
 
-  const { data, error } = await query;
-
-  if (error || !data) {
-    return { entries: [], dueCount: 0, error: error?.message };
+  const { count: totalCount, error: countError } = await countQuery;
+  if (countError) {
+    return { entries: [], dueCount: 0, error: countError.message };
   }
 
-  const now = new Date();
+  const total = totalCount || 0;
+  if (total === 0) {
+    return { entries: [], dueCount: 0 };
+  }
+
+  // 2. Fetch toàn bộ các chunks song song (mỗi chunk 1000 hàng theo giới hạn PostgREST)
+  const PAGE_CHUNK_SIZE = 1000;
+  const totalPages = Math.ceil(total / PAGE_CHUNK_SIZE);
+
+  const selectFields = `
+    id,
+    user_id,
+    word,
+    lemma,
+    meaning,
+    context_sentence,
+    part_of_speech,
+    phonetic,
+    context_translation,
+    metadata,
+    source_question_id,
+    notebook_id,
+    created_at,
+    review_cards (
+      id,
+      state,
+      stability,
+      difficulty,
+      due,
+      reps,
+      lapses
+    )
+  `;
+
+  const fetchChunk = (from: number, to: number) => {
+    let q = supabase
+      .from("vocab_entries")
+      .select(selectFields)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (searchQuery.trim()) {
+      const qStr = searchQuery.trim().toLowerCase();
+      q = q.or(`word.ilike.%${qStr}%,meaning.ilike.%${qStr}%`);
+    }
+    return q;
+  };
+
+  const chunkPromises = [];
+  for (let i = 0; i < totalPages; i++) {
+    const from = i * PAGE_CHUNK_SIZE;
+    const to = from + PAGE_CHUNK_SIZE - 1;
+    chunkPromises.push(fetchChunk(from, to));
+  }
 
   interface RawCardRow {
     id: string;
@@ -307,7 +328,14 @@ export async function getVocabListAction(
     review_cards: RawCardRow | RawCardRow[] | null;
   }
 
-  const rawRows = data as unknown as RawVocabRow[];
+  const chunkResults = await Promise.all(chunkPromises);
+  const now = new Date();
+  let rawRows: RawVocabRow[] = [];
+  for (const res of chunkResults) {
+    if (res.data) {
+      rawRows = rawRows.concat(res.data as unknown as RawVocabRow[]);
+    }
+  }
 
   // Chuẩn hóa cấu trúc kết quả
   const allEntries: VocabEntry[] = rawRows.map((item) => {
@@ -391,10 +419,7 @@ export async function updateVocabMeaningAction(
   vocabId: string,
   meaning: string
 ): Promise<{ success: boolean; message: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, message: "Vui lòng đăng nhập" };
@@ -424,10 +449,7 @@ export async function updateVocabMeaningAction(
 export async function deleteVocabAction(
   vocabId: string
 ): Promise<{ success: boolean; message: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, message: "Vui lòng đăng nhập" };
@@ -461,10 +483,7 @@ interface RawNotebookRow {
  * Lấy danh sách sổ từ vựng của người dùng kèm số lượng từ
  */
 export async function getNotebooksAction(): Promise<Notebook[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) return [];
 
@@ -498,10 +517,7 @@ export async function createNotebookAction(
   description?: string,
   color?: string
 ): Promise<{ success: boolean; notebook?: Notebook; message: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, message: "Vui lòng đăng nhập để tạo sổ." };
@@ -540,10 +556,7 @@ export async function createNotebookAction(
 export async function deleteNotebookAction(
   notebookId: string
 ): Promise<{ success: boolean; message: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, message: "Vui lòng đăng nhập." };
@@ -569,10 +582,7 @@ export async function moveVocabToNotebookAction(
   vocabId: string,
   notebookId: string | null
 ): Promise<{ success: boolean; message: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, message: "Vui lòng đăng nhập." };
@@ -605,10 +615,7 @@ export async function getCuratedDecksAction(): Promise<{
   decks: CuratedDeckStatus[];
   error?: string;
 }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return {
@@ -666,10 +673,7 @@ export async function importCuratedDeckAction(deckId: string): Promise<{
   importedCount?: number;
   existingCount?: number;
 }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, message: "Vui lòng đăng nhập để nạp bộ thẻ." };

@@ -7,7 +7,7 @@ import {
   generateNaturalExplanation,
   getDualPronunciation,
 } from "@/core/vocab";
-import { resolvePhonetic } from "@/core/vocabDictionary";
+import { resolvePhonetic } from "@/core/phonetic";
 import { playPronunciation } from "@/lib/audio";
 import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
 import {

@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/shared/auth";
 import {
   getVocabListAction,
   getNotebooksAction,
@@ -15,14 +14,7 @@ export const metadata = {
 };
 
 export default async function VocabPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?next=/vocab");
-  }
+  await requireUser({ redirectTo: "/vocab" });
 
   const [{ entries, dueCount }, notebooks, { decks: curatedDecks }] =
     await Promise.all([
