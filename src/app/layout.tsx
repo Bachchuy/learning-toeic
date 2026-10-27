@@ -20,7 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "TOEIC Platform",
-  description: "Hệ thống luyện thi TOEIC thông minh với FSRS và Adaptive Rolling Mastery",
+  description: "Hệ thống luyện thi TOEIC thích ứng với phương pháp ghi nhớ ngắt quãng khoa học",
 };
 
 export default function RootLayout({
@@ -31,11 +31,18 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${beVietnamPro.variable} ${jetbrainsMono.variable} h-screen overflow-hidden antialiased`}
+      className={`${beVietnamPro.variable} ${jetbrainsMono.variable} antialiased`}
     >
-      <body className="h-screen overflow-hidden flex flex-col bg-[var(--color-bg-page)] text-[var(--color-text-primary)] font-sans">
+      <body className="min-h-dvh flex flex-col bg-[var(--color-bg-page)] text-[var(--color-text-primary)] font-sans">
         <AppNav>
-          <Suspense fallback={<div className="flex-1 w-full min-h-[400px] flex items-center justify-center p-8 text-sm text-slate-400">Đang tải dữ liệu...</div>}>
+          <Suspense
+            fallback={
+              <div className="flex-1 w-full min-h-[400px] flex flex-col items-center justify-center p-8 text-sm text-[var(--color-text-secondary)] gap-3">
+                <div className="w-6 h-6 border-2 border-[var(--color-primary-default)] border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                <span>Đang tải nội dung...</span>
+              </div>
+            }
+          >
             {children}
           </Suspense>
         </AppNav>

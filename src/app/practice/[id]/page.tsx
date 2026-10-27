@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/shared/auth";
 import { formatGrammarTagName } from "@/core/grammarTags";
 import { PracticeRunner } from "@/features/practice/components/practice-runner";
 import type { PracticeQuestion } from "@/features/practice/types";
@@ -12,16 +12,7 @@ interface PageProps {
 
 export default async function PracticeSessionPage({ params }: PageProps) {
   const { id } = await params;
-  const supabase = await createClient();
-
-  // Kiểm tra đăng nhập
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect(`/login?next=/practice/${id}`);
-  }
+  const { user, supabase } = await requireUser({ redirectTo: `/practice/${id}` });
 
   // Lấy thông tin phiên
   const { data: session, error: sessionError } = await supabase

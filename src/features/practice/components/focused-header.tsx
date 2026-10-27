@@ -6,28 +6,33 @@ import Link from "next/link";
 interface FocusedHeaderProps {
   currentIndex: number;
   totalQuestions: number;
+  isAnswered?: boolean;
 }
 
 export function FocusedHeader({
   currentIndex,
   totalQuestions,
+  isAnswered = false,
 }: FocusedHeaderProps) {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const currentDisplayNumber = currentIndex + 1;
-  const progressPercent = Math.round(
-    (currentDisplayNumber / totalQuestions) * 100
+  // Thanh tiến độ tính theo số câu đã nộp đáp án để không bị 10% khi chưa trả lời câu nào
+  const completedQuestions = isAnswered ? currentIndex + 1 : currentIndex;
+  const progressPercent = Math.min(
+    100,
+    Math.round((completedQuestions / totalQuestions) * 100)
   );
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 h-[52px] bg-white border-b border-[#E2E8F0] z-30 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto h-full flex items-center justify-between">
-          {/* Nút Thoát */}
+          {/* Nút Thoát — vùng chạm tối thiểu 44px chuẩn a11y */}
           <button
             type="button"
             onClick={() => setShowExitConfirm(true)}
-            className="flex items-center gap-1.5 text-xs font-semibold text-[#475569] hover:text-[#0F172A] px-2.5 py-1.5 rounded-lg hover:bg-[#F1F5F9] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2563EB]"
+            className="flex items-center gap-1.5 text-xs font-semibold text-[#475569] hover:text-[#0F172A] px-3 min-h-[44px] rounded-lg hover:bg-[#F1F5F9] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2563EB]"
           >
             <span className="font-bold text-sm">✕</span>
             <span>Thoát</span>

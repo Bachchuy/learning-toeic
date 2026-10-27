@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/shared/auth";
 import { getProfileAction } from "@/features/profile/actions";
 import { ProfileView } from "@/features/profile/components/profile-view";
 
@@ -11,14 +10,7 @@ export const metadata = {
 };
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?next=/profile");
-  }
+  await requireUser({ redirectTo: "/profile" });
 
   const { profile, error } = await getProfileAction();
 

@@ -25,7 +25,7 @@ const NAV_ITEMS: NavItem[] = [
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={active ? 2.5 : 2}
-          d="M13 10V3L4 14h7v7l9-11h-7z"
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
         />
       </svg>
     ),
@@ -95,34 +95,33 @@ const NAV_ITEMS: NavItem[] = [
 export function AppNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // Ẩn Navigation hoàn toàn ở màn hình Focus: /practice/[id], /review, và màn hình Auth (/login)
+  // Ẩn Navigation hoàn toàn ở màn hình Focus làm bài: /practice/[id] (trừ /practice/new), /review, và màn hình Auth (/login)
   const isFocusScreen =
-    pathname.startsWith("/practice/") ||
+    (pathname.startsWith("/practice/") && pathname !== "/practice/new") ||
     pathname === "/review" ||
     pathname === "/login";
 
   if (isFocusScreen) {
     return (
-      <main className="h-screen w-full overflow-y-auto scrollbar-gutter-stable bg-[var(--color-bg-page)]">
+      <main id="main-content" className="min-h-dvh w-full scrollbar-gutter-stable bg-[var(--color-bg-page)]">
         {children}
       </main>
     );
   }
 
   return (
-    <div className="h-screen w-full flex flex-col md:flex-row overflow-hidden bg-[var(--color-bg-page)]">
+    <div className="min-h-dvh w-full flex flex-col md:flex-row bg-[var(--color-bg-page)]">
       {/* ========================================================
           Desktop Left Sidebar (240px) - chỉ hiện trên màn hình md+ (≥768px/1024px)
-          Cố định tuyệt đối theo viewport h-screen, không bao giờ bị unmount hoặc co giật
+          Sticky theo viewport h-dvh, không giật màn hình
           ======================================================== */}
       <aside
         aria-label="Điều hướng chính"
-        className="hidden md:flex flex-col w-60 border-r border-[#E2E8F0] bg-white p-5 h-screen shrink-0 select-none justify-between overflow-hidden"
+        className="hidden md:flex flex-col w-60 border-r border-[#E2E8F0] bg-white p-5 sticky top-0 h-dvh shrink-0 select-none justify-between overflow-y-auto"
       >
         <div>
           {/* Brand Header */}
           <div className="flex items-center gap-2.5 mb-8 px-2">
-            {/* Logo mark — chữ T trên nền primary, Swiss precision square */}
             <div className="w-8 h-8 rounded-[6px] bg-[var(--color-primary-default)] flex items-center justify-center text-white font-bold text-sm font-mono shrink-0">
               T
             </div>
@@ -130,8 +129,8 @@ export function AppNav({ children }: { children: React.ReactNode }) {
               <div className="font-bold text-[15px] tracking-tight text-[var(--color-text-primary)] leading-none">
                 TOEIC
               </div>
-              <div className="text-[10px] font-mono text-[var(--color-text-secondary)] tracking-[0.06em] uppercase mt-0.5">
-                Swiss LearningGrid
+              <div className="text-[10px] text-[var(--color-text-secondary)] tracking-[0.04em] uppercase mt-0.5">
+                Luyện thi thích ứng
               </div>
             </div>
           </div>
@@ -148,13 +147,14 @@ export function AppNav({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={active ? "page" : undefined}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative ${
                     active
                       ? "bg-[var(--color-primary-subtle)] text-[var(--color-primary-default)] font-semibold"
                       : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)]"
                   }`}
                 >
-                  {/* Active left-bar — Swiss precision mark */}
+                  {/* Active left-bar */}
                   {active && (
                     <span
                       className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[var(--color-primary-default)] rounded-r-full"
@@ -169,27 +169,27 @@ export function AppNav({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
 
-        {/* Bottom Profile / Quick Info */}
+        {/* Bottom App Info */}
         <div className="pt-4 border-t border-[#E2E8F0] px-2 text-xs text-[#475569] flex items-center justify-between shrink-0">
-          <span className="font-mono">v0.1.0 (MVP)</span>
-          <span className="inline-block w-2 h-2 rounded-full bg-[#047857]" />
+          <span className="font-medium text-slate-500">Học tập thông minh</span>
+          <span className="text-[11px] text-slate-400">ETS 2026</span>
         </div>
       </aside>
 
-      {/* Main Content Area — Scroll container DUY NHẤT của toàn hệ thống */}
-      <main className="flex-1 h-screen overflow-y-auto scrollbar-gutter-stable w-full px-4 py-6 md:px-8 md:py-8 pb-24 md:pb-12">
+      {/* Main Content Area */}
+      <main id="main-content" className="flex-1 min-h-dvh scrollbar-gutter-stable w-full px-4 py-6 md:px-8 md:py-8 pb-28 md:pb-12">
         <div className="max-w-5xl mx-auto w-full">
           {children}
         </div>
       </main>
 
       {/* ========================================================
-          Mobile Bottom Navigation Bar (56px) - chỉ hiện trên mobile (<768px)
-          Vùng chạm chuẩn ≥44px, cố định đáy màn hình (Sticky Bottom)
+          Mobile Bottom Navigation Bar (56px + Safe Area) - chỉ hiện trên mobile (<768px)
+          Vùng chạm chuẩn ≥44px, hỗ trợ iPhone home indicator
           ======================================================== */}
       <nav
         aria-label="Điều hướng di động"
-        className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-white border-t border-[#E2E8F0] flex items-center justify-around z-40 px-2"
+        className="md:hidden fixed bottom-0 left-0 right-0 h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] bg-white border-t border-[#E2E8F0] flex items-center justify-around z-40 px-2 shadow-sm"
       >
         {NAV_ITEMS.map((item) => {
           const active =
@@ -201,6 +201,7 @@ export function AppNav({ children }: { children: React.ReactNode }) {
             <Link
               key={item.href}
               href={item.href}
+              aria-current={active ? "page" : undefined}
               className={`flex flex-col items-center justify-center min-w-[64px] h-full py-1 text-[11px] font-medium transition-colors ${
                 active ? "text-[#2563EB] font-semibold" : "text-[#475569]"
               }`}

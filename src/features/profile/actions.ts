@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getOptionalUser } from "@/shared/auth";
 import {
   validateDisplayName,
   validateTargetScore,
@@ -24,10 +25,7 @@ export async function getProfileAction(): Promise<{
   profile: UserProfileData | null;
   error?: string;
 }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { profile: null, error: "Chưa đăng nhập" };
@@ -67,10 +65,7 @@ export async function updateProfileAction(
   displayName: string,
   targetScore: number | string
 ): Promise<ProfileActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, error: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại." };
@@ -119,10 +114,7 @@ export async function updateProfileAction(
  * Bao gồm hồ sơ, sổ từ vựng, thẻ ôn tập FSRS và lịch sử làm bài.
  */
 export async function exportUserDataAction(): Promise<ExportDataResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, error: "Chưa đăng nhập." };
@@ -229,10 +221,7 @@ export async function deleteAccountAction(
     };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, error: "Không tìm thấy phiên đăng nhập." };

@@ -77,7 +77,7 @@ const QUESTIONS: SeedQuestionData[] = [
         C: "briefed (v-ed): đã hướng dẫn, đã chỉ đạo (Sai: không hợp ngữ cảnh)",
         D: "briefing (n): cuộc họp ngắn, buổi chỉ dẫn (Sai: ghép với summary không tự nhiên)",
       },
-      tip_vi: "Khi gặp vị trí [a/an/the] + ______ + [Noun], 90% đáp án là Tính từ mang đuôi: -ive, -able, -al, -ic, hoặc tính từ ngắn thông dụng như brief, broad, quick.",
+      tip_vi: "Vị trí đứng trước danh từ bổ nghĩa trong cấu trúc [a/an/the] + ______ + [Noun] thường ưu tiên Tính từ (-ive, -able, -al, -ic hoặc tính từ ngắn thông dụng như brief, broad, quick), trừ trường hợp danh từ ghép.",
       example_en: "She gave a brief presentation on the new budget plan.",
       vocab_hints: [
         { word: "summary", meaning_vi: "bản tóm tắt" },
@@ -557,7 +557,7 @@ const QUESTIONS: SeedQuestionData[] = [
         C: "exception (n): sự ngoại lệ (Sai: danh từ ghép không tạo nghĩa tự nhiên)",
         D: "except (prep): ngoại trừ (Sai: giới từ không dùng trong vị trí này)",
       },
-      tip_vi: "Thấy danh từ hoặc cụm danh từ phía sau khoảng trống -> 90% chọn Tính từ (thường có đuôi -al, -ive, -able, -ful, -ous).",
+      tip_vi: "Khoảng trống đứng trước danh từ hoặc cụm danh từ thường là Tính từ bổ nghĩa (-al, -ive, -able, -ful, -ous), lưu ý kiểm tra ngữ nghĩa xem có phải danh từ ghép hay không.",
       example_en: "She demonstrated exceptional problem-solving abilities.",
       vocab_hints: [
         { word: "promotion", meaning_vi: "sự thăng chức, đề bạt" },

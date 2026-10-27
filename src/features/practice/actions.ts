@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getOptionalUser } from "@/shared/auth";
 import { formatGrammarTagName } from "@/core/grammarTags";
 import { parseExplanation } from "./schemas";
 import type {
@@ -138,10 +139,7 @@ export async function trackEventAction(
   metadata: Record<string, unknown> = {}
 ): Promise<{ success: boolean }> {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { user, supabase } = await getOptionalUser();
 
     if (!user) {
       return { success: false };
@@ -176,10 +174,7 @@ export async function reportQuestionAction(
   reason: ReportReason,
   notes: string = ""
 ): Promise<{ success: boolean; message: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return {
@@ -243,10 +238,7 @@ export async function getPracticeTopicsAction(): Promise<{
   allAvailableCount: number;
   error?: string;
 }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   // 1. Lấy danh sách toàn bộ chủ điểm ngữ pháp
   const { data: tags, error: tagsError } = await supabase

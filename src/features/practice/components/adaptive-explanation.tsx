@@ -33,12 +33,14 @@ export function AdaptiveExplanation({
     <div className="w-full space-y-3 text-left" aria-live="polite">
       {/* 1. Khối Giải thích trọng tâm & Dịch nghĩa (Gọn gàng, dễ đọc, không lấn át câu hỏi) */}
       <div className="p-4 sm:p-5 rounded-xl bg-[#F0F7FF] border border-[#BFDBFE] text-[#0F172A] space-y-3">
-        <div className="text-[14px] sm:text-[15px] leading-relaxed text-[#1E293B]">
-          <span className="font-bold text-[#1E40AF]">
-            {isCorrect ? "Điểm cốt lõi giúp chọn đúng: " : "Điểm mấu chốt cần lưu ý: "}
-          </span>
-          <span>{explanation.why_correct_vi}</span>
-        </div>
+        {explanation.why_correct_vi && (
+          <div className="text-[14px] sm:text-[15px] leading-relaxed text-[#1E293B]">
+            <span className="font-bold text-[#1E40AF]">
+              {isCorrect ? "Điểm cốt lõi giúp chọn đúng: " : "Điểm mấu chốt cần lưu ý: "}
+            </span>
+            <span>{explanation.why_correct_vi}</span>
+          </div>
+        )}
 
         {explanation.full_translation_vi && (
           <div className="text-[13px] sm:text-[14px] text-[#334155] border-t border-[#DBEAFE] pt-2.5 leading-relaxed">

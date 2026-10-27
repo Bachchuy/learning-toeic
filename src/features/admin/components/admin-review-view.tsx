@@ -112,11 +112,15 @@ export function AdminReviewView({ initialQuestions }: AdminReviewViewProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isEditModalOpen) return;
 
-      const target = e.target as HTMLElement;
+      const target = e.target as HTMLElement | null;
       if (
+        !target ||
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
-        target.isContentEditable
+        target.tagName === "SELECT" ||
+        target.isContentEditable ||
+        target.closest?.('[role="dialog"]') ||
+        target.closest?.("dialog")
       ) {
         return;
       }

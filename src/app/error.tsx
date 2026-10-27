@@ -28,14 +28,14 @@ export default function GlobalError({ error, reset }: ErrorProps) {
         </div>
 
         <div className="space-y-2">
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-rose-600">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-600">
             Hệ thống gián đoạn tạm thời
           </span>
           <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
             Đã xảy ra lỗi không mong muốn
           </h1>
           <p className="text-sm text-[#475569] leading-relaxed">
-            Dữ liệu hoặc kết nối mạng vừa gặp sự cố nhỏ. Phiên học và tiến độ FSRS của bạn đã được lưu an toàn.
+            Dữ liệu hoặc kết nối mạng vừa gặp sự cố nhỏ. Vui lòng bấm thử tải lại hoặc quay về trang chủ.
           </p>
         </div>
 

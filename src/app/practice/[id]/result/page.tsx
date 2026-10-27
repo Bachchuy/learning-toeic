@@ -1,5 +1,5 @@
-import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { notFound } from "next/navigation";
+import { requireUser } from "@/shared/auth";
 import { getSessionReviewAction } from "@/features/practice/actions";
 import { PracticeResultView } from "@/features/practice/components/practice-result-view";
 
@@ -11,15 +11,7 @@ interface PageProps {
 
 export default async function PracticeResultPage({ params }: PageProps) {
   const { id } = await params;
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect(`/login?next=/practice/${id}/result`);
-  }
+  await requireUser({ redirectTo: `/practice/${id}/result` });
 
   const { data: review, error } = await getSessionReviewAction(id);
 

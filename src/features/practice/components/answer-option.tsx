@@ -36,7 +36,7 @@ export function AnswerOption({
     incorrect:
       "bg-[var(--status-error-bg)] border-[var(--status-error-text)] text-[var(--status-error-text)]",
     unselected_disabled:
-      "bg-[var(--color-bg-surface)] border-[var(--color-border-default)] text-[var(--color-text-secondary)] cursor-not-allowed opacity-60",
+      "bg-[var(--color-bg-surface)] border-[var(--color-border-default)] text-[var(--color-text-primary)] cursor-not-allowed",
   }[state];
 
   // Keycap (A/B/C/D) — 28×28px, radius 6px, font mono (§5.5)
@@ -50,7 +50,7 @@ export function AnswerOption({
     incorrect:
       "bg-[var(--status-error-text)] text-white border border-[var(--status-error-text)] font-bold",
     unselected_disabled:
-      "bg-[var(--color-bg-muted)] text-[var(--color-text-secondary)] border border-[var(--color-border-default)]",
+      "bg-[var(--color-bg-muted)] text-[var(--color-text-secondary)] border border-[var(--color-border-default)] opacity-70",
   }[state];
 
   const translationColor = {

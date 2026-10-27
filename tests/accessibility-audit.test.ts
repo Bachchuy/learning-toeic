@@ -114,7 +114,8 @@ describe("Milestone M12: Accessibility (WCAG 2.1 AA) & Keyboard Audit", () => {
       ].map((h) => h.toLowerCase());
 
       const uiDir = path.join(srcDir, "components/ui");
-      const files = fs.readdirSync(uiDir).filter((f) => f.endsWith(".tsx"));
+      // Bỏ qua streak-flame.tsx vì là SVG minh họa hiệu ứng ngọn lửa gam màu động
+      const files = fs.readdirSync(uiDir).filter((f) => f.endsWith(".tsx") && f !== "streak-flame.tsx");
 
       for (const file of files) {
         const content = fs.readFileSync(path.join(uiDir, file), "utf-8");

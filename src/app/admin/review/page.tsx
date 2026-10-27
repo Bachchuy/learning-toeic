@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/shared/auth";
 import { checkIsAdmin, getReviewQueueAction } from "@/features/admin/actions";
 import { AdminReviewView } from "@/features/admin/components/admin-review-view";
 import { Button } from "@/components/ui/button";
@@ -14,14 +13,7 @@ export const metadata = {
 };
 
 export default async function AdminReviewPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?next=/admin/review");
-  }
+  await requireUser({ redirectTo: "/admin/review" });
 
   // BẤT BIẾN §4.9 & §6.3: Kiểm tra quyền Admin (role = admin)
   const { isAdmin } = await checkIsAdmin();

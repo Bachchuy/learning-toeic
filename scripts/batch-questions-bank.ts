@@ -488,7 +488,7 @@ export const EXTENDED_QUESTIONS_BANK: BankQuestion[] = [
         C: "submitting: V-ing (Sai sau modal must)",
         D: "have submitted: Chủ động hoàn thành (Sai nghĩa)",
       },
-      tip_vi: "Chủ ngữ chỉ vật + Không có tân ngữ phía sau giới từ 'to': 90% chọn Bị động (be + V-ed).",
+      tip_vi: "Chủ ngữ chỉ vật và động từ không mang tân ngữ trực tiếp theo sau thường ở dạng Bị động (be + V-ed).",
       vocab_hints: [
         { word: "reimbursement request", meaning_vi: "yêu cầu hoàn trả chi phí" },
         { word: "no later than", meaning_vi: "chậm nhất là vào" },

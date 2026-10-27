@@ -18,6 +18,7 @@ export async function loginAction(
 ): Promise<AuthState> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const nextParam = formData.get("next") as string | null;
 
   if (!email || !password) {
     return { error: "Vui lòng nhập đầy đủ email và mật khẩu" };
@@ -35,8 +36,14 @@ export async function loginAction(
     return { error: "Email hoặc mật khẩu không đúng" };
   }
 
+  // Chuyển hướng về trang đích an toàn (ngăn Open Redirect)
+  let redirectTo = "/";
+  if (typeof nextParam === "string" && nextParam.startsWith("/") && !nextParam.startsWith("//")) {
+    redirectTo = nextParam;
+  }
+
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect(redirectTo);
 }
 
 /**
@@ -49,13 +56,14 @@ export async function signupAction(
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const fullName = formData.get("fullName") as string;
+  const nextParam = formData.get("next") as string | null;
 
   if (!email || !password) {
     return { error: "Vui lòng nhập đầy đủ email và mật khẩu" };
   }
 
-  if (password.length < 6) {
-    return { error: "Mật khẩu phải có độ dài tối thiểu 6 ký tự" };
+  if (password.length < 8) {
+    return { error: "Mật khẩu phải có độ dài tối thiểu 8 ký tự" };
   }
 
   const supabase = await createClient();
@@ -71,7 +79,14 @@ export async function signupAction(
   });
 
   if (error) {
-    return { error: error.message };
+    const msg = error.message.toLowerCase();
+    if (msg.includes("already registered") || msg.includes("already exists")) {
+      return { error: "Email này đã được đăng ký tài khoản. Vui lòng chọn Đăng nhập." };
+    }
+    if (msg.includes("invalid email")) {
+      return { error: "Địa chỉ email không đúng định dạng." };
+    }
+    return { error: "Không thể tạo tài khoản lúc này. Vui lòng thử lại sau." };
   }
 
   // Nếu Supabase bật confirm email
@@ -82,8 +97,13 @@ export async function signupAction(
     };
   }
 
+  let redirectTo = "/";
+  if (typeof nextParam === "string" && nextParam.startsWith("/") && !nextParam.startsWith("//")) {
+    redirectTo = nextParam;
+  }
+
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect(redirectTo);
 }
 
 /**

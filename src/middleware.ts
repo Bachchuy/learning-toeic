@@ -11,8 +11,8 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Nếu chưa cấu hình Supabase URL/Key, cho request đi qua để không crash app
-  if (!supabaseUrl || !supabaseKey) {
+  // Nếu chưa cấu hình Supabase URL/Key hoặc đang chạy test placeholder, cho request đi qua
+  if (!supabaseUrl || !supabaseKey || supabaseUrl.includes("placeholder")) {
     return response;
   }
 
@@ -35,11 +35,32 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Làm mới token session của người dùng nếu cần (bọc try...catch để không sập website nếu Supabase timeout)
+  const pathname = request.nextUrl.pathname;
+  const isLoginPage = pathname === "/login";
+
+  // Kiểm tra và làm mới token session người dùng
+  let user = null;
   try {
-    await supabase.auth.getUser();
+    const { data } = await supabase.auth.getUser();
+    user = data?.user ?? null;
   } catch (err) {
     console.error("[Middleware Auth Token Sync Error]:", err);
+  }
+
+  // 1. Chưa đăng nhập mà truy cập route được bảo vệ -> Chuyển hướng sang /login?next=...
+  if (!user && !isLoginPage) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/login";
+    redirectUrl.search = `?next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`;
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // 2. Đã đăng nhập mà truy cập /login -> Chuyển hướng về trang chủ /
+  if (user && isLoginPage) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/";
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl);
   }
 
   return response;

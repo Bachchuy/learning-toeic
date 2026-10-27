@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getOptionalUser } from "@/shared/auth";
 import { formatGrammarTagName } from "@/core/grammarTags";
 import {
   validateStemBlank,
@@ -18,10 +19,7 @@ import type {
  * Kiểm tra xem người dùng hiện tại có quyền Admin hay không
  */
 export async function checkIsAdmin(): Promise<{ isAdmin: boolean; userId?: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { isAdmin: false };

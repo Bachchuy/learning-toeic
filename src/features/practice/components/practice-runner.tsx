@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useEffect, useCallback, useTransition, useState } from "react";
+import { useReducer, useEffect, useCallback, useTransition, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, XCircle, Flag, BookmarkPlus, Sparkles } from "lucide-react";
 import type { PracticeQuestion, VocabHint } from "../types";
@@ -31,6 +31,8 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isVocabOpen, setIsVocabOpen] = useState(false);
   const [selectedVocabHint, setSelectedVocabHint] = useState<VocabHint | null>(null);
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
+  const resultHeaderRef = useRef<HTMLDivElement>(null);
 
   const [state, dispatch] = useReducer(
     practiceReducer,
@@ -92,15 +94,27 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
     } else {
       dispatch({ type: "NEXT_QUESTION" });
       window.scrollTo({ top: 0, behavior: "smooth" });
+      document.getElementById("main-content")?.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [isLastQuestion, sessionId, router]);
 
   // Hỗ trợ phím tắt bàn phím (A, B, C, D và Enter)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. Chặn phím tắt khi modal đang mở
+      if (isReportOpen || isVocabOpen) {
+        return;
+      }
+
+      // 2. Chặn phím tắt khi đang nhập liệu hoặc bên trong bất kỳ dialog nào
+      const target = e.target as HTMLElement | null;
       if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target?.isContentEditable ||
+        target?.closest?.('[role="dialog"]') ||
+        target?.closest?.("dialog")
       ) {
         return;
       }
@@ -128,7 +142,14 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [state.status, state.selectedIndex, handleSubmit, handleNext]);
+  }, [state.status, state.selectedIndex, isReportOpen, isVocabOpen, handleSubmit, handleNext]);
+
+  // Chuyển focus hỗ trợ Screen Reader & Bàn phím khi có kết quả
+  useEffect(() => {
+    if (state.status === "feedback") {
+      resultHeaderRef.current?.focus();
+    }
+  }, [state.status]);
 
   // Xác định trạng thái hiển thị của từng option
   const getOptionState = (index: number): OptionState => {
@@ -182,11 +203,21 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-28 pt-20">
+    <div className="min-h-dvh bg-[#F8FAFC] pb-28 pt-20">
+      {/* Thông báo Screen Reader Live Region */}
+      <div className="sr-only" aria-live="polite">
+        {state.status === "feedback" && state.currentResult && (
+          state.currentResult.is_correct
+            ? `Câu ${state.currentIndex + 1}: Đúng. Đáp án chính xác là phương án ${String.fromCharCode(65 + state.currentResult.correct_index)}.`
+            : `Câu ${state.currentIndex + 1}: Chưa chính xác. Đáp án chính xác là phương án ${String.fromCharCode(65 + state.currentResult.correct_index)}.`
+        )}
+      </div>
+
       {/* 1. Header tập trung */}
       <FocusedHeader
         currentIndex={state.currentIndex}
         totalQuestions={state.totalQuestions}
+        isAnswered={state.status === "feedback"}
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-6">
@@ -194,7 +225,14 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
         <div className="space-y-3">
           {/* Header trạng thái sau khi nộp (Khớp 100% mẫu người dùng cung cấp) */}
           {state.status === "feedback" && state.currentResult ? (
-            <div className="flex items-center gap-2">
+            <div
+              ref={resultHeaderRef}
+              tabIndex={-1}
+              className="flex items-center gap-2 outline-none"
+            >
+              <span className="sr-only">
+                Kết quả: {state.currentResult.is_correct ? "Đúng" : "Chưa chính xác"}
+              </span>
               {state.currentResult.is_correct ? (
                 <>
                   <CheckCircle2
@@ -395,9 +433,9 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
       />
 
       {/* ========================================================
-          Sticky Action Bar (72px)
+          Sticky Action Bar (72px + Safe Area Inset)
           ======================================================== */}
-      <footer className="fixed bottom-0 left-0 right-0 h-[72px] bg-white border-t border-[#E2E8F0] z-30 px-4 sm:px-6">
+      <footer className="fixed bottom-0 left-0 right-0 h-[calc(4.5rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] bg-white border-t border-[#E2E8F0] z-30 px-4 sm:px-6 shadow-sm">
         <div className="max-w-3xl mx-auto h-full flex items-center justify-between">
           <div className="hidden sm:block text-xs font-mono text-[#64748B]">
             {state.status === "answering" && "Phím A-D: chọn • Enter: nộp bài"}
@@ -418,6 +456,7 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
               </Button>
             ) : (
               <Button
+                ref={nextButtonRef}
                 variant="primary"
                 size="cta"
                 className="w-full sm:w-48"

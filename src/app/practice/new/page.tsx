@@ -84,7 +84,7 @@ export default function NewPracticePage() {
     <div className="max-w-2xl mx-auto space-y-6 pt-4 pb-12 animate-in fade-in duration-200">
       <div>
         {/* Overline */}
-        <div className="text-[11px] font-mono font-bold uppercase tracking-[0.08em] text-[#475569] mb-2">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569] mb-2">
           {selectedPart === 5
             ? "Part 5 — Ngữ pháp & Từ vựng thích ứng"
             : selectedPart === 6
@@ -100,7 +100,7 @@ export default function NewPracticePage() {
       </div>
 
       {/* Bộ chọn Phần thi TOEIC Reading: Part 5 / Part 6 / Part 7 */}
-      <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">
+      <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs">
         <button
           type="button"
           onClick={() => handleSelectPart(5)}
@@ -165,12 +165,12 @@ export default function NewPracticePage() {
 
           {/* Chọn chủ điểm ngữ pháp (§5.6 M3) */}
           <div className="space-y-3 pt-2">
-            <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#0F172A]">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#0F172A]">
               Chủ điểm ngữ pháp
             </label>
 
             {isLoadingTopics ? (
-              <div className="p-6 text-center text-xs font-mono text-[#475569] bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
+              <div className="p-6 text-center text-xs text-[#475569] bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
                 Đang tải danh sách chủ điểm...
               </div>
             ) : (
@@ -277,7 +277,7 @@ export default function NewPracticePage() {
 
           {/* Box quy tắc */}
           <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-xs space-y-1 text-[#475569]">
-            <div className="font-semibold text-[#0F172A] font-mono">
+            <div className="font-semibold text-[#0F172A]">
               Quy tắc chọn câu hỏi thích ứng:
             </div>
             <div>• Tự động loại bỏ các câu bạn đã làm đúng trong 7 ngày gần nhất.</div>
@@ -315,7 +315,7 @@ export default function NewPracticePage() {
         /* Giao diện danh sách đề bài Part 6 / Part 7 */
         <div className="space-y-4 animate-in fade-in duration-200">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Đề thi luyện tập {selectedPart === 6 ? "Part 6 (Text Completion)" : "Part 7 (Reading Comprehension)"}
             </span>
             <span className="text-xs text-slate-500 font-mono">
@@ -324,7 +324,7 @@ export default function NewPracticePage() {
           </div>
 
           {isLoadingPassages ? (
-            <div className="p-8 text-center text-xs font-mono text-slate-500 bg-white rounded-2xl border border-slate-200">
+            <div className="p-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200">
               Đang tải danh sách bài đọc...
             </div>
           ) : passages.length === 0 ? (

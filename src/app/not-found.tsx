@@ -13,7 +13,7 @@ export default function NotFound() {
         </div>
 
         <div className="space-y-2">
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#2563EB]">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#2563EB]">
             Mã lỗi 404 · Không tìm thấy
           </span>
           <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
@@ -26,18 +26,18 @@ export default function NotFound() {
 
         <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href="/vocab"
+            href="/"
             className="w-full sm:w-auto px-6 h-11 rounded-xl text-xs font-semibold bg-[#2563EB] hover:bg-[#1D4ED8] text-white transition-colors flex items-center justify-center gap-2 shadow-xs"
           >
-            <BookOpen className="w-4 h-4" />
-            <span>Kho từ vựng</span>
+            <Home className="w-4 h-4" />
+            <span>Về trang chủ</span>
           </Link>
           <Link
-            href="/"
+            href="/vocab"
             className="w-full sm:w-auto px-5 h-11 rounded-xl text-xs font-semibold border border-[#8190A6] text-[#0F172A] hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
           >
-            <Home className="w-4 h-4 text-slate-600" />
-            <span>Trang chủ</span>
+            <BookOpen className="w-4 h-4 text-slate-600" />
+            <span>Kho từ vựng</span>
           </Link>
         </div>
       </div>

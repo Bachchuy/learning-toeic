@@ -147,7 +147,7 @@ export function runAutomatedValidator(question: QuestionForValidation): Automate
       : "Thiếu hoặc sai chỉ số đáp án đúng (0-3)",
   });
 
-  // S6: Kiểm tra giải thích sư phạm
+  // S6: Kiểm tra giải thích sư phạm (Bắt buộc phải có cả rule_vi và why_correct_vi để được xuất bản)
   const expl = question.explanation;
   const hasRule = !!expl?.rule_vi && expl.rule_vi.trim().length > 0;
   const hasWhyCorrect = !!expl?.why_correct_vi && expl.why_correct_vi.trim().length > 0;
@@ -159,23 +159,16 @@ export function runAutomatedValidator(question: QuestionForValidation): Automate
       status: "pass",
       description: "Có đầy đủ Quy tắc cốt lõi và Lý do chọn đáp án",
     });
-  } else if (hasRule || hasWhyCorrect) {
-    checks.push({
-      id: "S6",
-      name: "Giải thích Sư phạm",
-      status: "warn",
-      description: "Giải thích còn thiếu một số phần chi tiết",
-    });
   } else {
     checks.push({
       id: "S6",
       name: "Giải thích Sư phạm",
       status: "fail",
-      description: "Chưa có quy tắc ngữ pháp hoặc phân tích đáp án",
+      description: "Bắt buộc phải có cả Quy tắc cốt lõi (rule_vi) và Lý do chọn đáp án (why_correct_vi)",
     });
   }
 
-  const overallPass = checks.every((c) => c.status === "pass" || c.status === "warn");
+  const overallPass = checks.every((c) => c.status === "pass");
 
   return {
     overallPass,
