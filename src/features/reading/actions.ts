@@ -131,81 +131,53 @@ export async function getReadingPassageAction(
 
 /**
  * Nộp bài và chấm điểm bài đọc Part 6 / Part 7 trên máy chủ
- * Đáp án được đối chiếu hoàn toàn trên server để đảm bảo tính toàn vẹn.
+ * BẤT BIẾN BẢO MẬT: Chấm điểm thông qua RPC submit_passage_answers (SECURITY DEFINER),
+ * tuyệt đối không truy vấn trực tiếp question_answers từ phía client hay để lộ đáp án.
  */
 export async function submitPassageAnswersAction(
   passageId: string,
   userAnswers: { questionId: string; selectedIndex: number }[]
 ): Promise<PassageSubmitResult> {
   if (!userAnswers || userAnswers.length === 0) {
-    return { success: false, score: 0, total: 0, results: [], message: "Không có câu trả lời nào." };
+    return {
+      success: false,
+      score: 0,
+      total: 0,
+      results: [],
+      message: "Không có câu trả lời nào.",
+    };
   }
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  const questionIds = userAnswers.map((a) => a.questionId);
+  const { data, error } = await supabase.rpc("submit_passage_answers", {
+    p_passage_id: passageId,
+    p_answers: userAnswers,
+  });
 
-  // Lấy đáp án đúng và phân tích từ bảng question_answers
-  const { data: answersData, error } = await supabase
-    .from("question_answers")
-    .select("question_id, correct_index, explanation")
-    .in("question_id", questionIds);
-
-  if (error || !answersData) {
-    return { success: false, score: 0, total: userAnswers.length, results: [], message: "Lỗi kiểm tra đáp án." };
+  if (error || !data) {
+    return {
+      success: false,
+      score: 0,
+      total: userAnswers.length,
+      results: [],
+      message: error?.message || "Lỗi kiểm tra đáp án bài đọc.",
+    };
   }
 
-  const answerMap = new Map(
-    answersData.map((a) => [
-      a.question_id,
-      {
-        correct_index: a.correct_index,
-        explanation: a.explanation as QuestionExplanation,
-      },
-    ])
-  );
-
-  let score = 0;
-  const results: ReadingQuestionResult[] = [];
-
-  for (const item of userAnswers) {
-    const trueAns = answerMap.get(item.questionId);
-    if (!trueAns) continue;
-
-    const isCorrect = item.selectedIndex === trueAns.correct_index;
-    if (isCorrect) {
-      score++;
-    }
-
-    results.push({
-      question_id: item.questionId,
-      is_correct: isCorrect,
-      correct_index: trueAns.correct_index,
-      user_selected: item.selectedIndex,
-      explanation: trueAns.explanation || {},
-    });
-
-    // Nếu người dùng đã đăng nhập, ghi nhận attempt vào cơ sở dữ liệu
-    if (user) {
-      supabase
-        .from("attempts")
-        .insert({
-          user_id: user.id,
-          question_id: item.questionId,
-          selected_index: item.selectedIndex,
-          is_correct: isCorrect,
-        })
-        .then(() => {});
-    }
-  }
+  const response = data as {
+    success: boolean;
+    score: number;
+    total: number;
+    results: ReadingQuestionResult[];
+    message?: string;
+  };
 
   return {
-    success: true,
-    score,
-    total: results.length,
-    results,
+    success: response.success ?? true,
+    score: response.score ?? 0,
+    total: response.total ?? response.results?.length ?? 0,
+    results: response.results || [],
+    message: response.message,
   };
 }
