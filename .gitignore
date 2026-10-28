@@ -80,8 +80,26 @@ Thumbs.db
 /skills/
 /AGENTS.md
 
-# Local scratch, drafts & non-runtime examples
+# Local scratch, drafts & non-runtime data
 /archive/
 /examples/
 /data/
 /FEATURE_INVENTORY.md
+
+# Internal / Private Scripts (Crawlers, Data Ingestions & AI pipelines)
+scripts/crawler-*.ts
+scripts/ingest-*.ts
+scripts/refine-*.ts
+scripts/generate-*.ts
+scripts/generate-*.py
+scripts/build-curated-decks.ts
+scripts/batch-questions-bank.ts
+scripts/qa-audit-questions.ts
+
+# Internal workflows (Private AI pipelines)
+.github/workflows/refine-explanations.yml
+
+# Internal documentation & audit reports
+docs/13-crawler-guide.md
+docs/qa/
+docs/FEATURE_INVENTORY.md
