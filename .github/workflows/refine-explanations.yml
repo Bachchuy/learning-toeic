@@ -8,8 +8,8 @@ on:
         required: true
         default: "500"
   schedule:
-    # Tự động kích hoạt mỗi 2 tiếng một lần để vá dần dần cho đến khi hết
-    - cron: "0 */2 * * *"
+    # Tự động kích hoạt vào 07:00 sáng mỗi ngày (khi Google vừa reset 1,500 lượt miễn phí mới)
+    - cron: "0 0 * * *"
 
 jobs:
   refine-batch:

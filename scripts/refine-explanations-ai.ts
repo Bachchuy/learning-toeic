@@ -138,8 +138,12 @@ async function callGeminiWithRetry(prompt: string, maxRetries = 3): Promise<stri
         }
 
         const errText = await res.text();
-        // Nếu gặp 429 (Rate Limit), tạm dừng hẳn 15s để làm mới quota window của Google
+        // Nếu gặp 429 (Rate Limit / Quota), tạm dừng rồi thử lại
         if (res.status === 429) {
+          const isDailyQuota = errText.includes("PerDay") || errText.includes("day");
+          if (isDailyQuota) {
+            throw new Error("DAILY_QUOTA_EXCEEDED: Key đã hết hạn ngạch ngày của Google Free Tier.");
+          }
           const waitSec = attempt * 15;
           console.log(`      ⏳ Đụng giới hạn tốc độ (429 Rate Limit trên ${model}). Tạm nghỉ ${waitSec}s để phục hồi quota...`);
           await new Promise((r) => setTimeout(r, waitSec * 1000));
@@ -312,6 +316,7 @@ async function main() {
   let totalSkipped = 0;
   let totalFailed = 0;
   let offset = 0;
+  let consecutiveErrors = 0;
 
   while (totalProcessed < maxToProcess) {
     let query = supabase
@@ -392,13 +397,20 @@ async function main() {
 
         console.log(`   ✅ Đã vá thành công!`);
         totalRefined++;
+        consecutiveErrors = 0;
       } catch (err: any) {
         console.error(`   ❌ Lỗi: ${err.message}`);
         totalFailed++;
-        // Nếu dính hạn ngạch cứng 429 quota day, dừng để báo người dùng
-        if (err.message.includes("429") && err.message.includes("quota")) {
-          console.error("🛑 Key đã đạt giới hạn ngày. Dừng tiến trình.");
-          return;
+        consecutiveErrors++;
+
+        // Nếu hết hạn ngạch ngày hoặc lỗi liên tiếp 3 câu -> Dừng ngay để không tốn thời gian vô ích
+        if (err.message.includes("DAILY_QUOTA_EXCEEDED") || consecutiveErrors >= 3) {
+          console.log("\n==========================================================");
+          console.log("🛑 THÔNG BÁO: Đã đạt mức trần hạn ngạch ngày (Daily Quota) của Google Gemini Free Tier.");
+          console.log("   Tiến trình sẽ dừng lại tại đây để tránh lãng phí thời gian.");
+          console.log("   Google sẽ tự động cấp lại hạn ngạch mới vào ngày mai (07:00 sáng).");
+          console.log("==========================================================");
+          break;
         }
       }
 
