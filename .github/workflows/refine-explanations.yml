@@ -1,0 +1,46 @@
+name: Auto Refine TOEIC Explanations with Gemini
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Số lượng câu muốn vá trong lần chạy này (khuyến nghị 60-80 để an toàn dưới trần 500 RPD)"
+        required: true
+        default: "60"
+  schedule:
+    # Tự động kích hoạt vào 07:00 sáng mỗi ngày (khi Google vừa reset 1,500 lượt miễn phí mới)
+    - cron: "0 0 * * *"
+
+jobs:
+  refine-batch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Create .env.local from ENV_LOCAL secret if exists
+        run: |
+          if [ -n "${{ secrets.ENV_LOCAL }}" ]; then
+            cat << 'EOF' > .env.local
+          ${{ secrets.ENV_LOCAL }}
+          EOF
+            echo "Đã nạp file .env.local từ secret ENV_LOCAL thành công!"
+          fi
+
+      - name: Run AI Explanation Refiner
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL || 'https://uagbwbqibvefhppmqeih.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || vars.GEMINI_API_KEY }}
+          LIMIT: ${{ github.event.inputs.limit || '60' }}
+        run: npx tsx scripts/refine-explanations-ai.ts
