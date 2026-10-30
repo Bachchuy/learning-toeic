@@ -7,7 +7,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x_Strict-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL_RLS-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com/)
-[![Vitest](https://img.shields.io/badge/Vitest-146_Passed-6E9F18?style=flat-square&logo=vitest)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-151_Passed-6E9F18?style=flat-square&logo=vitest)](https://vitest.dev/)
+[![Playwright](https://img.shields.io/badge/Playwright-22_E2E_Passed-45ba4b?style=flat-square&logo=playwright)](https://playwright.dev/)
 [![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_2.1_AA-4338CA?style=flat-square)](https://www.w3.org/WAI/WCAG21/quickref/)
 [![License](https://img.shields.io/badge/License-MIT-gray?style=flat-square)](LICENSE)
 
@@ -80,7 +81,7 @@
 | Tầng           | Công nghệ                                | Mục đích & Lý do lựa chọn                                    |
 | :------------- | :--------------------------------------- | :----------------------------------------------------------- |
 | **Frontend**   | Next.js 16 (App Router), React 19        | Server Components, tối ưu hóa SEO & LCP, Server Actions      |
-| **Styling**    | Tailwind CSS v4, Lucide / Phosphor Icons | Design Tokens nhất quán, hiệu năng compile tức thì           |
+| **Styling**    | Tailwind CSS v4, Lucide Icons            | Design Tokens nhất quán, hiệu năng compile tức thì           |
 | **Database**   | Supabase (PostgreSQL 15)                 | Row-Level Security (RLS), Postgres Functions, RPCs           |
 | **Thuật toán** | `ts-fsrs` (5.4.2)                        | Lập lịch giãn cách FSRS hiện đại, tính toán tại server       |
 | **Toán học**   | Wilson Score Interval ($z=1.0$)          | Đo lường độ vững năng lực học tập không thiên vị mẫu nhỏ     |

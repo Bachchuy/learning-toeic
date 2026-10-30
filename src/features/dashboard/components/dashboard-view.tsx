@@ -13,6 +13,7 @@ import {
   Brain,
   Sparkles,
   BarChart3,
+  Clock,
 } from "lucide-react";
 
 interface DashboardViewProps {
@@ -39,17 +40,9 @@ export function DashboardView({ summary }: DashboardViewProps) {
       {/* 1. Top Header: Chào mừng + Chuỗi ngày học (Streak phong cách Duolingo) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-6">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-[#475569] mb-1.5 flex items-center gap-2">
-            <span>Luyện thi thích ứng</span>
-            <span className="text-slate-300">•</span>
-            <span>Phân tích theo dữ liệu thực</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#0F172A]">
             Tổng quan học tập
           </h1>
-          <p className="text-sm text-[#475569] mt-1 leading-relaxed">
-            Theo dõi tiến độ, ôn từ vựng đến hạn và rèn luyện các chủ điểm trọng tâm.
-          </p>
         </div>
 
         {/* Huy hiệu Chuỗi ngày học (Duolingo Flame Streak) */}
@@ -157,12 +150,19 @@ export function DashboardView({ summary }: DashboardViewProps) {
                 </Button>
               </Link>
 
-              <div className="text-center">
+              <div className="text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-xs font-medium">
+                <Link
+                  href="/learn"
+                  className="text-[#2563EB] hover:text-[#1D4ED8] hover:underline"
+                >
+                  📖 Học lý thuyết & mẹo 16 chủ điểm →
+                </Link>
+                <span className="hidden sm:inline text-slate-300">·</span>
                 <Link
                   href="/practice/new"
-                  className="text-xs font-medium text-[#2563EB] hover:text-[#1D4ED8] hover:underline"
+                  className="text-[#475569] hover:text-[#0F172A] hover:underline"
                 >
-                  Chọn chủ điểm khác hoặc đổi quy mô phiên →
+                  Chọn chủ điểm khác →
                 </Link>
               </div>
             </div>
@@ -225,6 +225,29 @@ export function DashboardView({ summary }: DashboardViewProps) {
                 </div>
               </div>
             )}
+          </Card>
+
+          {/* C. THẺ PHÒNG THI THỬ READING 100 CÂU */}
+          <Card className="p-5 bg-white border border-[#E2E8F0] shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-[#2563EB]" />
+                <h3 className="text-sm font-bold text-[#0F172A]">
+                  Thi thử TOEIC Reading (75 phút)
+                </h3>
+              </div>
+              <span className="text-[11px] font-bold text-[#047857] bg-[#ECFDF5] px-2 py-0.5 rounded-full">
+                Thang 5–495
+              </span>
+            </div>
+            <p className="text-xs text-[#475569] leading-relaxed">
+              Trọn vẹn 100 câu Part 5, 6, 7 theo chuẩn khảo thí ETS 2024. Đếm ngược 75 phút và nhận bảng điểm chi tiết.
+            </p>
+            <Link href="/exam" className="block pt-1">
+              <Button variant="secondary" size="default" className="w-full">
+                <span>Vào phòng thi thử →</span>
+              </Button>
+            </Link>
           </Card>
         </div>
 

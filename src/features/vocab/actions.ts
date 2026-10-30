@@ -1,6 +1,5 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { getOptionalUser } from "@/shared/auth";
 import { normalizeLemma } from "@/core/vocab";
 import { enrichVocabMetadata } from "@/core/vocabDictionary";

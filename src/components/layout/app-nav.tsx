@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 interface NavItem {
   name: string;
@@ -10,6 +11,32 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  {
+    name: "Lý thuyết",
+    href: "/learn",
+    icon: (active) => (
+      <svg
+        className={`w-5 h-5 ${active ? "text-[#2563EB]" : "text-[#475569]"}`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={active ? 2.5 : 2}
+          d="M12 14l9-5-9-5-9 5 9 5z"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={active ? 2.5 : 2}
+          d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+        />
+      </svg>
+    ),
+  },
   {
     name: "Luyện tập",
     href: "/",
@@ -26,6 +53,26 @@ const NAV_ITEMS: NavItem[] = [
           strokeLinejoin="round"
           strokeWidth={active ? 2.5 : 2}
           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+        />
+      </svg>
+    ),
+  },
+  {
+    name: "Thi thử",
+    href: "/exam",
+    icon: (active) => (
+      <svg
+        className={`w-5 h-5 ${active ? "text-[#2563EB]" : "text-[#475569]"}`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={active ? 2.5 : 2}
+          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       </svg>
     ),
@@ -95,9 +142,10 @@ const NAV_ITEMS: NavItem[] = [
 export function AppNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // Ẩn Navigation hoàn toàn ở màn hình Focus làm bài: /practice/[id] (trừ /practice/new), /review, và màn hình Auth (/login)
+  // Ẩn Navigation hoàn toàn ở màn hình Focus làm bài: /practice/[id] (trừ /practice/new), /exam/[slug] (trừ /exam), /review, và màn hình Auth (/login)
   const isFocusScreen =
     (pathname.startsWith("/practice/") && pathname !== "/practice/new") ||
+    (pathname.startsWith("/exam/") && pathname !== "/exam") ||
     pathname === "/review" ||
     pathname === "/login";
 
@@ -121,18 +169,8 @@ export function AppNav({ children }: { children: React.ReactNode }) {
       >
         <div>
           {/* Brand Header */}
-          <div className="flex items-center gap-2.5 mb-8 px-2">
-            <div className="w-8 h-8 rounded-[6px] bg-[var(--color-primary-default)] flex items-center justify-center text-white font-bold text-sm font-mono shrink-0">
-              T
-            </div>
-            <div>
-              <div className="font-bold text-[15px] tracking-tight text-[var(--color-text-primary)] leading-none">
-                TOEIC
-              </div>
-              <div className="text-[10px] text-[var(--color-text-secondary)] tracking-[0.04em] uppercase mt-0.5">
-                Luyện thi thích ứng
-              </div>
-            </div>
+          <div className="mb-8 px-2">
+            <BrandLogo variant="horizontal" size="md" href="/" priority />
           </div>
 
           {/* Navigation Items */}
@@ -175,6 +213,14 @@ export function AppNav({ children }: { children: React.ReactNode }) {
           <span className="text-[11px] text-slate-400">ETS 2026</span>
         </div>
       </aside>
+
+      {/* Mobile Top Header (h-13 / 52px) - chỉ hiện trên mobile (<768px) */}
+      <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] px-4 h-13 flex items-center justify-between shrink-0">
+        <BrandLogo variant="horizontal" size="xs" href="/" priority />
+        <span className="text-[11px] font-mono font-medium text-[var(--color-text-secondary)]">
+          ETS 2026
+        </span>
+      </header>
 
       {/* Main Content Area */}
       <main id="main-content" className="flex-1 min-h-dvh scrollbar-gutter-stable w-full px-4 py-6 md:px-8 md:py-8 pb-28 md:pb-12">

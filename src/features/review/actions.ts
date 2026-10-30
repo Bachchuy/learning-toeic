@@ -1,6 +1,5 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { getOptionalUser } from "@/shared/auth";
 import {
   previewFSRSRatings,

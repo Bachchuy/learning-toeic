@@ -5,7 +5,6 @@ import type {
   ReadingPassage,
   PassageSubmitResult,
   ReadingQuestionResult,
-  QuestionExplanation,
 } from "./types";
 
 interface RawPassageRow {

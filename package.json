@@ -21,7 +21,6 @@
     "db:setup": "npm run db:migrate && npm run db:seed && npm run db:seed-batch && npm run db:seed-decks"
   },
   "dependencies": {
-    "@phosphor-icons/react": "^2.1.10",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "lucide-react": "^1.61.0",

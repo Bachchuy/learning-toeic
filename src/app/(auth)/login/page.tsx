@@ -6,6 +6,7 @@ import { loginAction, signupAction, type AuthState } from "@/features/auth/actio
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { BrandLogo } from "@/components/ui/brand-logo";
 import { CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 function DeletedBanner() {
@@ -46,15 +47,8 @@ function AuthFormInner() {
     <div className="w-full max-w-md">
       {/* Brand Header */}
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#2563EB] text-white font-bold text-xl mb-3 shadow-none">
-          T
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#0F172A]">
-          TOEIC Platform
-        </h1>
-        <p className="text-sm text-[#475569] mt-1">
-          Học tập thích ứng &amp; Trí nhớ dài hạn
-        </p>
+        <BrandLogo variant="vertical" size="lg" className="mb-2" priority />
+        <h1 className="sr-only">Tôi Em Íc — Nền tảng luyện thi TOEIC thích ứng</h1>
       </div>
 
       <Card className="p-6 bg-white border border-[#E2E8F0] shadow-sm">

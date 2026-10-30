@@ -19,8 +19,19 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TOEIC Platform",
-  description: "Hệ thống luyện thi TOEIC thích ứng với phương pháp ghi nhớ ngắt quãng khoa học",
+  title: {
+    template: "%s | Tôi Em Íc",
+    default: "Tôi Em Íc — Học TOEIC Dễ Dàng",
+  },
+  description:
+    "Hệ thống luyện thi TOEIC thích ứng với mô hình Adaptive Rolling Mastery và ghi nhớ ngắt quãng FSRS khoa học.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/brand/logo-icon.png", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png" }],
+  },
 };
 
 export default function RootLayout({

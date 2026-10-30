@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useTransition, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   createSessionAction,
   getPracticeTopicsAction,
@@ -15,8 +15,10 @@ import type { ReadingPassage } from "@/features/reading/types";
 import { getPassageTypeLabel, getPassageTypeBadgeClass } from "@/core/passages";
 import Link from "next/link";
 
-export default function NewPracticePage() {
+function NewPracticeContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const topicParam = searchParams.get("topic") || searchParams.get("tag_code");
   const [isPending, startTransition] = useTransition();
   const [selectedPart, setSelectedPart] = useState<5 | 6 | 7>(5);
   const [totalQuestions, setTotalQuestions] = useState<number>(5);
@@ -35,11 +37,19 @@ export default function NewPracticePage() {
       if (res.topics) {
         setTopics(res.topics);
         setAllAvailableCount(res.allAvailableCount);
+
+        // Tự động chọn chủ điểm nếu được truyền qua query params từ Góc Học Lý Thuyết
+        if (topicParam) {
+          const match = res.topics.find((t) => t.tag_code === topicParam);
+          if (match && match.available_count > 0) {
+            setSelectedTagId(match.tag_id);
+          }
+        }
       }
       setIsLoadingTopics(false);
     }
     loadTopics();
-  }, []);
+  }, [topicParam]);
 
   const handleSelectPart = (part: 5 | 6 | 7) => {
     setSelectedPart(part);
@@ -367,5 +377,19 @@ export default function NewPracticePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function NewPracticePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-2xl mx-auto py-12 text-center text-xs text-[#475569]">
+          Đang khởi tạo cấu hình luyện tập...
+        </div>
+      }
+    >
+      <NewPracticeContent />
+    </Suspense>
   );
 }

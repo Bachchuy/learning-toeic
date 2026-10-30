@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo, useRef } from "react";
+import { useState, useTransition, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { VocabEntry, Notebook } from "@/features/vocab/types";
@@ -733,19 +733,23 @@ export function VocabListView({
 
   // Xác định bộ thẻ IT và các topic IT
   const itDeckStatus = curatedDecks.find((d) => d.deck.id === "it-vocab");
+  const itNotebookId = itDeckStatus?.notebookId;
   const itTopicsSet = useMemo(() => new Set(DECK_TOPICS_MAP["it-vocab"] || []), []);
 
-  const isItEntry = (e: VocabEntry) => {
-    if (itDeckStatus?.notebookId && e.notebook_id === itDeckStatus.notebookId) return true;
-    if (e.metadata?.topic && itTopicsSet.has(e.metadata.topic.trim())) return true;
-    return false;
-  };
+  const isItEntry = useCallback(
+    (e: VocabEntry) => {
+      if (itNotebookId && e.notebook_id === itNotebookId) return true;
+      if (e.metadata?.topic && itTopicsSet.has(e.metadata.topic.trim())) return true;
+      return false;
+    },
+    [itNotebookId, itTopicsSet]
+  );
 
   // Từ vựng được tính trong FSRS Micro-learning (Tự động loại bỏ 775 từ IT nếu chưa opt-in)
   const fsrsActiveEntries = useMemo(() => {
     if (includeItVocab) return entries;
     return entries.filter((e) => !isItEntry(e));
-  }, [entries, includeItVocab, itDeckStatus?.notebookId, itTopicsSet]);
+  }, [entries, includeItVocab, isItEntry]);
 
   // Đếm số lượng thẻ đến hạn thực tế (theo FSRS active entries)
   const dueCount = useMemo(() => {
@@ -920,36 +924,6 @@ export function VocabListView({
     return counts;
   }, [entries]);
 
-  // Danh sách chủ điểm (Topics) có sẵn trong sổ từ
-  const availableTopics = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const e of entries) {
-      const t = e.metadata?.topic?.trim();
-      if (t) {
-        map.set(t, (map.get(t) || 0) + 1);
-      }
-    }
-    return Array.from(map.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
-  }, [entries]);
-
-  // Tiêu đề của sổ/chủ điểm đang được lọc
-  const activeFilteredTitle = useMemo(() => {
-    if (selectedTopicFilter) {
-      const visual = getTopicVisuals(selectedTopicFilter);
-      return `${visual.titleVi} (${selectedTopicFilter})`;
-    }
-    if (selectedBook) {
-      return selectedBook.title;
-    }
-    if (selectedNotebookFilter) {
-      const nb = notebooks.find((n) => n.id === selectedNotebookFilter);
-      return nb ? nb.name : "Sổ cá nhân";
-    }
-    return "Tất cả từ vựng";
-  }, [selectedTopicFilter, selectedBook, selectedNotebookFilter, notebooks]);
-
   // Đường dẫn ôn tập của sổ/chủ điểm đang được lọc
   const activeFilteredReviewUrl = useMemo(() => {
     if (selectedTopicFilter) {
@@ -963,16 +937,6 @@ export function VocabListView({
     }
     return `/review?limit=15${includeItVocab ? "" : "&excludeDeck=it-vocab"}`;
   }, [selectedTopicFilter, selectedBook, selectedNotebookFilter, includeItVocab]);
-
-  // Hàm tính số thẻ đến hạn trong 1 chủ điểm
-  const getTopicDueCount = (topicName: string) => {
-    return entries.filter(
-      (e) =>
-        e.metadata?.topic?.trim() === topicName &&
-        e.card?.due &&
-        new Date(e.card.due).getTime() <= currentTime
-    ).length;
-  };
 
   // Hàm tính số thẻ đến hạn trong 1 sổ tự tạo
   const getNotebookDueCount = (notebookId: string) => {
@@ -1074,8 +1038,7 @@ export function VocabListView({
     searchQuery,
     currentTime,
     curatedDecks,
-    itTopicsSet,
-    itDeckStatus?.notebookId,
+    isItEntry,
   ]);
 
   // Phân trang danh sách (Tránh quá tải DOM khi sổ có hàng trăm/nghìn từ vựng)

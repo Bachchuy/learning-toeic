@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle, XCircle } from "@phosphor-icons/react";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 export type OptionState =
   | "default"
@@ -93,18 +93,16 @@ export function AnswerOption({
         </div>
       </div>
 
-      {/* Status icon — Phosphor, weight="fill" cho cảm giác solid hơn */}
+      {/* Status icon — Lucide icon chuẩn thiết kế */}
       <div className="shrink-0 mt-1 sm:mt-0 ml-2">
         {state === "correct" && (
-          <CheckCircle
-            weight="fill"
+          <CheckCircle2
             className="w-5 h-5 text-[var(--status-success-text)]"
             aria-hidden="true"
           />
         )}
         {state === "incorrect" && (
           <XCircle
-            weight="fill"
             className="w-5 h-5 text-[var(--status-error-text)]"
             aria-hidden="true"
           />
