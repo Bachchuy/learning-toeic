@@ -306,6 +306,49 @@ export const PHONETIC_WORD_MAP: Record<string, string> = {
 };
 
 /**
+ * Chuẩn hóa chuỗi IPA thô từ cơ sở dữ liệu cũ hoặc nguồn ngoại vi sang IPA quốc tế chuẩn:
+ * - Thay thế dấu nháy đơn ' hoặc dấu acute ´ thành ký hiệu trọng âm chính ˈ
+ * - Thay thế dấu phẩy , hoặc cedilla ¸ thành ký hiệu trọng âm phụ ˌ
+ * - Chuẩn hóa trường âm : sang ː
+ * - Khắc phục các ký hiệu lai cũ: dʤ -> dʒ, iɳ -> ɪŋ, ɳ -> ŋ, ou -> oʊ, ei -> eɪ...
+ */
+export function sanitizeIpaString(raw?: string): string {
+  if (!raw) return "";
+  let s = raw.trim();
+  if (!s || s === "/" || s === "//") return "";
+
+  // Bỏ dấu gạch chéo bọc ngoài nếu có
+  s = s.replace(/^\/+|\/+$/g, "");
+
+  // Dấu trọng âm
+  s = s.replace(/['´’]/g, "ˈ");
+  s = s.replace(/[,¸]/g, "ˌ");
+
+  // Độ dài nguyên âm
+  s = s.replace(/:/g, "ː");
+
+  // Tổ hợp phụ âm
+  s = s.replace(/dʤ/g, "dʒ");
+  s = s.replace(/iɳ/g, "ɪŋ");
+  s = s.replace(/ɳ/g, "ŋ");
+  s = s.replace(/g/g, "ɡ");
+
+  // Nguyên âm đôi / ghép
+  s = s.replace(/ou/g, "oʊ");
+  s = s.replace(/ei/g, "eɪ");
+  s = s.replace(/ai/g, "aɪ");
+  s = s.replace(/au/g, "aʊ");
+  s = s.replace(/ɔi/g, "ɔɪ");
+  s = s.replace(/əː/g, "ɜːr");
+  s = s.replace(/ʤ/g, "ʒ");
+
+  // Xóa ngoặc vuông nếu có
+  s = s.replace(/[\[\]]/g, "");
+
+  return `/${s.trim()}/`;
+}
+
+/**
  * Trích xuất phần IPA cốt lõi từ chuỗi phiên âm (bỏ dấu gạch / và chú thích)
  */
 export function extractCoreIpa(ipaString?: string): string {
@@ -319,7 +362,7 @@ export function extractCoreIpa(ipaString?: string): string {
 
 /**
  * Giải quyết và sinh phiên âm ngữ âm chuẩn IPA cho từ vựng và CỤM TỪ (Phrases):
- * - Ưu tiên phiên âm đã lưu nếu hợp lệ
+ * - Ưu tiên phiên âm đã lưu nếu hợp lệ, đồng thời TỰ ĐỘNG CHUẨN HÓA qua sanitizeIpaString
  * - Tra cứu bảng ánh xạ PHONETIC_WORD_MAP trực tiếp
  * - Tự động ghép nối IPA từ các từ thành phần cho cụm từ (Phrases / Compound words)
  */
@@ -330,7 +373,7 @@ export function resolvePhonetic(
 ): string {
   const existing = (existingPhonetic || "").trim();
   if (existing && existing !== "//" && existing !== "/") {
-    return existing;
+    return sanitizeIpaString(existing);
   }
 
   if (!term || !term.trim()) return "";

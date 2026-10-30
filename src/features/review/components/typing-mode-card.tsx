@@ -300,7 +300,7 @@ export function TypingModeCard({
                   </button>
                 </div>
                 {phonetic && (
-                  <div className="text-xs font-mono text-slate-600">
+                  <div className="text-sm font-ipa font-normal text-slate-600 tracking-wide select-all">
                     {phonetic}
                   </div>
                 )}
@@ -321,7 +321,7 @@ export function TypingModeCard({
                   <AudioSpeakerButton word={card.word} size="sm" />
                 </div>
                 {phonetic && (
-                  <div className="text-xs font-mono text-slate-600">
+                  <div className="text-sm font-ipa font-normal text-slate-600 tracking-wide select-all">
                     {phonetic}
                   </div>
                 )}

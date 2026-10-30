@@ -120,13 +120,13 @@ export function ReviewHeader({
 
         {/* Right: Counter & Công cụ */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          {/* Badge tiến độ: Thẻ đã thuộc & Lượt ôn */}
+          {/* Badge tiến độ: Thẻ hiện tại / Tổng số thẻ & Số thẻ đã thuộc */}
           <div className="text-right">
-            <div className="text-[11px] sm:text-xs font-mono font-bold text-slate-900">
-              {completedCards} / {totalCards} THẺ
+            <div className="text-[11px] sm:text-xs font-mono font-bold text-slate-900 tracking-tight">
+              THẺ {Math.min(currentIndex + 1, totalCards || 1)} / {totalCards}
             </div>
-            <div className="text-[10px] font-mono text-slate-500 font-medium">
-              Lượt {displayTurn}{totalTurns ? `/${totalTurns}` : ""}
+            <div className="text-[10px] font-mono text-emerald-600 font-semibold">
+              Đã thuộc: {completedCards}/{totalCards}
             </div>
           </div>
 
