@@ -71,9 +71,69 @@ describe("Grammar Lessons Core Unit Tests", () => {
     }
   });
 
-  it("hasGrammarLesson kiểm tra sự tồn tại của bài học", () => {
-    expect(hasGrammarLesson("tenses")).toBe(true);
-    expect(hasGrammarLesson("word_form")).toBe(true);
-    expect(hasGrammarLesson("unknown_tag_123")).toBe(false);
+  it("chủ điểm Thì động từ (tenses) phải chứa đầy đủ 11 thì, cấu trúc (+/-/?) và ví dụ song ngữ", () => {
+    const tensesLesson = getGrammarLessonByCode("tenses");
+    expect(tensesLesson).not.toBeNull();
+    expect(tensesLesson?.tensesDetail).toBeDefined();
+
+    const tenses = tensesLesson!.tensesDetail!.tenses;
+    expect(tenses.length).toBeGreaterThanOrEqual(11);
+
+    for (const tense of tenses) {
+      expect(tense.nameVi).toBeTruthy();
+      expect(tense.nameEn).toBeTruthy();
+      expect(tense.formula.affirmative).toBeTruthy();
+      expect(tense.formula.negative).toBeTruthy();
+      expect(tense.formula.question).toBeTruthy();
+      expect(tense.usages.length).toBeGreaterThan(0);
+
+      for (const usage of tense.usages) {
+        expect(usage.context).toBeTruthy();
+        expect(usage.explanation).toBeTruthy();
+        expect(usage.exampleEn).toBeTruthy();
+        expect(usage.exampleVi).toBeTruthy();
+      }
+      expect(tense.signals.length).toBeGreaterThan(0);
+      expect(tense.toeicTip).toBeTruthy();
+    }
+
+    // Kiểm tra quy tắc phối hợp thì
+    const seq = tensesLesson!.tensesDetail!.sequenceRules;
+    expect(seq.length).toBeGreaterThanOrEqual(5);
+    for (const rule of seq) {
+      expect(rule.pattern).toBeTruthy();
+      expect(rule.ruleVi).toBeTruthy();
+      expect(rule.exampleEn).toBeTruthy();
+      expect(rule.exampleVi).toBeTruthy();
+    }
+  });
+
+  it("toàn bộ 16 chủ điểm đều phải có giáo trình chi tiết chuyên sâu (tensesDetail hoặc detailedSections)", () => {
+    const lessons = getAllGrammarLessons();
+    expect(lessons.length).toBe(16);
+
+    for (const lesson of lessons) {
+      if (lesson.tagCode === "tenses") {
+        expect(lesson.tensesDetail).toBeDefined();
+        expect(lesson.tensesDetail!.tenses.length).toBeGreaterThanOrEqual(11);
+      } else {
+        expect(lesson.detailedSections).toBeDefined();
+        expect(lesson.detailedSections!.length).toBeGreaterThan(0);
+
+        for (const sec of lesson.detailedSections!) {
+          expect(sec.title).toBeTruthy();
+          expect(sec.rules.length).toBeGreaterThan(0);
+          for (const rule of sec.rules) {
+            expect(rule.title).toBeTruthy();
+            expect(rule.explanation).toBeTruthy();
+            expect(rule.examples.length).toBeGreaterThan(0);
+            for (const ex of rule.examples) {
+              expect(ex.en).toBeTruthy();
+              expect(ex.vi).toBeTruthy();
+            }
+          }
+        }
+      }
+    }
   });
 });
