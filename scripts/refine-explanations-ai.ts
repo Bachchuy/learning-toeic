@@ -362,11 +362,19 @@ function isBoilerplateExplanation(explanation: any): boolean {
 async function main() {
   console.log("==========================================================");
   console.log("🚀 BẮT ĐẦU QUY TRÌNH VÁ TOÀN BỘ LỜI GIẢI TOEIC BẰNG GEMINI");
+  console.log("   (Hỗ trợ chạy cuốn chiếu nhiều mẻ liên tục kèm tự động cooldown)");
   console.log("==========================================================\n");
 
   const specificQId = process.env.QUESTION_ID;
-  const maxToProcess = parseInt(process.env.LIMIT || "60", 10);
+  const maxToProcess = parseInt(process.env.LIMIT || "200", 10);
+  const batchSize = parseInt(process.env.BATCH_SIZE || "50", 10);
+  const cooldownSeconds = parseInt(process.env.COOLDOWN_SECONDS || "25", 10);
   const pageSize = 50;
+
+  console.log(`🎯 Cấu hình phiên chạy:`);
+  console.log(`   - Mục tiêu cần vá mới: ${maxToProcess} câu`);
+  console.log(`   - Kích thước mỗi mẻ (Batch): ${batchSize} câu`);
+  console.log(`   - Thời gian giãn cách giữa các mẻ: ${cooldownSeconds} giây\n`);
 
   let totalProcessed = 0;
   let totalRefined = 0;
@@ -375,8 +383,11 @@ async function main() {
   let offset = 0;
   let consecutiveErrors = 0;
   let currentDelayMs = 5500; // Mặc định an toàn cho 15 RPM
+  let currentBatchRefined = 0;
+  let batchCounter = 1;
+  let reachedDailyQuota = false;
 
-  while (totalProcessed < maxToProcess) {
+  while (totalRefined < maxToProcess && !reachedDailyQuota) {
     let query = supabase
       .from("questions")
       .select("id, stem, option_a, option_b, option_c, option_d, tag_id, part")
@@ -394,14 +405,14 @@ async function main() {
 
     const { data: questions, error } = await query;
     if (error || !questions || questions.length === 0) {
-      console.log("📦 Không còn câu hỏi nào để duyệt trong khoảng này.");
+      console.log("📦 Đã quét hết toàn bộ ngân hàng câu hỏi trong cơ sở dữ liệu.");
       break;
     }
 
-    console.log(`\n--- Đang quét trang offset ${offset} -> ${offset + questions.length} (${questions.length} câu) ---`);
+    console.log(`\n--- [Mẻ #${batchCounter}] Đang quét trang offset ${offset} -> ${offset + questions.length} (${questions.length} câu) ---`);
 
     for (const q of questions) {
-      if (totalProcessed >= maxToProcess) break;
+      if (totalRefined >= maxToProcess || reachedDailyQuota) break;
       totalProcessed++;
 
       const { data: aData } = await supabase
@@ -423,7 +434,7 @@ async function main() {
         continue;
       }
 
-      console.log(`[#${totalProcessed}] Đang vá câu: "${q.stem.slice(0, 55)}..." (ID: ${q.id})`);
+      console.log(`[#${totalRefined + 1}/${maxToProcess}] (Mẻ ${batchCounter}: câu thứ ${currentBatchRefined + 1}/${batchSize}) Đang vá: "${q.stem.slice(0, 50)}..." (ID: ${q.id})`);
 
       try {
         const { result: refined, modelUsed, delayMs } = await refineQuestionWithAI(q, aData.correct_index);
@@ -456,7 +467,20 @@ async function main() {
 
         console.log(`   ✅ Đã vá thành công bằng [${modelUsed}]!`);
         totalRefined++;
+        currentBatchRefined++;
         consecutiveErrors = 0;
+
+        // Tự động kiểm tra hoàn thành mẻ (batch) để giải lao cooldown
+        if (currentBatchRefined >= batchSize && totalRefined < maxToProcess) {
+          console.log(`\n==========================================================`);
+          console.log(`☕ HOÀN THÀNH MẺ #${batchCounter} (${currentBatchRefined} câu đã vá mới).`);
+          console.log(`   Tiến độ tổng: ${totalRefined}/${maxToProcess} câu đã vá.`);
+          console.log(`   Tạm nghỉ ${cooldownSeconds}s để API làm mát trước khi sang mẻ #${batchCounter + 1}...`);
+          console.log(`==========================================================\n`);
+          batchCounter++;
+          currentBatchRefined = 0;
+          await new Promise((r) => setTimeout(r, cooldownSeconds * 1000));
+        }
       } catch (err: any) {
         console.error(`   ❌ Lỗi: ${err.message}`);
         totalFailed++;
@@ -464,6 +488,7 @@ async function main() {
 
         // Nếu toàn bộ model trong pool đều hết hạn ngạch ngày hoặc lỗi liên tiếp 3 câu -> Dừng ngay
         if (err.message.includes("DAILY_QUOTA_EXCEEDED") || consecutiveErrors >= 3) {
+          reachedDailyQuota = true;
           console.log("\n==========================================================");
           console.log("🛑 THÔNG BÁO: Đã chạm trần hạn ngạch ngày (Daily Quota) của toàn bộ model trong pool.");
           console.log("   Tiến trình tự động dừng để bảo toàn tài nguyên.");
@@ -477,14 +502,15 @@ async function main() {
       await new Promise((r) => setTimeout(r, currentDelayMs));
     }
 
-    if (specificQId) break;
+    if (specificQId || reachedDailyQuota) break;
     offset += pageSize;
   }
 
   console.log("\n==========================================================");
   console.log(`🎉 KẾT THÚC TIẾN TRÌNH:`);
-  console.log(`   - Tổng số câu đã quét: ${totalProcessed}`);
-  console.log(`   - Đã vá mới thành công: ${totalRefined}`);
+  console.log(`   - Đã hoàn thành:       ${batchCounter} mẻ`);
+  console.log(`   - Tổng câu đã quét:    ${totalProcessed}`);
+  console.log(`   - Đã vá mới thành công:${totalRefined}`);
   console.log(`   - Bỏ qua (đã chuẩn):   ${totalSkipped}`);
   console.log(`   - Lỗi:                 ${totalFailed}`);
   console.log("==========================================================");

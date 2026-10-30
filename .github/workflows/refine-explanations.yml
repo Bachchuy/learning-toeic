@@ -4,9 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       limit:
-        description: "Số lượng câu muốn vá trong lần chạy này (khuyến nghị 60-80 để an toàn dưới trần 500 RPD)"
+        description: "Tổng số câu muốn vá (chạy cuốn chiếu từng mẻ, ví dụ 150-250 để tận dụng hết quota ngày)"
         required: true
-        default: "60"
+        default: "200"
+      batch_size:
+        description: "Số câu mỗi mẻ trước khi nghỉ cooldown (khuyến nghị 40-50)"
+        required: true
+        default: "50"
+      cooldown:
+        description: "Số giây nghỉ giải lao giữa các mẻ (khuyến nghị 20-30s)"
+        required: true
+        default: "25"
   schedule:
     # Tự động kích hoạt vào 07:00 sáng mỗi ngày (khi Google vừa reset 1,500 lượt miễn phí mới)
     - cron: "0 0 * * *"
@@ -42,5 +50,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || vars.GEMINI_API_KEY }}
-          LIMIT: ${{ github.event.inputs.limit || '60' }}
+          LIMIT: ${{ github.event.inputs.limit || '200' }}
+          BATCH_SIZE: ${{ github.event.inputs.batch_size || '50' }}
+          COOLDOWN_SECONDS: ${{ github.event.inputs.cooldown || '25' }}
         run: npx tsx scripts/refine-explanations-ai.ts
