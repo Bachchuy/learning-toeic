@@ -8,7 +8,15 @@
 import { createClient } from "@supabase/supabase-js";
 import * as fs from "fs";
 import * as path from "path";
-import { EXTENDED_QUESTIONS_BANK } from "./batch-questions-bank";
+// Tải ngân hàng câu hỏi mở rộng (file dữ liệu nội bộ nếu có)
+let EXTENDED_QUESTIONS_BANK: any[] = [];
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const bank = require("./batch-questions-bank");
+  EXTENDED_QUESTIONS_BANK = bank.EXTENDED_QUESTIONS_BANK || [];
+} catch {
+  // Bỏ qua khi file nội bộ không tồn tại (CI hoặc môi trường public)
+}
 import { runAutomatedValidator } from "../src/core/adminReview";
 
 // 1. Đọc biến môi trường từ .env.local
@@ -37,6 +45,11 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 });
 
 async function main() {
+  if (EXTENDED_QUESTIONS_BANK.length === 0) {
+    console.log("ℹ️ Bỏ qua seed-batch: Ngân hàng câu hỏi trống hoặc file scripts/batch-questions-bank.ts không tồn tại.");
+    return;
+  }
+
   console.log("🚀 Bắt đầu quá trình nạp lô đề lớn 64 câu hỏi chuyên sâu chuẩn ETS...");
 
   // 1. Lấy bảng map tag_code -> tag_id
