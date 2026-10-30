@@ -98,4 +98,17 @@ describe("Milestone M12: Security & RLS Compliance Audit", () => {
       expect(allSql).toContain("SECURITY DEFINER");
     });
   });
+
+  describe("4. Tuân thủ Bảo mật Nâng cao (P0 Hardening Compliance)", () => {
+    it("đảm bảo tất cả các hàm SECURITY DEFINER đều có SET search_path = public để chống leo thang đặc quyền", () => {
+      const files = fs.readdirSync(migrationsDir).filter((f) => f.endsWith(".sql"));
+      const allSql = files.map((f) => fs.readFileSync(path.join(migrationsDir, f), "utf-8")).join("\n");
+
+      // migration mới nhất phải bổ sung SET search_path = public
+      expect(allSql).toContain("SET search_path = public");
+      expect(allSql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.submit_passage_answers[\s\S]*?FROM\s+anon/i);
+      expect(allSql).toContain("DROP POLICY IF EXISTS \"attempts_insert_own\"");
+      expect(allSql).toContain("uq_dictionary_cache_word");
+    });
+  });
 });

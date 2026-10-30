@@ -98,4 +98,24 @@ describe("Exam Reading Logic & Standard ETS Scoring", () => {
     expect(getReadingProficiencyLevel(310).levelVi).toContain("Trung bình khá");
     expect(getReadingProficiencyLevel(180).levelVi).toContain("Cần cải thiện");
   });
+
+  it("Báo lỗi rõ ràng khi answerKeys bị thiếu hoặc rỗng, không tự mặc định đáp án A", () => {
+    expect(() =>
+      evaluateReadingExam({
+        questions: dummyQuestions,
+        answerKeys: [],
+        userAnswers: {},
+        timeSpentSeconds: 3600,
+      })
+    ).toThrow("Không có dữ liệu đáp án để chấm bài thi.");
+
+    expect(() =>
+      evaluateReadingExam({
+        questions: dummyQuestions,
+        answerKeys: dummyKeys.slice(0, 50),
+        userAnswers: {},
+        timeSpentSeconds: 3600,
+      })
+    ).toThrow("Thiếu đáp án chấm bài cho câu hỏi");
+  });
 });

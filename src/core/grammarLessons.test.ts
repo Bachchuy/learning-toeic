@@ -3,7 +3,7 @@ import {
   getAllGrammarLessons,
   getGrammarLessonByCode,
   getGrammarLessonsByCategory,
-  hasGrammarLesson,
+
 } from "./grammarLessons";
 import { CANONICAL_GRAMMAR_TAGS } from "./grammarTags";
 

@@ -15,9 +15,10 @@ on:
         description: "Số giây nghỉ giải lao giữa các mẻ (khuyến nghị 20-30s)"
         required: true
         default: "25"
-  schedule:
-    # Tự động kích hoạt vào 07:00 sáng mỗi ngày (khi Google vừa reset 1,500 lượt miễn phí mới)
-    - cron: "0 0 * * *"
+  # Tạm dừng chạy tự động hàng ngày để đảm bảo an toàn dữ liệu Production
+  # Chỉ kích hoạt thủ công qua workflow_dispatch sau khi kiểm tra mẻ câu hỏi
+  # schedule:
+  #   - cron: "0 0 * * *"
 
 jobs:
   refine-batch:
@@ -46,7 +47,7 @@ jobs:
 
       - name: Run AI Explanation Refiner
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL || 'https://uagbwbqibvefhppmqeih.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || vars.GEMINI_API_KEY }}

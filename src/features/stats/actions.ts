@@ -3,11 +3,13 @@
 import { getOptionalUser } from "@/shared/auth";
 import { formatGrammarTagName } from "@/core/grammarTags";
 import {
-  calculateMasteryPercentage,
-  getMasteryLabel,
+
+
   getMasteryBadgeInfo,
+  calculateAdaptiveMastery,
   type MasteryLabel,
   type MasteryBadgeInfo,
+  type AttemptRecord,
 } from "@/core/wilson";
 
 export interface TopicMasteryItem {
@@ -50,8 +52,8 @@ export interface DashboardSummaryResult {
 }
 
 /**
- * Server Action: Lấy dữ liệu độ vững 16 chủ điểm ngữ pháp theo Wilson z=1.96
- * Tách rõ Nhóm 1 (Đủ dữ liệu) và Nhóm 2 (Chưa đủ dữ liệu) theo docs/05-design/screens.md §5.6 M8
+ * Server Action: Lấy dữ liệu độ vững 16 chủ điểm ngữ pháp theo Adaptive Rolling Mastery (D-25, z=1.0)
+ * Tách rõ Nhóm 1 (Đủ dữ liệu >= 5 câu) và Nhóm 2 (Chưa đủ dữ liệu < 5 câu) theo docs/05-design/screens.md §5.6 M8
  */
 export async function getSkillMasteryStatsAction(): Promise<SkillMasteryStatsResult> {
   const { user, supabase } = await getOptionalUser();
@@ -97,52 +99,52 @@ export async function getSkillMasteryStatsAction(): Promise<SkillMasteryStatsRes
     };
   }
 
-  // 2. Lấy dữ liệu attempts đã nộp của người dùng
+  // 2. Lấy dữ liệu attempts đã nộp của người dùng (tối đa 2000 lượt theo thứ tự thời gian)
   const { data: attempts } = await supabase
     .from("attempts")
-    .select("tag_id, is_correct")
-    .eq("user_id", user.id);
+    .select("tag_id, is_correct, answered_at")
+    .eq("user_id", user.id)
+    .order("answered_at", { ascending: true })
+    .limit(2000);
 
-  // Thống kê số lần làm và số lần đúng theo từng tag_id
-  const statsByTag: Record<number, { total: number; correct: number }> = {};
+  // Nhóm attempts theo từng tag_id để áp dụng chuẩn cửa sổ trượt (D-25)
+  const attemptsByTag: Record<number, AttemptRecord[]> = {};
   let totalAttempts = 0;
   let totalCorrect = 0;
 
   for (const a of attempts || []) {
-    totalAttempts++;
-    if (a.is_correct) totalCorrect++;
+    if (a.tag_id) {
+      totalAttempts++;
+      if (a.is_correct) totalCorrect++;
 
-    if (!statsByTag[a.tag_id]) {
-      statsByTag[a.tag_id] = { total: 0, correct: 0 };
-    }
-    statsByTag[a.tag_id].total++;
-    if (a.is_correct) {
-      statsByTag[a.tag_id].correct++;
+      if (!attemptsByTag[a.tag_id]) {
+        attemptsByTag[a.tag_id] = [];
+      }
+      attemptsByTag[a.tag_id].push({ is_correct: a.is_correct });
     }
   }
 
-  // 3. Phân bổ vào 16 chủ điểm
+  // 3. Phân bổ vào 16 chủ điểm với thuật toán Adaptive Rolling Mastery
   const group1: TopicMasteryItem[] = [];
   const group2: TopicMasteryItem[] = [];
 
   for (const tag of allTags) {
-    const stats = statsByTag[tag.id] || { total: 0, correct: 0 };
-    const pct = calculateMasteryPercentage(stats.correct, stats.total);
-    const label = getMasteryLabel(stats.total, pct);
-    const badgeInfo = getMasteryBadgeInfo(stats.total, pct);
+    const tagAttempts = attemptsByTag[tag.id] || [];
+    const adaptive = calculateAdaptiveMastery(tagAttempts, 20);
+    const correctCount = tagAttempts.filter((a) => a.is_correct).length;
 
     const item: TopicMasteryItem = {
       tagId: tag.id,
       tagCode: tag.tag_code,
       nameVi: formatGrammarTagName(tag.tag_code, tag.name_vi),
-      totalAttempts: stats.total,
-      correctAttempts: stats.correct,
-      masteryPercentage: pct,
-      masteryLabel: label,
-      badgeInfo,
+      totalAttempts: tagAttempts.length,
+      correctAttempts: correctCount,
+      masteryPercentage: adaptive.score,
+      masteryLabel: adaptive.label,
+      badgeInfo: adaptive.badgeInfo,
     };
 
-    if (stats.total >= 5) {
+    if (tagAttempts.length >= 5) {
       group1.push(item);
     } else {
       group2.push(item);
@@ -260,12 +262,14 @@ export async function getUserStreakAction(): Promise<number> {
       .from("attempts")
       .select("answered_at")
       .eq("user_id", user.id)
-      .order("answered_at", { ascending: false }),
+      .order("answered_at", { ascending: false })
+      .limit(500),
     supabase
       .from("card_reviews")
       .select("reviewed_at")
       .eq("user_id", user.id)
-      .order("reviewed_at", { ascending: false }),
+      .order("reviewed_at", { ascending: false })
+      .limit(500),
   ]);
 
   const activeDates = new Set<string>();

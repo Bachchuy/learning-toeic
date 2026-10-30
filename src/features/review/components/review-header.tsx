@@ -42,8 +42,8 @@ export function ReviewHeader({
   currentIndex,
   totalCards,
   completedCards = 0,
-  currentTurn,
-  totalTurns,
+
+
   progressPct: customProgressPct,
   notebookName,
   topicName,
@@ -59,7 +59,7 @@ export function ReviewHeader({
       ? Math.min(100, Math.round((completedCards / totalCards) * 100))
       : 0;
 
-  const displayTurn = currentTurn !== undefined ? currentTurn : currentIndex + 1;
+
 
   const modes: Array<{
     id: ReviewStudyMode;

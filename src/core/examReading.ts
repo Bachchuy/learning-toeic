@@ -85,6 +85,10 @@ export function evaluateReadingExam(params: {
 }): ExamReadingEvaluation {
   const { questions, answerKeys, userAnswers, timeSpentSeconds } = params;
 
+  if (!answerKeys || answerKeys.length === 0) {
+    throw new Error("Không có dữ liệu đáp án để chấm bài thi.");
+  }
+
   const keyMap = new Map<string, ReadingAnswerKey>();
   for (const k of answerKeys) {
     keyMap.set(k.questionId, k);
@@ -98,8 +102,8 @@ export function evaluateReadingExam(params: {
 
   for (const q of questions) {
     const key = keyMap.get(q.id);
-    const correctIndex = key ? key.correctIndex : 0;
-    const correctAnswer = key ? key.correctAnswer : "A";
+    const correctIndex = key ? key.correctIndex : (() => { throw new Error(`Thiếu đáp án chấm bài cho câu hỏi ${q.id} (#${q.questionNumber})`); })();
+    const correctAnswer = key.correctAnswer;
     const userIndex = userAnswers[q.id] !== undefined ? userAnswers[q.id] : null;
 
     const isCorrect = userIndex !== null && userIndex === correctIndex;

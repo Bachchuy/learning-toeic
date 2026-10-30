@@ -116,7 +116,7 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
     };
 
     // 4. Lưu vào dictionary_cache trong database
-    const { data: inserted } = await supabase
+    const { data: inserted, error: upsertError } = await supabase
       .from("dictionary_cache")
       .upsert(
         {
@@ -136,7 +136,9 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
       .select()
       .maybeSingle();
 
-    if (inserted) {
+    if (upsertError) {
+      console.warn("[DictionaryCache] Lỗi upsert dictionary_cache:", upsertError);
+    } else if (inserted) {
       newEntry.id = inserted.id;
     }
 

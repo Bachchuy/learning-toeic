@@ -229,6 +229,10 @@ export async function submitReadingExamAction(
 ): Promise<SubmitExamResult> {
   const { examSetId, userAnswers, timeSpentSeconds } = payload;
 
+  if (!userAnswers || Object.keys(userAnswers).length === 0) {
+    return { success: false, error: "Bạn chưa chọn câu trả lời nào cho bài thi." };
+  }
+
   try {
     const adminSupabase = createAdminClient();
 
@@ -297,7 +301,7 @@ export async function submitReadingExamAction(
       .eq("exam_set_id", examSetId)
       .in("part", [5, 6, 7]);
 
-    if (ansErr || !answersData) {
+    if (ansErr || !answersData || answersData.length === 0) {
       return { success: false, error: "Không thể lấy đáp án chấm bài từ cơ sở dữ liệu." };
     }
 
