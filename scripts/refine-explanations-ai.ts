@@ -363,9 +363,9 @@ function isBoilerplateExplanation(explanation: any): boolean {
 
   // 3. Thiếu hoặc phân tích phương án không đầy đủ 4 lựa chọn (A, B, C, D)
   if (!explanation.options_analysis || typeof explanation.options_analysis !== "object") return true;
-  const opts = Object.values(explanation.options_analysis) as string[];
+  const opts = Object.values(explanation.options_analysis);
   if (opts.length < 4) return true;
-  if (opts.some((o) => !o || o.trim().length < 8)) return true;
+  if (opts.some((o) => typeof o !== "string" || o.trim().length < 8)) return true;
 
   return false;
 }
