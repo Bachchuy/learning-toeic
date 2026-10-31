@@ -348,13 +348,24 @@ function isBoilerplateExplanation(explanation: any): boolean {
   if (!explanation) return true;
   const expStr = JSON.stringify(explanation);
   
-  // Dấu hiệu của template cũ trong ingest-kaggle-toeic.ts
+  // 1. Dấu hiệu giải thích qua loa / sáo rỗng
+  if (expStr.includes("Phương án sai theo ngữ cảnh")) return true;
+  if (expStr.includes("Phương án sai")) return true;
+  if (expStr.includes("sai theo ngữ cảnh")) return true;
+
+  // 2. Dấu hiệu của template cũ trong ingest-kaggle-toeic.ts
   if (expStr.includes("không phù hợp về ngữ nghĩa hoặc không tạo thành cụm từ tự nhiên")) return true;
   if (expStr.includes("tạo thành cấu trúc so sánh chuẩn xác theo dấu hiệu ngữ pháp trong câu")) return true;
   if (expStr.includes("Quy tắc nhận diện từ loại (Word Form). Xác định vị trí của chỗ trống")) return true;
   if (expStr.includes("Quy tắc chia thì động từ (Tenses) và sự phối hợp thì trong câu. Dựa vào dấu hiệu thời gian")) return true;
   if (expStr.includes("Quy tắc sử dụng Đại từ (Pronouns) và Danh từ. Phân biệt rõ giữa")) return true;
   if (expStr.includes("Từ khóa chính trong câu")) return true;
+
+  // 3. Thiếu hoặc phân tích phương án không đầy đủ 4 lựa chọn (A, B, C, D)
+  if (!explanation.options_analysis || typeof explanation.options_analysis !== "object") return true;
+  const opts = Object.values(explanation.options_analysis) as string[];
+  if (opts.length < 4) return true;
+  if (opts.some((o) => !o || o.trim().length < 8)) return true;
 
   return false;
 }
@@ -392,7 +403,6 @@ async function main() {
       .from("questions")
       .select("id, stem, option_a, option_b, option_c, option_d, tag_id, part")
       .eq("part", 5)
-      .gte("created_at", "2026-10-26T15:00:00+00:00")
       .order("created_at", { ascending: true })
       .range(offset, offset + pageSize - 1);
 
