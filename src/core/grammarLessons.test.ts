@@ -71,13 +71,24 @@ describe("Grammar Lessons Core Unit Tests", () => {
     }
   });
 
-  it("chủ điểm Thì động từ (tenses) phải chứa đầy đủ 11 thì, cấu trúc (+/-/?) và ví dụ song ngữ", () => {
+  it("chủ điểm Thì động từ (tenses) phải chứa đầy đủ trọn vẹn 12 thì chuẩn tiếng Anh, 6 cặp so sánh Murphy và ví dụ song ngữ", () => {
     const tensesLesson = getGrammarLessonByCode("tenses");
     expect(tensesLesson).not.toBeNull();
     expect(tensesLesson?.tensesDetail).toBeDefined();
 
     const tenses = tensesLesson!.tensesDetail!.tenses;
-    expect(tenses.length).toBeGreaterThanOrEqual(11);
+    expect(tenses.length).toBe(13); // 12 thì chuẩn tiếng Anh + Tương lai gần (Be going to)
+
+    // Kiểm tra có đủ Past Perfect Continuous và Future Perfect Continuous
+    expect(tenses.some((t) => t.id === "past_perfect_continuous")).toBe(true);
+    expect(tenses.some((t) => t.id === "future_perfect_continuous")).toBe(true);
+
+    // Kiểm tra 6 cặp so sánh đối chiếu của Raymond Murphy
+    const comparisons = tensesLesson!.tensesDetail!.tenseComparisons;
+    expect(comparisons).toBeDefined();
+    expect(comparisons!.length).toBeGreaterThanOrEqual(6);
+    expect(comparisons!.some((c) => c.id === "past_perf_vs_past_perf_cont")).toBe(true);
+    expect(comparisons!.some((c) => c.id === "pres_perf_vs_past_simp")).toBe(true);
 
     for (const tense of tenses) {
       expect(tense.nameVi).toBeTruthy();
@@ -115,7 +126,7 @@ describe("Grammar Lessons Core Unit Tests", () => {
     for (const lesson of lessons) {
       if (lesson.tagCode === "tenses") {
         expect(lesson.tensesDetail).toBeDefined();
-        expect(lesson.tensesDetail!.tenses.length).toBeGreaterThanOrEqual(11);
+        expect(lesson.tensesDetail!.tenses.length).toBe(13);
       } else {
         expect(lesson.detailedSections).toBeDefined();
         expect(lesson.detailedSections!.length).toBeGreaterThan(0);
@@ -135,5 +146,39 @@ describe("Grammar Lessons Core Unit Tests", () => {
         }
       }
     }
+  });
+
+  it("các chủ điểm then chốt phải được cập nhật đầy đủ kiến thức chuẩn mực từ English Grammar in Use & Barron's 600 Words", () => {
+    // 1. Tenses: kiểm tra quy tắc used to vs be used to
+    const tenses = getGrammarLessonByCode("tenses");
+    expect(tenses?.tensesDetail?.sequenceRules.some((r) => r.pattern.includes("Used to"))).toBe(true);
+    expect(tenses?.traps.some((t) => t.title.includes("Used to"))).toBe(true);
+
+    // 2. Modals: kiểm tra phân biệt Must, Have to, Mustn't, Don't have to
+    const modals = getGrammarLessonByCode("modals");
+    expect(modals?.detailedSections?.some((s) => s.title.includes("Mức độ Bắt buộc"))).toBe(true);
+    expect(modals?.traps.some((t) => t.title.includes("Mustn't"))).toBe(true);
+
+    // 3. Conjunctions & Prepositions: kiểm tra By vs Until, Unless, In case
+    const conj = getGrammarLessonByCode("conjunctions_prepositions");
+    expect(conj?.detailedSections?.some((s) => s.title.includes("By vs Until"))).toBe(true);
+    expect(conj?.detailedSections?.some((s) => s.title.includes("Unless"))).toBe(true);
+
+    // 4. Gerund & Infinitive: kiểm tra Remember, Regret, Stop, Try
+    const gerund = getGrammarLessonByCode("gerund_infinitive");
+    expect(gerund?.detailedSections?.some((s) => s.title.includes("KHÁC BIỆT HOÀN TOÀN"))).toBe(true);
+    expect(gerund?.detailedSections?.some((s) => s.title.includes("Thành ngữ đặc biệt"))).toBe(true);
+
+    // 5. Word Form: kiểm tra Word Families & Động từ
+    const wordForm = getGrammarLessonByCode("word_form");
+    expect(wordForm?.detailedSections?.some((s) => s.title.includes("Word Families"))).toBe(true);
+
+    // 6. Adjectives & Adverbs: kiểm tra cặp dễ nhầm Hard/Hardly, Late/Lately
+    const adjAdv = getGrammarLessonByCode("adjectives_adverbs");
+    expect(adjAdv?.detailedSections?.some((s) => s.title.includes("Dễ Gây Nhầm Lẫn"))).toBe(true);
+
+    // 7. Passive Voice: kiểm tra Bị động khách quan / Tường thuật
+    const passive = getGrammarLessonByCode("passive_voice");
+    expect(passive?.detailedSections?.some((s) => s.title.includes("Bị động Khách quan"))).toBe(true);
   });
 });

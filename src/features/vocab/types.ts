@@ -18,6 +18,7 @@ export interface WordFamilyMember {
 export interface VocabMetadata {
   phonetic?: string;
   audio_url?: string;
+  image_url?: string;
   detailed_explanation?: string;
   topic?: string;
   word_family?: WordFamilyMember[];
@@ -26,6 +27,7 @@ export interface VocabMetadata {
   collocations?: string[];
   toeic_example?: string;
   toeic_example_translation?: string;
+  usage_note?: string;
 }
 
 export interface VocabEntry {

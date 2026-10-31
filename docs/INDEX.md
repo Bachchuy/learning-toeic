@@ -346,6 +346,10 @@ redesign-skill     Quy trình audit và cải tạo UI hiện có (4 modes)
 
 ui-ux-pro-max      Kho dữ liệu UI intelligence (palette, font, styles, stacks)
   └─► .agents/skills/ui-ux-pro-max/SKILL.md
+
+grounded-knowledge Curation tri thức chuẩn ngữ pháp & từ vựng qua MCP / NotebookLM
+  └─► .agents/skills/grounded-knowledge-curation/SKILL.md
+  └─► .cursor/rules/knowledge-grounding-mcp.mdc
 ```
 
 ---

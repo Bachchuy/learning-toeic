@@ -41,12 +41,12 @@ export function SpeakingModeCard({
 
   // Tự động phát âm khi vào thẻ
   useEffect(() => {
-    playPronunciation(card.word);
-  }, [card.word]);
+    playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
+  }, [card.word, card.audio_url, card.metadata?.audio_url]);
 
   const handlePlayAudio = () => {
     setIsPlaying(true);
-    playPronunciation(card.word);
+    playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
     setTimeout(() => setIsPlaying(false), 1200);
   };
 
@@ -136,7 +136,7 @@ export function SpeakingModeCard({
             type="button"
             onClick={() => {
               setSpeed(1.0);
-              playPronunciation(card.word);
+              playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
             }}
             className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
               speed === 1.0 ? "bg-white text-slate-900 shadow-xs font-bold" : "text-slate-600"
@@ -148,7 +148,7 @@ export function SpeakingModeCard({
             type="button"
             onClick={() => {
               setSpeed(0.8);
-              playPronunciation(card.word);
+              playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
             }}
             className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
               speed === 0.8 ? "bg-white text-slate-900 shadow-xs font-bold" : "text-slate-600"

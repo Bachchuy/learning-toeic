@@ -1,3 +1,4 @@
+import type { WordFamilyMember } from "@/features/vocab/types";
 import essential600Data from "./essential-600-words.json";
 import etsVocabData from "./ets-part5-vocab.json";
 import commonIdiomsData from "./common-toeic-idioms.json";
@@ -14,6 +15,10 @@ export interface CuratedVocabItem {
   image_url?: string;
   audio_url?: string;
   topic: string;
+  word_families?: WordFamilyMember[];
+  collocations?: string[];
+  synonyms?: string[];
+  usage_note?: string;
 }
 
 export interface CuratedDeckMeta {

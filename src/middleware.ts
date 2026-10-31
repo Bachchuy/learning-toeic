@@ -37,6 +37,12 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isLoginPage = pathname === "/login";
+  const isPublicApi = pathname.startsWith("/api/audio");
+
+  // Các route audio công khai (phục vụ phát âm thẻ bài học) không cần kiểm tra đăng nhập
+  if (isPublicApi) {
+    return response;
+  }
 
   // Kiểm tra và làm mới token session người dùng
   let user = null;
@@ -69,8 +75,8 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Khớp tất cả các đường dẫn trừ static files và hình ảnh
+     * Khớp tất cả các đường dẫn trừ static files, api audio và hình ảnh
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/audio|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

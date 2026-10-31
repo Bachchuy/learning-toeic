@@ -7,6 +7,7 @@ import {
   getPosBadgeInfo,
   generateNaturalExplanation,
   getDualPronunciation,
+  resolveDualDetails,
 } from "@/core/vocab";
 import { playPronunciation, playDualPronunciation } from "@/lib/audio";
 import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
@@ -33,16 +34,34 @@ export function FlashcardModeCard({
   const [showHint, setShowHint] = useState(false);
 
   const dual = getDualPronunciation(card.word);
+  const dualDetails = resolveDualDetails(
+    card.word,
+    card.part_of_speech,
+    card.meaning
+  );
+  const isVerbContext = dualDetails.primaryRole === "verb";
+  const isNounContext = dualDetails.primaryRole === "noun";
 
   useEffect(() => {
     if (autoPlayAudio) {
-      if (dual) {
-        playDualPronunciation(card.word);
+      if (dualDetails.isDual) {
+        playDualPronunciation(card.word, {
+          nounAudioUrl: dualDetails.nounAudioUrl,
+          verbAudioUrl: dualDetails.verbAudioUrl,
+        });
       } else {
-        playPronunciation(card.word);
+        playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
       }
     }
-  }, [card.word, autoPlayAudio, dual]);
+  }, [
+    card.word,
+    autoPlayAudio,
+    dualDetails.isDual,
+    dualDetails.nounAudioUrl,
+    dualDetails.verbAudioUrl,
+    card.audio_url,
+    card.metadata?.audio_url,
+  ]);
 
   const phoneticDisplay = resolvePhonetic(
     card.word,
@@ -78,7 +97,14 @@ export function FlashcardModeCard({
         e.preventDefault();
         if (!isFlipped) {
           setIsFlipped(true);
-          playPronunciation(card.word);
+          if (dualDetails.isDual) {
+            playDualPronunciation(card.word, {
+              nounAudioUrl: dualDetails.nounAudioUrl,
+              verbAudioUrl: dualDetails.verbAudioUrl,
+            });
+          } else {
+            playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
+          }
         }
       } else if (isFlipped && !isPending) {
         if (e.key === "1") onRateCard(1);
@@ -122,9 +148,13 @@ export function FlashcardModeCard({
       {/* 1. Card Top: Badges */}
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
         <span
-          className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider border ${posInfo.badgeClass}`}
+          className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider border ${
+            dualDetails.isDual
+              ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+              : posInfo.badgeClass
+          }`}
         >
-          {posInfo.shortBadge}
+          {dualDetails.isDual ? "DANH TỪ · ĐỘNG TỪ" : posInfo.shortBadge}
         </span>
         <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
           Lượt ôn: {card.reps ?? 0}
@@ -148,30 +178,45 @@ export function FlashcardModeCard({
                 <button
                   type="button"
                   onClick={() => {
-                    if (dual) {
-                      playDualPronunciation(card.word);
+                    if (dualDetails.isDual) {
+                      playDualPronunciation(card.word, {
+                        nounAudioUrl: dualDetails.nounAudioUrl,
+                        verbAudioUrl: dualDetails.verbAudioUrl,
+                      });
                     } else {
-                      playPronunciation(card.word);
+                      playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
                     }
                   }}
                   className="p-1.5 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer"
-                  title={dual ? "Phát âm cả danh từ & động từ" : "Phát âm từ này"}
+                  title={dualDetails.isDual ? "Phát âm cả danh từ & động từ" : "Phát âm từ này"}
                 >
                   <Volume2 className="w-5 h-5" />
                 </button>
               </div>
 
-              {dual ? (
+              {dualDetails.isDual && dualDetails.nounIpa && dualDetails.verbIpa ? (
                 <div className="flex items-center justify-center gap-2.5 pt-1.5 flex-wrap">
                   <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs">
                     <span className="font-bold font-mono">DANH TỪ:</span>
-                    <span className="font-ipa">{dual.nounIpa}</span>
-                    <AudioSpeakerButton word={card.word} posHint="noun" label="n" size="sm" />
+                    <span className="font-ipa">{dualDetails.nounIpa}</span>
+                    <AudioSpeakerButton
+                      word={card.word}
+                      audioUrl={dualDetails.nounAudioUrl}
+                      posHint="noun"
+                      label="n"
+                      size="sm"
+                    />
                   </div>
                   <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs">
                     <span className="font-bold font-mono">ĐỘNG TỪ:</span>
-                    <span className="font-ipa">{dual.verbIpa}</span>
-                    <AudioSpeakerButton word={card.word} posHint="verb" label="v" size="sm" />
+                    <span className="font-ipa">{dualDetails.verbIpa}</span>
+                    <AudioSpeakerButton
+                      word={card.word}
+                      audioUrl={dualDetails.verbAudioUrl}
+                      posHint="verb"
+                      label="v"
+                      size="sm"
+                    />
                   </div>
                 </div>
               ) : phoneticDisplay ? (
@@ -219,9 +264,92 @@ export function FlashcardModeCard({
               )}
             </div>
 
-            <div className="text-xl sm:text-2xl font-bold text-blue-600 tracking-tight border-y border-slate-100 py-3">
-              {card.meaning}
-            </div>
+            {/* Nếu là từ loại kép (Dual POS): Hiển thị bảng so sánh 2 loại từ rõ ràng */}
+            {dualDetails.isDual && dualDetails.nounMeaning && dualDetails.verbMeaning ? (
+              <div className="w-full max-w-md mx-auto grid grid-cols-1 sm:grid-cols-2 gap-2.5 my-2 text-left">
+                {/* 1. Khối Danh từ */}
+                <div
+                  className={`p-3 rounded-2xl border transition-all ${
+                    isNounContext
+                      ? "bg-blue-50/90 border-blue-300 ring-2 ring-blue-200/70 shadow-xs"
+                      : "bg-slate-50/80 border-slate-200 text-slate-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1 pb-1.5 border-b border-blue-200/50">
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-md bg-blue-600 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
+                        [n] Danh từ
+                      </span>
+                      {isNounContext && (
+                        <span className="text-[10px] font-bold text-blue-700 bg-blue-100/90 px-1.5 py-0.5 rounded">
+                          Trọng tâm bài
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {dualDetails.nounIpa && (
+                        <span className="text-xs font-ipa font-medium text-blue-900">
+                          {dualDetails.nounIpa}
+                        </span>
+                      )}
+                      <AudioSpeakerButton
+                        word={card.word}
+                        audioUrl={dualDetails.nounAudioUrl}
+                        posHint="noun"
+                        label="n"
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs sm:text-sm font-bold text-slate-900 pt-1.5 leading-snug">
+                    {dualDetails.nounMeaning}
+                  </p>
+                </div>
+
+                {/* 2. Khối Động từ */}
+                <div
+                  className={`p-3 rounded-2xl border transition-all ${
+                    isVerbContext
+                      ? "bg-emerald-50/90 border-emerald-300 ring-2 ring-emerald-200/70 shadow-xs"
+                      : "bg-slate-50/80 border-slate-200 text-slate-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1 pb-1.5 border-b border-emerald-200/50">
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
+                        [v] Động từ
+                      </span>
+                      {isVerbContext && (
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded">
+                          Trọng tâm bài
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {dualDetails.verbIpa && (
+                        <span className="text-xs font-ipa font-medium text-emerald-900">
+                          {dualDetails.verbIpa}
+                        </span>
+                      )}
+                      <AudioSpeakerButton
+                        word={card.word}
+                        audioUrl={dualDetails.verbAudioUrl}
+                        posHint="verb"
+                        label="v"
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs sm:text-sm font-bold text-slate-900 pt-1.5 leading-snug">
+                    {dualDetails.verbMeaning}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-xl sm:text-2xl font-bold text-blue-600 tracking-tight border-y border-slate-100 py-3">
+                {card.meaning}
+              </div>
+            )}
 
             {detailedExplanation && (
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
@@ -230,7 +358,7 @@ export function FlashcardModeCard({
             )}
 
             {card.context_sentence && (
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-left text-xs sm:text-sm text-slate-800 space-y-1 max-w-md mx-auto">
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-left text-xs sm:text-sm text-slate-800 space-y-1.5 max-w-md mx-auto">
                 <p className="italic font-medium leading-relaxed">
                   &ldquo;{renderHighlightedSentence(card.context_sentence, card.word)}&rdquo;
                 </p>
@@ -238,6 +366,20 @@ export function FlashcardModeCard({
                   <p className="text-xs text-slate-500 pt-1 border-t border-slate-200/60">
                     Dịch: &ldquo;{card.context_translation}&rdquo;
                   </p>
+                )}
+                {dualDetails.isDual && (
+                  <div className="pt-1.5 flex items-center gap-1.5 text-[11px] text-slate-600 border-t border-slate-200/60">
+                    <span>💡 Vai trò trong câu ví dụ:</span>
+                    <strong
+                      className={
+                        isVerbContext
+                          ? "text-emerald-700 font-bold"
+                          : "text-blue-700 font-bold"
+                      }
+                    >
+                      {isVerbContext ? "ĐỘNG TỪ (Verb)" : "DANH TỪ (Noun)"}
+                    </strong>
+                  </div>
                 )}
               </div>
             )}
@@ -252,7 +394,14 @@ export function FlashcardModeCard({
             type="button"
             onClick={() => {
               setIsFlipped(true);
-              playPronunciation(card.word);
+              if (dualDetails.isDual) {
+                playDualPronunciation(card.word, {
+                  nounAudioUrl: dualDetails.nounAudioUrl,
+                  verbAudioUrl: dualDetails.verbAudioUrl,
+                });
+              } else {
+                playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
+              }
             }}
             className="w-full h-12 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
           >

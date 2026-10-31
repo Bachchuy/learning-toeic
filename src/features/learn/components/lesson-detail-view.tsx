@@ -23,11 +23,15 @@ interface LessonDetailViewProps {
 
 export function LessonDetailView({ lesson }: LessonDetailViewProps) {
   const [selectedTenseGroup, setSelectedTenseGroup] = useState<
-    "all" | "present" | "past" | "future" | "sequence"
+    "all" | "present" | "past" | "future" | "comparisons" | "sequence"
   >("all");
+
+  const [quizSelected, setQuizSelected] = useState<number | null>(null);
+  const [showExplanation, setShowExplanation] = useState<boolean>(false);
 
   const tenses = lesson.tensesDetail?.tenses ?? [];
   const sequenceRules = lesson.tensesDetail?.sequenceRules ?? [];
+  const tenseComparisons = lesson.tensesDetail?.tenseComparisons ?? [];
 
   const filteredTenses = tenses.filter(
     (t) => selectedTenseGroup === "all" || t.group === selectedTenseGroup
@@ -65,6 +69,19 @@ export function LessonDetailView({ lesson }: LessonDetailViewProps) {
         <p className="text-[15px] sm:text-[16px] text-[#475569] mt-2.5 leading-relaxed">
           {lesson.taglineVi}
         </p>
+
+        {/* Banner Đối chiếu Tri thức Chuẩn mực */}
+        <div className="mt-4 p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-between gap-3 text-xs text-emerald-950">
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0 text-xs font-bold">✓</span>
+            <div>
+              <span className="font-bold text-emerald-900">Giáo trình đối chiếu:</span> English Grammar in Use (Raymond Murphy - Cambridge) &amp; Barron&apos;s TOEIC
+            </div>
+          </div>
+          <span className="hidden sm:inline-block font-mono text-[11px] text-emerald-700 font-semibold px-2 py-0.5 rounded bg-white border border-emerald-200">
+            Grounding Verified
+          </span>
+        </div>
       </div>
 
       {/* 2. Tổng quan & Bản chất cốt lõi */}
@@ -133,10 +150,10 @@ export function LessonDetailView({ lesson }: LessonDetailViewProps) {
                   id="tenses-detail-heading"
                   className="text-[18px] font-bold text-[#0F172A]"
                 >
-                  2. Giáo trình chi tiết 11 thì TOEIC & Phối hợp thì
+                  2. Trọn bộ 12 thì chuẩn tiếng Anh, So sánh cặp thì Murphy &amp; Phối hợp thì
                 </h2>
                 <p className="text-[12px] text-[#475569]">
-                  Cấu trúc đầy đủ 3 thể (+ / - / ?), ngữ cảnh sử dụng & ví dụ song ngữ Anh - Việt
+                  Đầy đủ 12 thì (+ / - / ?), 6 cặp so sánh đối chiếu kinh điển của Raymond Murphy và quy tắc phối hợp thì Part 5
                 </p>
               </div>
             </div>
@@ -144,11 +161,12 @@ export function LessonDetailView({ lesson }: LessonDetailViewProps) {
             {/* Bộ lọc nhóm thì */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[12px]">
               {[
-                { id: "all", label: "Tất cả 11 thì" },
+                { id: "all", label: "Tất cả 12 thì" },
                 { id: "present", label: "Hiện tại (4)" },
-                { id: "past", label: "Quá khứ (3)" },
+                { id: "past", label: "Quá khứ (4)" },
                 { id: "future", label: "Tương lai (4)" },
-                { id: "sequence", label: "Phối hợp thì" },
+                { id: "comparisons", label: "So sánh cặp thì (Murphy)" },
+                { id: "sequence", label: "Phối hợp thì (5)" },
               ].map((grp) => (
                 <button
                   key={grp.id}
@@ -171,11 +189,137 @@ export function LessonDetailView({ lesson }: LessonDetailViewProps) {
           </div>
 
           {/* Danh sách các thì */}
-          {selectedTenseGroup !== "sequence" && (
+          {selectedTenseGroup !== "sequence" && selectedTenseGroup !== "comparisons" && (
             <div className="space-y-6">
               {filteredTenses.map((tense) => (
                 <TenseCard key={tense.id} tense={tense} />
               ))}
+            </div>
+          )}
+
+          {/* Bảng 6 Cặp So sánh đối chiếu thì kinh điển của Raymond Murphy */}
+          {(selectedTenseGroup === "all" || selectedTenseGroup === "comparisons") && tenseComparisons.length > 0 && (
+            <div className="space-y-6 pt-4 border-t border-[#E2E8F0]">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-md bg-emerald-100 text-emerald-800">
+                    <BookOpen className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <h3 className="text-[17px] font-bold text-[#0F172A]">
+                      6 Cặp so sánh đối chiếu thì kinh điển (Chuẩn Raymond Murphy)
+                    </h3>
+                    <p className="text-[12px] text-[#475569]">
+                      Chìa khóa phân biệt bản chất giữa các thì dễ gây nhầm lẫn trong bài đọc và bẫy Part 5
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  English Grammar in Use (5th Ed.)
+                </span>
+              </div>
+
+              <div className="space-y-6">
+                {tenseComparisons.map((comp) => (
+                  <div
+                    key={comp.id}
+                    className="p-5 sm:p-6 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-4 shadow-xs hover:border-[#BFDBFE] transition-all"
+                  >
+                    {/* Header Cặp thì */}
+                    <div className="flex items-start justify-between gap-3 flex-wrap border-b border-[#E2E8F0] pb-3">
+                      <div>
+                        <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#2563EB]">
+                          {comp.murphyUnit}
+                        </div>
+                        <h4 className="text-[16px] sm:text-[18px] font-bold text-[#0F172A] mt-0.5">
+                          {comp.title}
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-mono font-medium">
+                        <span className="px-2.5 py-1 rounded-md bg-blue-100 text-blue-800">
+                          {comp.pair[0]}
+                        </span>
+                        <span className="text-[#64748B] font-bold">vs</span>
+                        <span className="px-2.5 py-1 rounded-md bg-amber-100 text-amber-900">
+                          {comp.pair[1]}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-[13px] sm:text-[14px] text-[#0F172A] leading-relaxed">
+                      👉 <span className="font-medium text-[#1E40AF]">{comp.explanation}</span>
+                    </p>
+
+                    {/* Bảng so sánh 2 cột */}
+                    <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white">
+                      <table className="w-full text-left text-[12.5px]">
+                        <thead>
+                          <tr className="bg-[#F1F5F9] border-b border-[#E2E8F0] text-[11px] font-mono uppercase tracking-wider text-[#475569]">
+                            <th className="py-2.5 px-3.5 font-bold w-1/4">Khía cạnh so sánh</th>
+                            <th className="py-2.5 px-3.5 font-bold text-blue-900 w-[37.5%]">{comp.pair[0]}</th>
+                            <th className="py-2.5 px-3.5 font-bold text-amber-900 w-[37.5%]">{comp.pair[1]}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#E2E8F0]">
+                          {comp.table.map((row, rIdx) => (
+                            <tr key={rIdx} className="hover:bg-[#F8FAFC] transition-colors">
+                              <td className="py-2.5 px-3.5 font-semibold text-[#0F172A] bg-slate-50/50">
+                                {row.aspect}
+                              </td>
+                              <td className="py-2.5 px-3.5 text-blue-950 leading-relaxed">
+                                {row.tenseA}
+                              </td>
+                              <td className="py-2.5 px-3.5 text-amber-950 leading-relaxed">
+                                {row.tenseB}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Ví dụ đối xứng */}
+                    {(comp.examplePairs || []).map((ex, eIdx) => (
+                      <div key={eIdx} className="p-3.5 rounded-xl bg-white border border-[#E2E8F0] space-y-2 text-[12.5px]">
+                        <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                          Ngữ cảnh: {ex.context}
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-3 pt-1">
+                          <div className="p-2.5 rounded-lg bg-blue-50/60 border border-blue-100 space-y-1">
+                            <div className="font-medium text-blue-900 font-mono text-[12px]">
+                              {ex.exampleA.en}
+                            </div>
+                            <div className="text-[11.5px] text-blue-700 italic">
+                              {ex.exampleA.vi}
+                            </div>
+                          </div>
+                          <div className="p-2.5 rounded-lg bg-amber-50/60 border border-amber-100 space-y-1">
+                            <div className="font-medium text-amber-950 font-mono text-[12px]">
+                              {ex.exampleB.en}
+                            </div>
+                            <div className="text-[11.5px] text-amber-800 italic">
+                              {ex.exampleB.vi}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-[11.5px] text-slate-600 font-medium pt-1">
+                          💡 <span className="font-semibold text-slate-800">Bản chất:</span> {ex.insight}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Hộp Bẫy đề thi Part 5 */}
+                    {comp.toeicTrap && (
+                      <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-bold text-amber-900">Bí kíp phòng bẫy Part 5:</span> {comp.toeicTrap}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -461,43 +605,102 @@ export function LessonDetailView({ lesson }: LessonDetailViewProps) {
           <div className="grid sm:grid-cols-2 gap-2 pt-1">
             {lesson.workedExample.options.map((opt, idx) => {
               const isCorrect = idx === lesson.workedExample.correctIndex;
+              const isSelected = quizSelected === idx;
+
+              let styleClasses = "bg-white border-[#E2E8F0] text-[#0F172A] hover:bg-slate-50 cursor-pointer";
+              if (showExplanation) {
+                if (isCorrect) {
+                  styleClasses = "bg-[#ECFDF5] border-[#A7F3D0] text-[#047857] font-bold";
+                } else if (isSelected) {
+                  styleClasses = "bg-[#FFF1F2] border-[#FECDD3] text-[#BE123C] line-through";
+                } else {
+                  styleClasses = "bg-white border-[#E2E8F0] text-[#94A3B8] opacity-70";
+                }
+              } else if (isSelected) {
+                styleClasses = "bg-[#EFF6FF] border-[#2563EB] text-[#2563EB] font-bold ring-2 ring-[#2563EB]/20";
+              }
+
               return (
-                <div
+                <button
                   key={idx}
-                  className={`p-2.5 rounded-lg border text-[13px] font-mono flex items-center justify-between ${
-                    isCorrect
-                      ? "bg-[#ECFDF5] border-[#A7F3D0] text-[#047857] font-bold"
-                      : "bg-white border-[#E2E8F0] text-[#475569]"
-                  }`}
+                  type="button"
+                  onClick={() => {
+                    if (!showExplanation) setQuizSelected(idx);
+                  }}
+                  className={`p-3 rounded-lg border text-[13px] font-mono flex items-center justify-between text-left transition-all ${styleClasses}`}
                 >
                   <span>{opt}</span>
-                  {isCorrect && (
+                  {showExplanation && isCorrect && (
                     <span className="text-[11px] font-sans font-bold bg-[#047857] text-white px-2 py-0.5 rounded">
                       Đáp án đúng
                     </span>
                   )}
-                </div>
+                  {showExplanation && isSelected && !isCorrect && (
+                    <span className="text-[11px] font-sans font-bold bg-[#BE123C] text-white px-2 py-0.5 rounded">
+                      Bạn chọn
+                    </span>
+                  )}
+                </button>
               );
             })}
           </div>
+
+          {!showExplanation ? (
+            <div className="pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-t border-[#E2E8F0] mt-3 pt-3">
+              <span className="text-[12px] text-[#475569] italic">
+                {quizSelected !== null ? "Đã chọn 1 phương án. Bấm kiểm tra để xem đáp án." : "Hãy thử tự chọn phương án trước khi mở đáp án."}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowExplanation(true)}
+                className="px-4 py-2 rounded-lg bg-[#0F172A] text-white text-xs font-semibold hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+              >
+                Kiểm tra & Xem giải thích
+              </button>
+            </div>
+          ) : (
+            <div className="pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-t border-[#E2E8F0] mt-3 pt-3">
+              <span className="text-[12px] font-semibold text-[#0F172A]">
+                {quizSelected === lesson.workedExample.correctIndex ? (
+                  <span className="text-[#047857]">🎉 Bạn đã chọn chính xác! Xem các bước tư duy bên dưới:</span>
+                ) : quizSelected !== null ? (
+                  <span className="text-[#BE123C]">💡 Chưa chính xác. Xem phân tích bẫy từng bước để rút kinh nghiệm:</span>
+                ) : (
+                  <span>Phân tích các bước tư duy chuẩn:</span>
+                )}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExplanation(false);
+                  setQuizSelected(null);
+                }}
+                className="text-xs text-[#2563EB] hover:underline cursor-pointer font-medium"
+              >
+                Làm lại câu này
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Giải phẫu từng bước */}
-        <div className="space-y-2 pt-2">
-          <div className="text-[12px] font-semibold uppercase tracking-wider text-[#475569]">
-            Phân tích tư duy từng bước:
+        {/* Giải phẫu từng bước (chỉ hiện khi showExplanation = true) */}
+        {showExplanation && (
+          <div className="space-y-2 pt-2">
+            <div className="text-[12px] font-semibold uppercase tracking-wider text-[#475569]">
+              Phân tích tư duy từng bước:
+            </div>
+            <div className="space-y-1.5">
+              {lesson.workedExample.explanationStepByStep.map((step, idx) => (
+                <div
+                  key={idx}
+                  className="p-3 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[13px] text-[#0F172A] leading-relaxed"
+                >
+                  {step}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="space-y-1.5">
-            {lesson.workedExample.explanationStepByStep.map((step, idx) => (
-              <div
-                key={idx}
-                className="p-3 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[13px] text-[#0F172A] leading-relaxed"
-              >
-                {step}
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </section>
 
       {/* 8. Chuyển Tiếp Sang Luyện Tập (Bridge to Practice - Duy nhất 1 nút Primary) */}

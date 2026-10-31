@@ -255,6 +255,14 @@ export const PHONETIC_WORD_MAP: Record<string, string> = {
   suitable: "ˈsuːtəbl",
   reliable: "rɪˈlaɪəbl",
   flexible: "ˈfleksəbl",
+  flexibly: "ˈfleksəbli",
+  profitable: "ˈprɑːfɪtəbl",
+  profitably: "ˈprɑːfɪtəbli",
+  hold: "hoʊld",
+  owe: "oʊ",
+  code: "koʊd",
+  goal: "ɡoʊl",
+  fold: "foʊld",
   innovative: "ˈɪnəveɪtɪv",
   competitive: "kəmˈpetətɪv",
   beneficial: "ˌbenɪˈfɪʃl",
@@ -371,19 +379,21 @@ export function resolvePhonetic(
   existingPhonetic?: string,
   fallbackDictionary?: Record<string, { phonetic?: string }>
 ): string {
-  const existing = (existingPhonetic || "").trim();
-  if (existing && existing !== "//" && existing !== "/") {
-    return sanitizeIpaString(existing);
-  }
-
   if (!term || !term.trim()) return "";
 
   const clean = term.trim().toLowerCase();
 
-  // 1. Kiểm tra trực tiếp trong PHONETIC_WORD_MAP
+  // 1. Ưu tiên tra cứu từ điển phiên âm chuẩn quốc tế (PHONETIC_WORD_MAP)
+  // Đảm bảo sửa triệt để các phiên âm cũ bị sai sót hoặc lưu vết trong database
   if (PHONETIC_WORD_MAP[clean]) {
     const raw = PHONETIC_WORD_MAP[clean];
     return raw.startsWith("/") ? raw : `/${raw}/`;
+  }
+
+  // 2. Sử dụng phiên âm đã lưu trong DB nếu có và chưa có trong từ điển chuẩn
+  const existing = (existingPhonetic || "").trim();
+  if (existing && existing !== "//" && existing !== "/") {
+    return sanitizeIpaString(existing);
   }
 
   // 1b. Kiểm tra trong fallbackDictionary nếu được truyền

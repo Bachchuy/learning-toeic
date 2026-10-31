@@ -129,7 +129,7 @@ export function TypingModeCard({
       setWarningMessage(null);
       inputRef.current?.blur();
       if (autoPlayAudio) {
-        playPronunciation(card.word);
+        playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
       }
     } else if (evaluation.isClose) {
       setWarningMessage(
@@ -141,7 +141,7 @@ export function TypingModeCard({
       setWarningMessage(`Chưa chính xác. Đáp án đúng là "${card.word}".`);
       inputRef.current?.blur();
       if (autoPlayAudio) {
-        playPronunciation(card.word);
+        playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
       }
     }
   };
@@ -292,7 +292,7 @@ export function TypingModeCard({
                   </span>
                   <button
                     type="button"
-                    onClick={() => playPronunciation(card.word)}
+                    onClick={() => playPronunciation(card.word, card.audio_url || card.metadata?.audio_url)}
                     className="p-1 rounded-full text-blue-600 hover:bg-blue-100/70 transition-colors cursor-pointer"
                     title="Nghe phát âm"
                   >

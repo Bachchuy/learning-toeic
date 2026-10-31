@@ -721,7 +721,7 @@ export async function importCuratedDeckAction(deckId: string): Promise<{
   );
 
   // 3. Lọc và chuẩn hóa danh sách từ cần nạp (Deduplicate lemma trong chính bộ thẻ và so với sổ người dùng)
-  const seenLemmas = new Set(existingLemmas);
+  const seenLemmas = new Set<string>();
   const itemsToInsert: typeof deck.items = [];
 
   for (const item of deck.items) {
@@ -764,13 +764,17 @@ export async function importCuratedDeckAction(deckId: string): Promise<{
         detailed_explanation: item.explanation,
         image_url: item.image_url,
         audio_url: item.audio_url,
+        word_family: item.word_families || [],
+        collocations: item.collocations || [],
+        synonyms: item.synonyms || [],
+        usage_note: item.usage_note || '',
       },
       notebook_id: notebook.id,
     }));
 
     const { error: insertError } = await supabase
       .from("vocab_entries")
-      .upsert(rows, { onConflict: "user_id,lemma", ignoreDuplicates: true });
+      .upsert(rows, { onConflict: "user_id,lemma" });
 
     if (insertError) {
       console.error("Lỗi khi batch insert bộ thẻ:", insertError);

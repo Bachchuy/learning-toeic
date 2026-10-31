@@ -12,10 +12,15 @@ export function LessonCard({ lesson }: LessonCardProps) {
       <div className="space-y-3">
         {/* Category & Time */}
         <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide uppercase bg-[#EFF6FF] text-[#1E40AF]">
-            <BookOpen className="w-3.5 h-3.5 text-[#2563EB]" />
-            {lesson.categoryVi}
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide uppercase bg-[#EFF6FF] text-[#1E40AF]">
+              <BookOpen className="w-3.5 h-3.5 text-[#2563EB]" />
+              {lesson.categoryVi}
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+              Chuẩn Murphy &amp; Barron&apos;s
+            </span>
+          </div>
           <span className="inline-flex items-center gap-1 text-[11px] font-mono text-[#475569]">
             <Clock className="w-3 h-3 text-[#475569]" />
             {lesson.estimatedMinutes} phút

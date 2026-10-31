@@ -343,7 +343,8 @@ export function ReadingExamSimulator({ examData }: ReadingExamSimulatorProps) {
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-[#B45309]" />
-                <span>Đánh dấu cờ</span>
+                <span>Đánh dấu
+                </span>
               </div>
             </div>
           </Card>
@@ -379,7 +380,7 @@ export function ReadingExamSimulator({ examData }: ReadingExamSimulatorProps) {
                     }`}
                   >
                     <Flag className="w-3.5 h-3.5" />
-                    <span>{flaggedIds.has(currentQuestion.id) ? "Đã gắn cờ" : "Đánh dấu cờ (F)"}</span>
+                    <span>{flaggedIds.has(currentQuestion.id) ? "Đã đánh dấu" : "Đánh dấu (F)"}</span>
                   </button>
                 </div>
               </div>

@@ -42,9 +42,9 @@ export function QuizModeCard({
 
   useEffect(() => {
     if (mode === "en_to_vi" && autoPlayAudio) {
-      playPronunciation(card.word);
+      playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
     }
-  }, [card.word, mode, autoPlayAudio]);
+  }, [card.word, mode, autoPlayAudio, card.audio_url, card.metadata?.audio_url]);
 
   const posInfo = getPosBadgeInfo(card.part_of_speech, card.meaning, card.word);
   const phonetic = resolvePhonetic(card.word, card.phonetic || card.metadata?.phonetic);
@@ -58,10 +58,10 @@ export function QuizModeCard({
       setHasSubmitted(true);
 
       if (autoPlayAudio) {
-        playPronunciation(card.word);
+        playPronunciation(card.word, card.audio_url || card.metadata?.audio_url);
       }
     },
-    [hasSubmitted, autoPlayAudio, card.word]
+    [hasSubmitted, autoPlayAudio, card.word, card.audio_url, card.metadata?.audio_url]
   );
 
   // Phím tắt bàn phím 1, 2, 3, 4 & Enter
@@ -121,7 +121,7 @@ export function QuizModeCard({
               </h2>
               <button
                 type="button"
-                onClick={() => playPronunciation(card.word)}
+                onClick={() => playPronunciation(card.word, card.audio_url || card.metadata?.audio_url)}
                 className="p-1.5 rounded-full text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
                 title="Phát âm từ này"
               >

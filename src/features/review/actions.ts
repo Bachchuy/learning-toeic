@@ -146,7 +146,7 @@ export async function getReviewCardsAction(
   let data = initialData;
 
   if (error) {
-    console.error("Lỗi getReviewCardsAction:", error);
+    console.error("Lỗi getReviewCardsAction:", JSON.stringify(error, null, 2), error);
     return {
       cards: [],
       totalCardsCount: totalCardsCount ?? 0,
@@ -313,6 +313,7 @@ export async function getReviewCardsAction(
         context_translation: vocab.context_translation,
         part_of_speech: partOfSpeech,
         phonetic,
+        audio_url: metadata.audio_url || (vocab.metadata as Record<string, unknown> | undefined)?.audio_url as string || "",
         metadata,
         state: row.state,
         stability: Number(row.stability) || 0,

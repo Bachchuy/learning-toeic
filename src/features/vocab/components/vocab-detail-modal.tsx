@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
-import type { VocabEntry } from "@/features/vocab/types";
+import { useEffect, useMemo } from "react";
+import essential600Data from "@/data/curated-decks/essential-600-words.json";
+import type { VocabEntry, WordFamilyMember } from "@/features/vocab/types";
 import {
   getPosBadgeInfo,
   generateNaturalExplanation,
   getDualPronunciation,
 } from "@/core/vocab";
 import { resolvePhonetic } from "@/core/phonetic";
-import { playPronunciation } from "@/lib/audio";
+import { playPronunciation, playDualPronunciation } from "@/lib/audio";
 import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
 import {
   X,
@@ -20,6 +21,8 @@ import {
   Volume2,
   Layers,
   Bookmark,
+  Lightbulb,
+  CheckCircle2,
 } from "lucide-react";
 
 interface VocabDetailModalProps {
@@ -104,9 +107,16 @@ export function VocabDetailModal({
 
   const stateInfo = getFSRSStateLabel(card?.state);
 
-  // Phát âm kép (Dual-Engine: US Audio CDN + Web Speech API fallback)
+  // Phát âm kép (Dual-Engine: Audio CDN + Web Speech API fallback)
   const handleSpeak = () => {
-    playPronunciation(entry.word, entry.audio_url || entry.metadata?.audio_url);
+    if (dual) {
+      playDualPronunciation(entry.word, {
+        nounAudioUrl: dual.nounAudioUrl,
+        verbAudioUrl: dual.verbAudioUrl,
+      });
+    } else {
+      playPronunciation(entry.word, entry.audio_url || entry.metadata?.audio_url);
+    }
   };
 
   const phoneticDisplay = resolvePhonetic(
@@ -131,13 +141,46 @@ export function VocabDetailModal({
       ? metadata.detailed_explanation
       : generateNaturalExplanation(entry.word, entry.meaning, posInfo.category);
 
-  const wordFamily = metadata?.word_family || [];
-  const synonyms = metadata?.synonyms || [];
-  const antonyms = metadata?.antonyms || [];
-  const collocations = metadata?.collocations || [];
-  const toeicExample = metadata?.toeic_example || entry.context_sentence;
+  // Tự động đối chiếu bộ 600 từ Barron's nếu từ này từng được nạp từ trước (ngay cả khi DB cũ chưa có metadata)
+  const curatedItem = useMemo(() => {
+    if (!entry) return null;
+    const target = entry.word.toLowerCase().trim();
+    const targetLemma = (entry.lemma || entry.word).toLowerCase().trim();
+    return (
+      (essential600Data as any[]).find(
+        (item) =>
+          item.word.toLowerCase().trim() === target ||
+          item.word.toLowerCase().trim() === targetLemma
+      ) || null
+    );
+  }, [entry]);
+
+  const wordFamily: WordFamilyMember[] =
+    metadata?.word_family && metadata.word_family.length > 0
+      ? metadata.word_family
+      : (curatedItem?.word_families as WordFamilyMember[]) || [];
+
+  const synonyms: string[] =
+    metadata?.synonyms && metadata.synonyms.length > 0
+      ? metadata.synonyms
+      : (curatedItem?.synonyms as string[]) || [];
+
+  const antonyms: string[] = metadata?.antonyms || [];
+
+  const collocations: string[] =
+    metadata?.collocations && metadata.collocations.length > 0
+      ? metadata.collocations
+      : (curatedItem?.collocations as string[]) || [];
+
+  const usageNote = metadata?.usage_note || curatedItem?.usage_note;
+
+  const toeicExample =
+    metadata?.toeic_example || curatedItem?.example || entry.context_sentence;
+
   const toeicExampleTrans =
-    metadata?.toeic_example_translation || entry.context_translation;
+    metadata?.toeic_example_translation ||
+    curatedItem?.example_translation ||
+    entry.context_translation;
 
   return (
     <div
@@ -222,9 +265,11 @@ export function VocabDetailModal({
 
                   {/* Huy hiệu phân loại từ vựng: Danh · Động · Tính · Trạng */}
                   <span
-                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase tracking-wider border ${posInfo.badgeClass}`}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase tracking-wider border ${
+                      dual ? "bg-indigo-50 text-indigo-700 border-indigo-200" : posInfo.badgeClass
+                    }`}
                   >
-                    {posInfo.shortBadge}
+                    {dual ? "DANH TỪ · ĐỘNG TỪ" : posInfo.shortBadge}
                   </span>
                 </div>
 
@@ -235,12 +280,24 @@ export function VocabDetailModal({
                       <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs">
                         <span className="font-bold font-mono">DANH TỪ:</span>
                         <span className="font-ipa">{dual.nounIpa}</span>
-                        <AudioSpeakerButton word={entry.word} posHint="noun" label="n" size="sm" />
+                        <AudioSpeakerButton
+                          word={entry.word}
+                          audioUrl={dual.nounAudioUrl}
+                          posHint="noun"
+                          label="n"
+                          size="sm"
+                        />
                       </div>
                       <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs">
                         <span className="font-bold font-mono">ĐỘNG TỪ:</span>
                         <span className="font-ipa">{dual.verbIpa}</span>
-                        <AudioSpeakerButton word={entry.word} posHint="verb" label="v" size="sm" />
+                        <AudioSpeakerButton
+                          word={entry.word}
+                          audioUrl={dual.verbAudioUrl}
+                          posHint="verb"
+                          label="v"
+                          size="sm"
+                        />
                       </div>
                     </div>
                   </div>
@@ -259,18 +316,33 @@ export function VocabDetailModal({
 
                 {/* Chi tiết nét nghĩa kép nếu có */}
                 {dual && dual.nounMeaning && dual.verbMeaning && (
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1.5 max-w-xl">
-                    <div className="flex items-start gap-1.5">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-mono font-bold shrink-0">
-                        Danh từ
-                      </span>
-                      <span className="font-medium">{dual.nounMeaning}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 my-2 max-w-xl">
+                    <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded-md bg-blue-600 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
+                          [n] Danh từ
+                        </span>
+                        <span className="text-xs font-ipa font-medium text-blue-900">
+                          {dual.nounIpa}
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm font-bold text-slate-900 pt-1 leading-snug">
+                        {dual.nounMeaning}
+                      </p>
                     </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-mono font-bold shrink-0">
-                        Động từ
-                      </span>
-                      <span className="font-medium">{dual.verbMeaning}</span>
+
+                    <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
+                          [v] Động từ
+                        </span>
+                        <span className="text-xs font-ipa font-medium text-emerald-900">
+                          {dual.verbIpa}
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm font-bold text-slate-900 pt-1 leading-snug">
+                        {dual.verbMeaning}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -292,14 +364,20 @@ export function VocabDetailModal({
               </div>
             </div>
 
-            {/* Chủ đề ngữ cảnh */}
-            {topicDisplay && (
-              <div className="flex items-center gap-2 pt-1">
+            {/* Chủ đề ngữ cảnh & Nguồn đối chiếu Barron's */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {topicDisplay && (
                 <span className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 bg-slate-50 border border-slate-200">
                   Chủ đề: {topicDisplay}
                 </span>
-              </div>
-            )}
+              )}
+              {curatedItem && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  Chuẩn Barron&apos;s 600 Words
+                </span>
+              )}
+            </div>
           </div>
 
           {/* 2. Main Grid: 2 cột (Cột trái 7/12: Nội dung ngôn ngữ | Cột phải 5/12: Trạng thái học FSRS) */}
@@ -366,6 +444,19 @@ export function VocabDetailModal({
                   </div>
                   <div className="text-sm text-slate-700 font-medium leading-relaxed bg-slate-50/60 p-3 rounded-xl border border-slate-200/80">
                     {collocations.join(" · ")}
+                  </div>
+                </div>
+              )}
+
+              {/* Bí kíp & Lưu ý ngữ pháp TOEIC */}
+              {usageNote && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-amber-700">
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Bí kíp & Cách dùng TOEIC</span>
+                  </div>
+                  <div className="text-xs sm:text-sm text-amber-950 font-medium leading-relaxed bg-amber-50/80 p-3.5 rounded-xl border border-amber-200/80">
+                    {usageNote}
                   </div>
                 </div>
               )}

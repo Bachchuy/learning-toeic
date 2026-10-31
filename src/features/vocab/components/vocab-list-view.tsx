@@ -18,6 +18,7 @@ import {
   type CuratedDeckStatus,
 } from "@/features/vocab/actions";
 import { CURATED_DECKS } from "@/data/curated-decks";
+import essential600Data from "@/data/curated-decks/essential-600-words.json";
 import { VocabDetailModal } from "./vocab-detail-modal";
 import { VocabCreateModal } from "./vocab-create-modal";
 import { NotebookManagerModal } from "./notebook-manager-modal";
@@ -668,6 +669,9 @@ interface VocabListViewProps {
   initialNotebooks?: Notebook[];
   initialCuratedDecks?: CuratedDeckStatus[];
 }
+
+// Map tra cứu nhanh 600 từ Barron's để đối chiếu tức thời trên UI ngay cả khi DB chưa cập nhật
+const essential600Map = new Map((essential600Data as any[]).map(d => [d.word.toLowerCase().trim(), d]));
 
 export function VocabListView({
   initialEntries,
@@ -2355,6 +2359,9 @@ export function VocabListView({
                 item.word,
                 item.phonetic || item.metadata?.phonetic
               );
+              const curated =
+                essential600Map.get(item.word.toLowerCase().trim()) ||
+                essential600Map.get((item.lemma || item.word).toLowerCase().trim());
 
               return (
                 <Card
@@ -2398,6 +2405,13 @@ export function VocabListView({
                           >
                             {posInfo.shortBadge}
                           </span>
+
+                          {/* Huy hiệu Chuẩn Barron's 600 Words */}
+                          {curated && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              Barron&apos;s
+                            </span>
+                          )}
 
                           {/* Huy hiệu Đến hạn ôn */}
                           {isDue && (
@@ -2520,6 +2534,25 @@ export function VocabListView({
                           <div className="text-[11px] text-[#64748B] italic line-clamp-1 border-t border-[#E2E8F0]/60 pt-1">
                             Dịch: &ldquo;{item.context_translation}&rdquo;
                           </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Preview Mẹo & Bí kíp TOEIC Part 5 & 7 */}
+                    {(item.metadata?.usage_note || curated?.usage_note) && (
+                      <div
+                        onClick={() => setSelectedDetailEntry(item)}
+                        className="px-2.5 py-1.5 rounded-lg bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 cursor-pointer hover:bg-amber-100/70 transition-colors flex items-center justify-between gap-2"
+                        title="Bấm để xem chi tiết bí kíp và gia đình từ"
+                      >
+                        <div className="flex items-center gap-1.5 truncate">
+                          <span className="shrink-0 text-amber-600 font-bold">💡 Mẹo:</span>
+                          <span className="truncate">{item.metadata?.usage_note || curated?.usage_note}</span>
+                        </div>
+                        {curated?.word_families && curated.word_families.length > 0 && (
+                          <span className="shrink-0 text-[10px] font-mono font-medium text-amber-800/80 bg-amber-100/80 px-1.5 py-0.5 rounded border border-amber-300/40">
+                            {curated.word_families.length} dạng từ
+                          </span>
                         )}
                       </div>
                     )}

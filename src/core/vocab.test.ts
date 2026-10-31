@@ -6,6 +6,7 @@ import {
   getPosCategory,
   getPosBadgeInfo,
   generateNaturalExplanation,
+  resolveDualDetails,
 } from "./vocab";
 import { resolvePhonetic } from "./vocabDictionary";
 
@@ -76,6 +77,14 @@ describe("inferPartOfSpeech & getPosCategory", () => {
   it("nhận diện động từ", () => {
     expect(inferPartOfSpeech("operate")).toBe("Động từ (Verb)");
     expect(getPosCategory(undefined, "", "shredded")).toBe("verb");
+    expect(getPosCategory("v.", "dàn xếp, đáp ứng", "accommodate")).toBe("verb");
+  });
+
+  it("nhận diện chuẩn xác v. và n. không bị fallback sai", () => {
+    expect(getPosCategory("v.", "chứa, đựng", "contain")).toBe("verb");
+    expect(getPosCategory("n.", "thỏa thuận", "agreement")).toBe("noun");
+    expect(getPosCategory("adj.", "quan trọng", "crucial")).toBe("adjective");
+    expect(getPosCategory("adv.", "cẩn thận", "carefully")).toBe("adverb");
   });
 
   it("trả về huy hiệu phân loại Danh - Động - Tính - Trạng chuẩn mực", () => {
@@ -160,5 +169,37 @@ describe("generateNaturalExplanation", () => {
 
     const dualExp = generateNaturalExplanation("export", "xuất khẩu", "noun_verb");
     expect(dualExp).toContain("Từ đa năng (Danh từ & Động từ)");
+  });
+});
+
+describe("resolveDualDetails", () => {
+  it("nhận diện và trích xuất đúng 2 nét nghĩa và audio URLs riêng biệt cho từ loại kép (như hold, contract, present)", () => {
+    const holdDetails = resolveDualDetails("hold", "v.", "Chứa, đựng, tổ chức");
+    expect(holdDetails.isDual).toBe(true);
+    expect(holdDetails.nounMeaning).toContain("sự nắm giữ");
+    expect(holdDetails.verbMeaning).toContain("chứa đựng, tổ chức");
+    expect(holdDetails.primaryRole).toBe("verb");
+    expect(holdDetails.nounAudioUrl).toBeDefined();
+    expect(holdDetails.verbAudioUrl).toBeDefined();
+    expect(holdDetails.nounAudioUrl).not.toBe(holdDetails.verbAudioUrl);
+
+    const contractDetails = resolveDualDetails("contract", "n.", "Bản hợp đồng");
+    expect(contractDetails.isDual).toBe(true);
+    expect(contractDetails.nounIpa).toBe("/ˈkɑːntrækt/");
+    expect(contractDetails.verbIpa).toBe("/kənˈtrækt/");
+    expect(contractDetails.primaryRole).toBe("noun");
+    expect(contractDetails.nounAudioUrl).toContain("contract");
+    expect(contractDetails.verbAudioUrl).toContain("contract");
+
+    const presentDetails = resolveDualDetails("present", "v.", "thuyết trình");
+    expect(presentDetails.isDual).toBe(true);
+    expect(presentDetails.nounAudioUrl).toContain("pos=noun");
+    expect(presentDetails.verbAudioUrl).toContain("pos=verb");
+  });
+
+  it("trả về isDual false cho từ đơn lẻ", () => {
+    const accommodateDetails = resolveDualDetails("accommodate", "v.", "Dàn xếp, đáp ứng");
+    expect(accommodateDetails.isDual).toBe(false);
+    expect(accommodateDetails.primaryRole).toBe("verb");
   });
 });

@@ -12,6 +12,7 @@ export interface ReviewCardItem {
   context_translation?: string;
   part_of_speech?: string;
   phonetic?: string;
+  audio_url?: string;
   metadata?: VocabMetadata;
   state: number; // 0=New, 1=Learning, 2=Review, 3=Relearning
   stability: number;
