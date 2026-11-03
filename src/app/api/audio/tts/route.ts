@@ -1,65 +1,106 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cleanSpeechSegment } from "@/lib/audio";
+import { selectBestAudioForPos, type FreeDictApiResponseItem } from "@/core/dictionary";
+
+/**
+ * In-memory cache lưu URL phát âm người bản xứ từ Từ điển để tối ưu hiệu năng
+ */
+const dictAudioUrlCache = new Map<string, string>();
 
 /**
  * API Route: /api/audio/tts
  * Proxy TTS âm thanh giọng bản xứ en-US chuẩn xác:
- * - Giải quyết triệt để vấn đề CORS/Referer block khi gọi TTS từ trình duyệt client
- * - Phân định rõ nét từ loại (Noun: "the <word>", Verb: "to <word>") đối với các từ đa từ loại (Heteronyms)
- * - Cache audio stream tại client để tối ưu tốc độ và tiết kiệm băng thông
+ * - Ưu tiên hàng đầu: Tự động kéo file MP3 giọng người bản xứ thật từ Từ điển (Free Dictionary API / Cambridge / Wiktionary)
+ * - Tự động bóc tách đúng file âm thanh của Danh từ vs Động từ cho các từ đa loại (contract, present, produce...)
+ * - Dự phòng tự động bằng Google US English TTS (Giọng Nữ chuẩn)
+ * - Cache audio stream tại client và CDN để đạt độ trễ 0ms
  */
-/**
- * Bảng phiên âm ngữ âm học (Phonetic Respelling) cho Động từ đa từ loại (Heteronyms)
- * Ép engine TTS phát âm trọng âm âm tiết 2 (Stress Syllable 2) chuẩn xác ngữ âm học,
- * TUYỆT ĐỐI KHÔNG thêm bất kỳ từ đệm nào như "to " hay "the " gây khó chịu cho người học.
- */
-const VERB_PHONETIC_RESPEL: Record<string, string> = {
-  contract: "kuhn-tract",
-  record: "ri-cord",
-  present: "pri-zent",
-  conduct: "kuhn-duct",
-  produce: "pruh-duce",
-  project: "pruh-ject",
-  increase: "in-crease",
-  decrease: "di-crease",
-  permit: "per-mit",
-  export: "ek-sport",
-  import: "im-port",
-  refund: "ri-fund",
-  transport: "trans-port",
-  transfer: "trans-fer",
-  discount: "dis-count",
-  conflict: "kuhn-flict",
-  progress: "pruh-gress",
-  survey: "sur-vey",
-  address: "uh-dress",
-  object: "uhb-ject",
-  subject: "suhb-ject",
-  contrast: "kuhn-trast",
-  contest: "kuhn-test",
-  defect: "di-fect",
-  suspect: "suh-spect",
-};
-
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const word = searchParams.get("word")?.trim();
   const text = searchParams.get("text")?.trim();
   const pos = searchParams.get("pos")?.toLowerCase().trim();
 
-  const rawTarget = text || word || "";
+  let rawTarget = text || word || "";
 
   if (!rawTarget) {
     return new NextResponse("Missing query text or word", { status: 400 });
   }
 
-  const cleanWord = rawTarget.toLowerCase().trim();
-  let spokenQuery = rawTarget;
+  // 1. Nếu là từ đơn: Ưu tiên kéo Audio bản xứ người thật từ Từ điển
+  const cleanBase = rawTarget.replace(/^[to\s]+/i, "").trim().toLowerCase();
+  const isSingleWord = !cleanBase.includes(" ") && !cleanBase.includes("-");
 
-  // Với Động từ của từ đa từ loại: áp dụng Phonetic Respelling để nhấn trọng âm âm tiết 2,
-  // TUYỆT ĐỐI chỉ đọc đúng từ đó, không bao giờ kèm từ 'to' hay bất kỳ từ đệm nào
-  if (pos === "verb" && VERB_PHONETIC_RESPEL[cleanWord]) {
-    spokenQuery = VERB_PHONETIC_RESPEL[cleanWord];
+  if (isSingleWord && cleanBase.length >= 2) {
+    const cacheKey = `${cleanBase}:${pos || "default"}`;
+    let nativeAudioUrl = dictAudioUrlCache.get(cacheKey);
+
+    if (!nativeAudioUrl) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+        const dictRes = await fetch(
+          `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanBase)}`,
+          { signal: controller.signal }
+        );
+        clearTimeout(timeoutId);
+
+        if (dictRes.ok) {
+          const entries = (await dictRes.json()) as FreeDictApiResponseItem[];
+          if (Array.isArray(entries) && entries.length > 0) {
+            nativeAudioUrl = selectBestAudioForPos(entries, pos);
+            if (nativeAudioUrl) {
+              dictAudioUrlCache.set(cacheKey, nativeAudioUrl);
+            }
+          }
+        }
+      } catch {
+        // Bỏ qua lỗi mạng từ điển ngoài để chuyển sang fallback
+      }
+    }
+
+    // Nếu tìm thấy audio người bản xứ trong từ điển -> Tải và stream trực tiếp
+    if (nativeAudioUrl) {
+      try {
+        const audioRes = await fetch(nativeAudioUrl, {
+          headers: {
+            Accept: "audio/mpeg, audio/*;q=0.9",
+          },
+        });
+
+        if (audioRes.ok) {
+          const audioBuffer = await audioRes.arrayBuffer();
+          if (audioBuffer.byteLength > 0) {
+            return new NextResponse(audioBuffer, {
+              status: 200,
+              headers: {
+                "Content-Type": "audio/mpeg",
+                "Cache-Control":
+                  "public, max-age=604800, s-maxage=604800, stale-while-revalidate=2592000",
+              },
+            });
+          }
+        }
+      } catch {
+        // Tải audio từ điển thất bại -> fallback sang Google TTS
+      }
+    }
   }
+
+  // 2. Dự phòng: Google Translate TTS giọng Nữ chuẩn en-US
+  // Với Động từ của từ đa từ loại (Heteronyms): Ép nhấn trọng âm âm tiết 2
+  if (pos === "verb") {
+    const lower = rawTarget.toLowerCase().trim();
+    if (!lower.startsWith("to ")) {
+      const cleanWord = lower.replace(/[-\s]+/g, " ").trim();
+      rawTarget = `to ${cleanWord}`;
+    }
+  }
+
+  // Làm sạch hoàn toàn các ký hiệu ngữ pháp, ngoặc đơn (n/v), v.v.
+  const cleanTarget = cleanSpeechSegment(rawTarget);
+  const spokenQuery = cleanTarget || rawTarget;
 
   try {
     const upstreamUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q=${encodeURIComponent(

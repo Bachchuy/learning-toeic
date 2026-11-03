@@ -1,6 +1,7 @@
 "use server";
 
 import { getOptionalUser } from "@/shared/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   previewFSRSRatings,
   calculateFSRSReview,
@@ -348,13 +349,18 @@ export async function submitCardRatingAction(
   isShortTermLearningStep?: boolean;
   error?: string;
 }> {
+  // 0. Kiểm tra tham số rating hợp lệ (chỉ chấp nhận 1, 2, 3, 4)
+  if (!rating || ![1, 2, 3, 4].includes(rating)) {
+    return { success: false, error: "Đánh giá thẻ không hợp lệ (chỉ chấp nhận 1, 2, 3, 4)." };
+  }
+
   const { user, supabase } = await getOptionalUser();
 
   if (!user) {
     return { success: false, error: "Vui lòng đăng nhập để chấm thẻ." };
   }
 
-  // 1. Đọc thông tin thẻ hiện tại từ database
+  // 1. Đọc thông tin thẻ hiện tại từ database (xác minh quyền sở hữu của user)
   const { data: cardRow, error: fetchError } = await supabase
     .from("review_cards")
     .select("*")
@@ -380,51 +386,49 @@ export async function submitCardRatingAction(
     lapses: cardRow.lapses,
   };
 
-  // 2. Tính toán lịch ôn kế tiếp với ts-fsrs (D-22 & D-24)
+  // 2. Tính toán lịch ôn kế tiếp với ts-fsrs trên server (D-22 & D-24)
   const { updatedCard, reviewLog, nextDue } = calculateFSRSReview(
     dbCard,
     rating,
     now
   );
 
-  // 3. Cập nhật review_cards
-  const { error: updateError } = await supabase
-    .from("review_cards")
-    .update({
-      state: updatedCard.state,
-      stability: updatedCard.stability,
-      difficulty: updatedCard.difficulty,
-      due: updatedCard.due,
-      last_review: updatedCard.last_review,
-      reps: updatedCard.reps,
-      lapses: updatedCard.lapses,
-    })
-    .eq("id", cardId)
-    .eq("user_id", user.id);
+  // 3. THỰC THI GIAO DỊCH NGUYÊN TỬ (ATOMIC TRANSACTION) TRÊN POSTGRESQL (P0.2)
+  // Gọi RPC record_card_review_atomic qua createAdminClient (service_role)
+  // để cập nhật review_cards và INSERT card_reviews trong cùng 1 transaction.
+  const adminClient = createAdminClient();
+  const { data: atomicResult, error: atomicError } = await adminClient.rpc(
+    "record_card_review_atomic",
+    {
+      p_card_id: cardId,
+      p_user_id: user.id,
+      p_new_state: updatedCard.state,
+      p_new_stability: updatedCard.stability,
+      p_new_difficulty: updatedCard.difficulty,
+      p_new_due: updatedCard.due,
+      p_new_last_review: updatedCard.last_review || now.toISOString(),
+      p_new_reps: updatedCard.reps,
+      p_new_lapses: updatedCard.lapses,
+      p_rating: rating,
+      p_state_before: reviewLog.state_before,
+      p_stability_before: reviewLog.stability_before,
+      p_difficulty_before: reviewLog.difficulty_before,
+      p_reviewed_at: reviewLog.reviewed_at,
+      p_expected_last_review: dbCard.last_review ? new Date(dbCard.last_review).toISOString() : null,
+    }
+  );
 
-  if (updateError) {
+  const res = atomicResult as { success?: boolean; error?: string; message?: string } | null;
+
+  if (atomicError || !res?.success) {
+    console.error("[FSRS_Review] Lỗi giao dịch nguyên tử:", atomicError || res?.message);
     return {
       success: false,
-      error: "Không thể lưu kết quả ôn tập. Vui lòng thử lại.",
+      error: res?.message || atomicError?.message || "Không thể lưu kết quả ôn tập. Vui lòng thử lại.",
     };
   }
 
-  // 4. Ghi lịch sử chấm thẻ vào bảng card_reviews (D-23 append-only)
-  const { error: insertLogError } = await supabase.from("card_reviews").insert({
-    card_id: reviewLog.card_id,
-    user_id: reviewLog.user_id,
-    rating: reviewLog.rating,
-    state_before: reviewLog.state_before,
-    stability_before: reviewLog.stability_before,
-    difficulty_before: reviewLog.difficulty_before,
-    reviewed_at: reviewLog.reviewed_at,
-  });
-
-  if (insertLogError) {
-    console.error("Lỗi ghi nhận lịch sử card_reviews:", insertLogError);
-  }
-
-  // 5. Ghi sự kiện analytics
+  // 4. Ghi sự kiện analytics (không ảnh hưởng đến tính nguyên tử của dữ liệu)
   await trackEventAction("review_started", {
     card_id: cardId,
     rating,

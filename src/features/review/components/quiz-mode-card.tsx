@@ -26,7 +26,7 @@ export function QuizModeCard({
   allCards,
   mode,
   onCardCompleted,
-  autoPlayAudio = true,
+  autoPlayAudio = false,
 }: QuizModeCardProps) {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);

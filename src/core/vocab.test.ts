@@ -7,6 +7,7 @@ import {
   getPosBadgeInfo,
   generateNaturalExplanation,
   resolveDualDetails,
+  detectWordRoleInSentence,
 } from "./vocab";
 import { resolvePhonetic } from "./vocabDictionary";
 
@@ -201,5 +202,66 @@ describe("resolveDualDetails", () => {
     const accommodateDetails = resolveDualDetails("accommodate", "v.", "Dàn xếp, đáp ứng");
     expect(accommodateDetails.isDual).toBe(false);
     expect(accommodateDetails.primaryRole).toBe("verb");
+  });
+
+  it("phân bổ rõ nét nghĩa danh từ và động từ cho từ lease", () => {
+    // Ngữ cảnh dùng như động từ: "They decided to lease the property rather than buy it."
+    const leaseVerbContext = resolveDualDetails(
+      "lease",
+      "n,v.",
+      "Khế ước, hợp đồng cho thuê",
+      "They decided to lease the property rather than buy it."
+    );
+    expect(leaseVerbContext.isDual).toBe(true);
+    expect(leaseVerbContext.nounMeaning?.toLowerCase()).toContain("hợp đồng cho thuê");
+    expect(leaseVerbContext.verbMeaning?.toLowerCase()).toContain("cho thuê");
+    expect(leaseVerbContext.primaryRole).toBe("verb");
+
+    // Ngữ cảnh dùng như danh từ: "The lease expires next month."
+    const leaseNounContext = resolveDualDetails(
+      "lease",
+      "n,v.",
+      "Khế ước, hợp đồng cho thuê",
+      "The lease expires next month."
+    );
+    expect(leaseNounContext.primaryRole).toBe("noun");
+  });
+
+  it("tách đúng nghĩa kép từ định dạng [n] ... · [v] ... hoặc dấu chấm phẩy", () => {
+    const customTagged = resolveDualDetails(
+      "transfer",
+      "n,v.",
+      "[n] Sự di chuyển · [v] Chuyển đổi"
+    );
+    expect(customTagged.isDual).toBe(true);
+    expect(customTagged.nounMeaning).toBe("Sự di chuyển");
+    expect(customTagged.verbMeaning).toBe("Chuyển đổi");
+
+    const semiSplit = resolveDualDetails(
+      "requisition",
+      "n; v",
+      "Sự yêu cầu; Trưng dụng"
+    );
+    expect(semiSplit.isDual).toBe(true);
+    expect(semiSplit.nounMeaning).toBe("Sự yêu cầu");
+    expect(semiSplit.verbMeaning).toBe("Trưng dụng");
+  });
+
+  it("nhận diện vai trò ngữ pháp của từ trong câu bằng detectWordRoleInSentence", () => {
+    expect(
+      detectWordRoleInSentence("lease", "They decided to lease the property rather than buy it.")
+    ).toBe("verb");
+
+    expect(
+      detectWordRoleInSentence("lease", "You can sign the lease tomorrow.")
+    ).toBe("noun");
+
+    expect(
+      detectWordRoleInSentence("refund", "The company will refund your money if unsatisfied.")
+    ).toBe("verb");
+
+    expect(
+      detectWordRoleInSentence("refund", "He demanded a full refund immediately.")
+    ).toBe("noun");
   });
 });

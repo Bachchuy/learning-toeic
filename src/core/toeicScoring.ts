@@ -1,13 +1,24 @@
 /**
- * TOEIC Standard Scoring Table (Thang điểm quy đổi chuẩn ETS TOEIC)
+ * TOEIC Estimated Reference Scoring Module (Thang điểm ước tính tham chiếu TOEIC)
  *
- * Listening: 0-100 câu đúng -> 5-495 điểm
- * Reading: 0-100 câu đúng -> 5-495 điểm
- * Total: 10-990 điểm
+ * LƯU Ý PHÁP LÝ & CHUYÊN MÔN:
+ * ETS (Educational Testing Service) KHÔNG công bố một bảng quy đổi số câu đúng sang điểm
+ * cố định duy nhất cho mọi đề thi. Mỗi mã đề thi thật đều sử dụng kỹ thuật cân bằng thống kê
+ * (Statistical Equating) và lý thuyết ứng đáp câu hỏi (Item Response Theory - IRT) để quy đổi
+ * điểm dựa trên độ khó thực tế của từng đề thi.
+ *
+ * Bảng điểm dưới đây là thang quy đổi ước tính tham chiếu tiêu chuẩn (Estimated Reference Mapping),
+ * phục vụ việc ước lượng phong độ luyện tập của người học, không phải bảng quy đổi chính thức
+ * của một mã đề thi ETS cụ thể nào.
+ *
+ * Quy chuẩn điểm số:
+ * - Listening: 0-100 câu đúng -> Ước tính 5-495 điểm (bội số của 5)
+ * - Reading: 0-100 câu đúng -> Ước tính 5-495 điểm (bội số của 5)
+ * - Total: 10-990 điểm (bội số của 5)
  */
 
-// Bảng quy đổi chuẩn ETS (Listening Raw to Scaled Score)
-const LISTENING_SCORE_MAP: Record<number, number> = {
+// Bảng điểm ước tính tham chiếu cho Listening (Raw to Estimated Scaled Score)
+const ESTIMATED_LISTENING_SCORE_MAP: Record<number, number> = {
   0: 5, 1: 5, 2: 5, 3: 5, 4: 5, 5: 5, 6: 10, 7: 15, 8: 20, 9: 25, 10: 30,
   11: 35, 12: 40, 13: 45, 14: 50, 15: 55, 16: 60, 17: 65, 18: 70, 19: 75, 20: 80,
   21: 85, 22: 90, 23: 95, 24: 100, 25: 110, 26: 115, 27: 120, 28: 125, 29: 130, 30: 135,
@@ -20,8 +31,8 @@ const LISTENING_SCORE_MAP: Record<number, number> = {
   91: 495, 92: 495, 93: 495, 94: 495, 95: 495, 96: 495, 97: 495, 98: 495, 99: 495, 100: 495
 };
 
-// Bảng quy đổi chuẩn ETS (Reading Raw to Scaled Score)
-const READING_SCORE_MAP: Record<number, number> = {
+// Bảng điểm ước tính tham chiếu cho Reading (Raw to Estimated Scaled Score)
+const ESTIMATED_READING_SCORE_MAP: Record<number, number> = {
   0: 5, 1: 5, 2: 5, 3: 5, 4: 5, 5: 5, 6: 10, 7: 15, 8: 20, 9: 25, 10: 30,
   11: 35, 12: 40, 13: 40, 14: 45, 15: 50, 16: 55, 17: 60, 18: 65, 19: 70, 20: 75,
   21: 80, 22: 85, 23: 90, 24: 95, 25: 100, 26: 105, 27: 110, 28: 115, 29: 120, 30: 125,
@@ -34,26 +45,54 @@ const READING_SCORE_MAP: Record<number, number> = {
   91: 465, 92: 470, 93: 480, 94: 485, 95: 490, 96: 495, 97: 495, 98: 495, 99: 495, 100: 495
 };
 
-export function calculateListeningScore(rawCount: number): number {
+/**
+ * Ước tính điểm Listening từ số câu đúng (Raw Score)
+ * @param rawCount Số câu đúng (0 - 100)
+ * @returns Điểm ước tính Listening (5 - 495)
+ */
+export function estimateListeningScore(rawCount: number): number {
+  if (typeof rawCount !== "number" || isNaN(rawCount)) return 5;
   const count = Math.max(0, Math.min(100, Math.round(rawCount)));
-  return LISTENING_SCORE_MAP[count] ?? 5;
+  return ESTIMATED_LISTENING_SCORE_MAP[count] ?? 5;
 }
 
-export function calculateReadingScore(rawCount: number): number {
+/**
+ * Ước tính điểm Reading từ số câu đúng (Raw Score)
+ * @param rawCount Số câu đúng (0 - 100)
+ * @returns Điểm ước tính Reading (5 - 495)
+ */
+export function estimateReadingScore(rawCount: number): number {
+  if (typeof rawCount !== "number" || isNaN(rawCount)) return 5;
   const count = Math.max(0, Math.min(100, Math.round(rawCount)));
-  return READING_SCORE_MAP[count] ?? 5;
+  return ESTIMATED_READING_SCORE_MAP[count] ?? 5;
 }
 
-export function calculateTotalScore(listeningRaw: number, readingRaw: number): {
+/**
+ * Ước tính tổng điểm TOEIC từ số câu đúng Listening và Reading
+ * @param listeningRaw Số câu đúng Listening (0 - 100)
+ * @param readingRaw Số câu đúng Reading (0 - 100)
+ * @returns Kết quả điểm ước tính Listening, Reading và Tổng điểm
+ */
+export function estimateTotalScore(
+  listeningRaw: number,
+  readingRaw: number
+): {
   listeningScore: number;
   readingScore: number;
   totalScore: number;
 } {
-  const listeningScore = calculateListeningScore(listeningRaw);
-  const readingScore = calculateReadingScore(readingRaw);
+  const listeningScore = estimateListeningScore(listeningRaw);
+  const readingScore = estimateReadingScore(readingRaw);
   return {
     listeningScore,
     readingScore,
     totalScore: listeningScore + readingScore,
   };
 }
+
+// ==============================================================================
+// CÁC HÀM TƯƠNG THÍCH NGƯỢC (BACKWARD COMPATIBILITY ALIASES)
+// ==============================================================================
+export const calculateListeningScore = estimateListeningScore;
+export const calculateReadingScore = estimateReadingScore;
+export const calculateTotalScore = estimateTotalScore;

@@ -81,6 +81,7 @@ Thumbs.db
 /AGENTS.md
 
 # Local scratch, drafts & non-runtime data
+/.repomix/
 /archive/
 /examples/
 /data/

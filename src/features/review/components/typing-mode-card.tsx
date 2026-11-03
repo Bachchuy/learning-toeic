@@ -29,7 +29,7 @@ interface TypingModeCardProps {
 export function TypingModeCard({
   card,
   onCardCompleted,
-  autoPlayAudio = true,
+  autoPlayAudio = false,
 }: TypingModeCardProps) {
   const [inputValue, setInputValue] = useState("");
   const [hintLevel, setHintLevel] = useState(0);

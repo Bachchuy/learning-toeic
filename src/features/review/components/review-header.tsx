@@ -42,8 +42,6 @@ export function ReviewHeader({
   currentIndex,
   totalCards,
   completedCards = 0,
-
-
   progressPct: customProgressPct,
   notebookName,
   topicName,
@@ -58,8 +56,6 @@ export function ReviewHeader({
       : totalCards > 0
       ? Math.min(100, Math.round((completedCards / totalCards) * 100))
       : 0;
-
-
 
   const modes: Array<{
     id: ReviewStudyMode;
@@ -93,9 +89,9 @@ export function ReviewHeader({
           </div>
         </div>
 
-        {/* Center: 5 Chế độ học dạng Pill Scroll ngang (giống hệt ảnh user gửi) */}
+        {/* Center: 5 Chế độ học dạng Segmented Control (macOS / Linear style) */}
         <div className="flex-1 flex items-center justify-center overflow-x-auto no-scrollbar py-0.5 px-1">
-          <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-slate-100/90 border border-slate-200/80 shrink-0">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100/80 border border-slate-200/60 shrink-0">
             {modes.map((m) => {
               const Icon = m.icon;
               const isActive = currentMode === m.id;
@@ -104,10 +100,10 @@ export function ReviewHeader({
                   key={m.id}
                   type="button"
                   onClick={() => onSelectMode(m.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                     isActive
-                      ? "bg-[#1E293B] text-white shadow-xs font-bold"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                      ? "bg-white text-slate-900 shadow-2xs font-medium"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 font-medium"
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -125,7 +121,7 @@ export function ReviewHeader({
             <div className="text-[11px] sm:text-xs font-mono font-bold text-slate-900 tracking-tight">
               THẺ {Math.min(currentIndex + 1, totalCards || 1)} / {totalCards}
             </div>
-            <div className="text-[10px] font-mono text-emerald-600 font-semibold">
+            <div className="text-[10px] font-mono text-slate-500 font-medium">
               Đã thuộc: {completedCards}/{totalCards}
             </div>
           </div>
@@ -137,10 +133,10 @@ export function ReviewHeader({
             <button
               type="button"
               onClick={onOpenSetup}
-              className="p-1.5 sm:p-2 rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer border border-blue-200 flex items-center gap-1 text-xs font-semibold"
+              className="px-3 py-1.5 rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition-colors cursor-pointer border border-slate-200 flex items-center gap-1.5 text-xs sm:text-sm font-medium shadow-2xs"
               title="Chia nhỏ / Tùy chỉnh phiên ôn"
             >
-              <SlidersHorizontal className="w-4 h-4" />
+              <SlidersHorizontal className="w-4 h-4 text-slate-500" />
               <span className="hidden lg:inline">Tùy chỉnh</span>
             </button>
           )}
@@ -149,7 +145,7 @@ export function ReviewHeader({
           <button
             type="button"
             onClick={onOpenShortcuts}
-            className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/80"
+            className="p-1.5 sm:p-2 rounded-lg text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 transition-colors cursor-pointer border border-slate-200 shadow-2xs"
             title="Phím tắt bàn phím"
           >
             <Keyboard className="w-4 h-4" />
@@ -159,7 +155,7 @@ export function ReviewHeader({
           <button
             type="button"
             onClick={onOpenSettings}
-            className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/80"
+            className="p-1.5 sm:p-2 rounded-lg text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 transition-colors cursor-pointer border border-slate-200 shadow-2xs"
             title="Cài đặt ôn tập"
           >
             <Settings className="w-4 h-4" />

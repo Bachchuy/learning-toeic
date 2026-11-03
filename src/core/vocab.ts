@@ -147,8 +147,11 @@ export const DUAL_NOUN_VERB_WORDS = new Set([
   "increase",
   "issue",
   "launch",
+  "lease",
+  "license",
   "market",
   "measure",
+  "mix",
   "monitor",
   "notice",
   "offer",
@@ -173,10 +176,12 @@ export const DUAL_NOUN_VERB_WORDS = new Set([
   "search",
   "share",
   "shift",
+  "slump",
   "step",
   "structure",
   "supply",
   "support",
+  "surge",
   "survey",
   "target",
   "track",
@@ -185,7 +190,22 @@ export const DUAL_NOUN_VERB_WORDS = new Set([
   "update",
   "value",
   "visit",
+  "volunteer",
+  "witness",
   "work",
+  "follow up",
+  "credit",
+  "fine",
+  "debit",
+  "dispute",
+  "exchange",
+  "guarantee",
+  "grant",
+  "breach",
+  "default",
+  "boom",
+  "dip",
+  "revamp",
 ]);
 
 /**
@@ -289,6 +309,14 @@ export const DUAL_PRONUNCIATION_MAP: Record<string, DualPronunciation> = {
     verbMeaning: "cho phép, cấp phép",
     nounAudioUrl: "/api/audio/tts?word=permit&pos=noun",
     verbAudioUrl: "/api/audio/tts?word=permit&pos=verb",
+  },
+  delegate: {
+    nounIpa: "/ˈdelɪɡət/",
+    verbIpa: "/ˈdelɪɡeɪt/",
+    nounMeaning: "đại biểu, người đại diện",
+    verbMeaning: "ủy quyền, giao phó (nhiệm vụ)",
+    nounAudioUrl: "/api/audio/tts?word=delegate&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=delegate&pos=verb",
   },
   export: {
     nounIpa: "/ˈekspɔːrt/",
@@ -498,7 +526,407 @@ export const DUAL_PRONUNCIATION_MAP: Record<string, DualPronunciation> = {
     nounAudioUrl: "/api/audio/tts?word=visit&pos=noun",
     verbAudioUrl: "/api/audio/tts?word=visit&pos=verb",
   },
+  lease: {
+    nounIpa: "/liːs/",
+    verbIpa: "/liːs/",
+    nounMeaning: "khế ước, hợp đồng cho thuê (tài sản, văn phòng, nhà xưởng)",
+    verbMeaning: "thuê, cho thuê (tài sản, xe cộ, bất động sản)",
+    nounAudioUrl: "/api/audio/tts?word=lease&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=lease&pos=verb",
+  },
+  mix: {
+    nounIpa: "/mɪks/",
+    verbIpa: "/mɪks/",
+    nounMeaning: "hỗn hợp, sự phối hợp, cơ cấu kết hợp",
+    verbMeaning: "trộn lẫn, hòa vào, kết hợp lại",
+    nounAudioUrl: "/api/audio/tts?word=mix&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=mix&pos=verb",
+  },
+  "follow up": {
+    nounIpa: "/ˈfɑːloʊ ʌp/",
+    verbIpa: "/ˌfɑːloʊ ˈʌp/",
+    nounMeaning: "bước tiếp theo, cuộc hẹn theo dõi, sự tiếp nối",
+    verbMeaning: "theo sát, bám riết, tiếp tục thực hiện",
+    nounAudioUrl: "/api/audio/tts?word=follow%20up&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=follow%20up&pos=verb",
+  },
+  finance: {
+    nounIpa: "/ˈfaɪnæns/",
+    verbIpa: "/faɪˈnæns/",
+    nounMeaning: "tài chính, nguồn tài chính",
+    verbMeaning: "cấp vốn, tài trợ tài chính",
+    nounAudioUrl: "/api/audio/tts?word=finance&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=finance&pos=verb",
+  },
+  market: {
+    nounIpa: "/ˈmɑːrkɪt/",
+    verbIpa: "/ˈmɑːrkɪt/",
+    nounMeaning: "thị trường, chợ, nơi tiêu thụ sản phẩm",
+    verbMeaning: "tiếp thị, quảng bá, tung ra thị trường",
+    nounAudioUrl: "/api/audio/tts?word=market&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=market&pos=verb",
+  },
+  function: {
+    nounIpa: "/ˈfʌŋkʃn/",
+    verbIpa: "/ˈfʌŋkʃn/",
+    nounMeaning: "chức năng, nhiệm vụ; buổi tiệc/lễ kỷ niệm",
+    verbMeaning: "vận hành, hoạt động, thực hiện chức năng",
+    nounAudioUrl: "/api/audio/tts?word=function&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=function&pos=verb",
+  },
+  contact: {
+    nounIpa: "/ˈkɑːntækt/",
+    verbIpa: "/ˈkɑːntækt/",
+    nounMeaning: "đầu mối liên lạc, người quen, sự tiếp xúc",
+    verbMeaning: "liên hệ, liên lạc với đối tác/khách hàng",
+    nounAudioUrl: "/api/audio/tts?word=contact&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=contact&pos=verb",
+  },
+  range: {
+    nounIpa: "/reɪndʒ/",
+    verbIpa: "/reɪndʒ/",
+    nounMeaning: "phạm vi, chuỗi đa dạng, tầm giá",
+    verbMeaning: "dao động trong khoảng, trải rộng từ... đến...",
+    nounAudioUrl: "/api/audio/tts?word=range&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=range&pos=verb",
+  },
+  display: {
+    nounIpa: "/dɪˈspleɪ/",
+    verbIpa: "/dɪˈspleɪ/",
+    nounMeaning: "sự trưng bày, màn hình hiển thị",
+    verbMeaning: "trưng bày, hiển thị, phô bày",
+    nounAudioUrl: "/api/audio/tts?word=display&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=display&pos=verb",
+  },
+  search: {
+    nounIpa: "/sɜːrtʃ/",
+    verbIpa: "/sɜːrtʃ/",
+    nounMeaning: "cuộc tìm kiếm, sự tra cứu",
+    verbMeaning: "tìm kiếm, lùng sục, tra cứu",
+    nounAudioUrl: "/api/audio/tts?word=search&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=search&pos=verb",
+  },
+  supply: {
+    nounIpa: "/səˈplaɪ/",
+    verbIpa: "/səˈplaɪ/",
+    nounMeaning: "nguồn cung cấp, hàng dự trữ, vật tư",
+    verbMeaning: "cung cấp, tiếp tế hàng hóa",
+    nounAudioUrl: "/api/audio/tts?word=supply&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=supply&pos=verb",
+  },
+  estimate: {
+    nounIpa: "/ˈestɪmət/",
+    verbIpa: "/ˈestɪmeɪt/",
+    nounMeaning: "bản ước tính, dự toán chi phí",
+    verbMeaning: "ước lượng, dự toán, ước tính",
+    nounAudioUrl: "/api/audio/tts?word=estimate&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=estimate&pos=verb",
+  },
+  rate: {
+    nounIpa: "/reɪt/",
+    verbIpa: "/reɪt/",
+    nounMeaning: "mức giá, tỉ lệ, cước phí",
+    verbMeaning: "đánh giá, xếp hạng, định mức",
+    nounAudioUrl: "/api/audio/tts?word=rate&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=rate&pos=verb",
+  },
+  target: {
+    nounIpa: "/ˈtɑːrɡɪt/",
+    verbIpa: "/ˈtɑːrɡɪt/",
+    nounMeaning: "mục tiêu, chỉ tiêu doanh số",
+    verbMeaning: "nhắm tới, hướng tới đối tượng mục tiêu",
+    nounAudioUrl: "/api/audio/tts?word=target&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=target&pos=verb",
+  },
+  monitor: {
+    nounIpa: "/ˈmɑːnɪtər/",
+    verbIpa: "/ˈmɑːnɪtər/",
+    nounMeaning: "màn hình hiển thị; người giám sát",
+    verbMeaning: "giám sát, theo dõi chặt chẽ",
+    nounAudioUrl: "/api/audio/tts?word=monitor&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=monitor&pos=verb",
+  },
+  value: {
+    nounIpa: "/ˈvæljuː/",
+    verbIpa: "/ˈvæljuː/",
+    nounMeaning: "giá trị, giá cả, ý nghĩa",
+    verbMeaning: "định giá, coi trọng, quý trọng",
+    nounAudioUrl: "/api/audio/tts?word=value&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=value&pos=verb",
+  },
+  cost: {
+    nounIpa: "/kɔːst/",
+    verbIpa: "/kɔːst/",
+    nounMeaning: "chi phí, tổn phí, giá tiền",
+    verbMeaning: "trị giá, tốn kém, tiêu tốn",
+    nounAudioUrl: "/api/audio/tts?word=cost&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=cost&pos=verb",
+  },
+  notice: {
+    nounIpa: "/ˈnoʊtɪs/",
+    verbIpa: "/ˈnoʊtɪs/",
+    nounMeaning: "thông báo, sự chú ý, kỳ hạn báo trước",
+    verbMeaning: "chú ý, nhận thấy, để ý",
+    nounAudioUrl: "/api/audio/tts?word=notice&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=notice&pos=verb",
+  },
+  place: {
+    nounIpa: "/pleɪs/",
+    verbIpa: "/pleɪs/",
+    nounMeaning: "nơi chốn, địa điểm, vị trí",
+    verbMeaning: "đặt (đơn hàng, quảng cáo), bố trí",
+    nounAudioUrl: "/api/audio/tts?word=place&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=place&pos=verb",
+  },
+  purchase: {
+    nounIpa: "/ˈpɜːrtʃəs/",
+    verbIpa: "/ˈpɜːrtʃəs/",
+    nounMeaning: "món hàng mua, việc mua bán",
+    verbMeaning: "mua sắm, tậu, chi tiền mua",
+    nounAudioUrl: "/api/audio/tts?word=purchase&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=purchase&pos=verb",
+  },
+  report: {
+    nounIpa: "/rɪˈpɔːrt/",
+    verbIpa: "/rɪˈpɔːrt/",
+    nounMeaning: "bản báo cáo, bản tin phúc trình",
+    verbMeaning: "báo cáo, trình báo, có mặt",
+    nounAudioUrl: "/api/audio/tts?word=report&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=report&pos=verb",
+  },
+  share: {
+    nounIpa: "/ʃer/",
+    verbIpa: "/ʃer/",
+    nounMeaning: "cổ phần, thị phần; phần chia",
+    verbMeaning: "chia sẻ, cùng gánh vác",
+    nounAudioUrl: "/api/audio/tts?word=share&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=share&pos=verb",
+  },
+  shift: {
+    nounIpa: "/ʃɪft/",
+    verbIpa: "/ʃɪft/",
+    nounMeaning: "ca làm việc; sự thay đổi, chuyển dịch",
+    verbMeaning: "thay đổi, chuyển đổi ca/vị trí",
+    nounAudioUrl: "/api/audio/tts?word=shift&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=shift&pos=verb",
+  },
+  step: {
+    nounIpa: "/step/",
+    verbIpa: "/step/",
+    nounMeaning: "bước đi, công đoạn thực hiện, biện pháp",
+    verbMeaning: "bước đi, sải bước",
+    nounAudioUrl: "/api/audio/tts?word=step&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=step&pos=verb",
+  },
+  structure: {
+    nounIpa: "/ˈstrʌktʃər/",
+    verbIpa: "/ˈstrʌktʃər/",
+    nounMeaning: "cơ cấu, cấu trúc, tòa công trình",
+    verbMeaning: "xây dựng cơ cấu, sắp xếp cấu trúc",
+    nounAudioUrl: "/api/audio/tts?word=structure&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=structure&pos=verb",
+  },
+  track: {
+    nounIpa: "/træk/",
+    verbIpa: "/træk/",
+    nounMeaning: "dấu vết, đường ray, tiến trình theo dõi",
+    verbMeaning: "theo dõi, bám sát tiến độ",
+    nounAudioUrl: "/api/audio/tts?word=track&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=track&pos=verb",
+  },
+  work: {
+    nounIpa: "/wɜːrk/",
+    verbIpa: "/wɜːrk/",
+    nounMeaning: "công việc, việc làm, tác phẩm",
+    verbMeaning: "làm việc, hoạt động, vận hành",
+    nounAudioUrl: "/api/audio/tts?word=work&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=work&pos=verb",
+  },
+  aim: {
+    nounIpa: "/eɪm/",
+    verbIpa: "/eɪm/",
+    nounMeaning: "mục đích, ý định, mục tiêu",
+    verbMeaning: "nhắm vào, hướng mục tiêu tới",
+    nounAudioUrl: "/api/audio/tts?word=aim&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=aim&pos=verb",
+  },
+  boost: {
+    nounIpa: "/buːst/",
+    verbIpa: "/buːst/",
+    nounMeaning: "sự thúc đẩy, cú hích, sự gia tăng",
+    verbMeaning: "thúc đẩy, gia tăng, nâng cao",
+    nounAudioUrl: "/api/audio/tts?word=boost&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=boost&pos=verb",
+  },
+  cause: {
+    nounIpa: "/kɔːz/",
+    verbIpa: "/kɔːz/",
+    nounMeaning: "nguyên nhân, lý do; sự nghiệp vì cộng đồng",
+    verbMeaning: "gây ra, dẫn đến, tạo nên",
+    nounAudioUrl: "/api/audio/tts?word=cause&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=cause&pos=verb",
+  },
+  challenge: {
+    nounIpa: "/ˈtʃælɪndʒ/",
+    verbIpa: "/ˈtʃælɪndʒ/",
+    nounMeaning: "thử thách, thách thức cam go",
+    verbMeaning: "thách thức, nghi ngờ tính đúng đắn",
+    nounAudioUrl: "/api/audio/tts?word=challenge&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=challenge&pos=verb",
+  },
+  design: {
+    nounIpa: "/dɪˈzaɪn/",
+    verbIpa: "/dɪˈzaɪn/",
+    nounMeaning: "bản thiết kế, kiểu dáng, đồ họa",
+    verbMeaning: "thiết kế, lên phương án mẫu",
+    nounAudioUrl: "/api/audio/tts?word=design&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=design&pos=verb",
+  },
+  impact: {
+    nounIpa: "/ˈɪmpækt/",
+    verbIpa: "/ɪmˈpækt/",
+    nounMeaning: "sự tác động, ảnh hưởng mạnh, va chạm",
+    verbMeaning: "tác động đến, ảnh hưởng tới",
+    nounAudioUrl: "/api/audio/tts?word=impact&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=impact&pos=verb",
+  },
+  issue: {
+    nounIpa: "/ˈɪʃuː/",
+    verbIpa: "/ˈɪʃuː/",
+    nounMeaning: "vấn đề nan giải; số báo, kỳ phát hành",
+    verbMeaning: "ban hành, phát hành (hóa đơn, chứng chỉ)",
+    nounAudioUrl: "/api/audio/tts?word=issue&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=issue&pos=verb",
+  },
+  launch: {
+    nounIpa: "/lɔːntʃ/",
+    verbIpa: "/lɔːntʃ/",
+    nounMeaning: "buổi ra mắt (sản phẩm), lễ khai trương",
+    verbMeaning: "ra mắt, tung ra thị trường, khởi chạy",
+    nounAudioUrl: "/api/audio/tts?word=launch&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=launch&pos=verb",
+  },
+  measure: {
+    nounIpa: "/ˈmeʒər/",
+    verbIpa: "/ˈmeʒər/",
+    nounMeaning: "biện pháp, phương sách, quy chuẩn",
+    verbMeaning: "đo lường, định lượng, đánh giá",
+    nounAudioUrl: "/api/audio/tts?word=measure&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=measure&pos=verb",
+  },
+  license: {
+    nounIpa: "/ˈlaɪsns/",
+    verbIpa: "/ˈlaɪsns/",
+    nounMeaning: "giấy phép, chứng chỉ hành nghề",
+    verbMeaning: "cấp phép, cho phép bản quyền",
+    nounAudioUrl: "/api/audio/tts?word=license&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=license&pos=verb",
+  },
+  grant: {
+    nounIpa: "/ɡrænt/",
+    verbIpa: "/ɡrænt/",
+    nounMeaning: "khoản tài trợ, tiền trợ cấp chính phủ",
+    verbMeaning: "cấp, ban cho, chấp thuận (yêu cầu)",
+    nounAudioUrl: "/api/audio/tts?word=grant&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=grant&pos=verb",
+  },
+  credit: {
+    nounIpa: "/ˈkredɪt/",
+    verbIpa: "/ˈkredɪt/",
+    nounMeaning: "tín dụng; số dư có; sự ghi nhận công trạng",
+    verbMeaning: "ghi có, cộng tiền vào tài khoản; quy công trạng",
+    nounAudioUrl: "/api/audio/tts?word=credit&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=credit&pos=verb",
+  },
+  fine: {
+    nounIpa: "/faɪn/",
+    verbIpa: "/faɪn/",
+    nounMeaning: "khoản tiền phạt vi phạm",
+    verbMeaning: "phạt tiền, xử phạt tài chính",
+    nounAudioUrl: "/api/audio/tts?word=fine&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=fine&pos=verb",
+  },
+  dispute: {
+    nounIpa: "/ˈdɪspjuːt/",
+    verbIpa: "/dɪˈspjuːt/",
+    nounMeaning: "cuộc tranh chấp, khiếu nại thương mại",
+    verbMeaning: "tranh cãi, khiếu nại, phản đối",
+    nounAudioUrl: "/api/audio/tts?word=dispute&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=dispute&pos=verb",
+  },
+  exchange: {
+    nounIpa: "/ɪksˈtʃeɪndʒ/",
+    verbIpa: "/ɪksˈtʃeɪndʒ/",
+    nounMeaning: "sự trao đổi, việc đổi hàng",
+    verbMeaning: "trao đổi, đổi trả hàng hóa",
+    nounAudioUrl: "/api/audio/tts?word=exchange&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=exchange&pos=verb",
+  },
+  guarantee: {
+    nounIpa: "/ˌɡærənˈtiː/",
+    verbIpa: "/ˌɡærənˈtiː/",
+    nounMeaning: "giấy bảo hành, sự cam kết bảo đảm",
+    verbMeaning: "bảo đảm, cam đoan, bảo hành",
+    nounAudioUrl: "/api/audio/tts?word=guarantee&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=guarantee&pos=verb",
+  },
+  witness: {
+    nounIpa: "/ˈwɪtnəs/",
+    verbIpa: "/ˈwɪtnəs/",
+    nounMeaning: "người làm chứng, nhân chứng",
+    verbMeaning: "chứng kiến, làm chứng (ký kết văn bản)",
+    nounAudioUrl: "/api/audio/tts?word=witness&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=witness&pos=verb",
+  },
+  volunteer: {
+    nounIpa: "/ˌvɑːlənˈtɪr/",
+    verbIpa: "/ˌvɑːlənˈtɪr/",
+    nounMeaning: "tình nguyện viên, người xung phong",
+    verbMeaning: "tình nguyện, tự nguyện làm gì",
+    nounAudioUrl: "/api/audio/tts?word=volunteer&pos=noun",
+    verbAudioUrl: "/api/audio/tts?word=volunteer&pos=verb",
+  },
 };
+
+/**
+ * Tự động phân tích vai trò ngữ pháp của từ vựng trong câu ví dụ TOEIC (Danh từ hay Động từ)
+ */
+export function detectWordRoleInSentence(
+  word: string,
+  sentence?: string
+): "noun" | "verb" | "other" {
+  if (!word || !sentence) return "other";
+  const cleanWord = word.trim().toLowerCase();
+  const s = sentence.toLowerCase();
+
+  // Pattern động từ rõ ràng: to + word, modal verb + word, trợ động từ + word
+  const verbRegex = new RegExp(
+    `\\b(to|will|would|can|could|should|must|may|might|decided to|agreed to|plan to|plans to|planned to|need to|needs to|needed to|failed to|began to|try to|tries to|tried to|manage to|managed to)\\s+${cleanWord}\\b`,
+    "i"
+  );
+  if (verbRegex.test(s)) return "verb";
+
+  // Pattern động từ chia thì quá khứ/hiện tại: S + word + O (ví dụ: "we lease the office", "they leased the property")
+  const verbPastRegex = new RegExp(`\\b${cleanWord}(d|ed|ing)\\b`, "i");
+  if (verbPastRegex.test(s)) return "verb";
+
+  // Pattern danh từ: mạo từ/tính từ sở hữu + (tính từ bổ nghĩa optional) + word
+  // Ví dụ: "a lease", "the lease", "their lease", "a full refund", "three-year lease", "signed a lease"
+  const nounRegex = new RegExp(
+    `\\b(a|an|the|this|that|these|those|my|your|his|her|its|our|their|no|any|each|every|some|signed|renew|renewed|terminate|terminated|demand|demanded|request|requested|issue|issued|receive|received)\\s+(?:[\\w-]+\\s+){0,2}${cleanWord}\\b`,
+    "i"
+  );
+  if (nounRegex.test(s)) return "noun";
+
+  // Pattern danh từ đứng sau giới từ: under the lease, during the lease, on lease, for a refund
+  const prepNounRegex = new RegExp(
+    `\\b(under|during|for|in|on|with|without|through)\\s+(?:(the|a|an)\\s+)?(?:[\\w-]+\\s+)?${cleanWord}\\b`,
+    "i"
+  );
+  if (prepNounRegex.test(s)) return "noun";
+
+  return "other";
+}
 
 export interface DualMeaningDetails {
   isDual: boolean;
@@ -517,7 +945,8 @@ export interface DualMeaningDetails {
 export function resolveDualDetails(
   word: string,
   posString?: string,
-  meaning?: string
+  meaning?: string,
+  contextSentence?: string
 ): DualMeaningDetails {
   const cleanWord = (word || "").trim().toLowerCase();
   const dual = DUAL_PRONUNCIATION_MAP[cleanWord];
@@ -525,16 +954,55 @@ export function resolveDualDetails(
   const m = (meaning || "").trim();
 
   // Nhận diện vai trò ngữ cảnh trong thẻ bài học hiện tại
-  const isVerbContext = /\b(verb|động)\b|\bv(\.|\b)|v\/|\/v|\(v\)|phr\.?\s*v/i.test(p);
-  const isNounContext = /\b(noun|danh)\b|\bn(\.|\b)|n\/|\/n|\(n\)/i.test(p);
+  const isVerbExplicit = /\b(verb|động)\b|\bv(\.|\b)|v\/|\/v|\(v\)|phr\.?\s*v/i.test(p);
+  const isNounExplicit = /\b(noun|danh)\b|\bn(\.|\b)|n\/|\/n|\(n\)/i.test(p);
+  const isBothInP =
+    (isVerbExplicit && isNounExplicit) ||
+    p.includes("n,v") ||
+    p.includes("v,n") ||
+    p.includes("n/v") ||
+    p.includes("v/n") ||
+    p.includes("noun_verb");
 
-  const primaryRole: "noun" | "verb" | "other" =
-    isVerbContext && !isNounContext
+  // Phát hiện vai trò ngữ cảnh dựa trên posString hoặc câu ví dụ
+  let primaryRole: "noun" | "verb" | "other" =
+    isVerbExplicit && !isNounExplicit
       ? "verb"
-      : isNounContext && !isVerbContext
+      : isNounExplicit && !isVerbExplicit
       ? "noun"
       : "other";
 
+  if (primaryRole === "other" && contextSentence) {
+    const roleFromSentence = detectWordRoleInSentence(cleanWord, contextSentence);
+    if (roleFromSentence !== "other") {
+      primaryRole = roleFromSentence;
+    }
+  }
+
+  // 1. Tách nét nghĩa kép nếu chuỗi meaning chứa cả [n] và [v] hoặc (n) và (v) (Ưu tiên tùy biến của người dùng/đề thi)
+  const dualMatch =
+    m.match(/(?:\[n\]|\(n\.?\)|\bdanh từ:?)\s*([^·;(\[]+)(?:[·;]|\s+)\s*(?:\[v\]|\(v\.?\)|\bđộng từ:?)\s*(.+)/i) ||
+    m.match(/(?:\[v\]|\(v\.?\)|\bđộng từ:?)\s*([^·;(\[]+)(?:[·;]|\s+)\s*(?:\[n\]|\(n\.?\)|\bdanh từ:?)\s*(.+)/i);
+
+  if (dualMatch) {
+    const isFirstNoun = /(?:\[n\]|\(n\.?\)|\bdanh từ)/i.test(m.slice(0, 15));
+    return {
+      isDual: true,
+      nounIpa: dual?.nounIpa,
+      verbIpa: dual?.verbIpa,
+      nounMeaning: (isFirstNoun ? dualMatch[1] : dualMatch[2]).trim(),
+      verbMeaning: (isFirstNoun ? dualMatch[2] : dualMatch[1]).trim(),
+      nounAudioUrl:
+        dual?.nounAudioUrl ||
+        `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=noun&text=${encodeURIComponent(cleanWord)}`,
+      verbAudioUrl:
+        dual?.verbAudioUrl ||
+        `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=verb&text=${encodeURIComponent("to " + cleanWord)}`,
+      primaryRole,
+    };
+  }
+
+  // 2. Trường hợp có trong DUAL_PRONUNCIATION_MAP
   if (dual) {
     return {
       isDual: true,
@@ -544,29 +1012,28 @@ export function resolveDualDetails(
       verbMeaning: dual.verbMeaning || m,
       nounAudioUrl:
         dual.nounAudioUrl ||
-        `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=noun`,
+        `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=noun&text=${encodeURIComponent(cleanWord)}`,
       verbAudioUrl:
         dual.verbAudioUrl ||
-        `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=verb`,
+        `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=verb&text=${encodeURIComponent("to " + cleanWord)}`,
       primaryRole,
     };
   }
 
-  // Tách nét nghĩa kép nếu chuỗi meaning chứa cả [n] và [v] hoặc (n) và (v)
-  const dualMatch =
-    m.match(/(?:\[n\]|\(n\.?\)|\bdanh từ:?)\s*([^·;(\[]+)(?:[·;]|\s+)\s*(?:\[v\]|\(v\.?\)|\bđộng từ:?)\s*(.+)/i) ||
-    m.match(/(?:\[v\]|\(v\.?\)|\bđộng từ:?)\s*([^·;(\[]+)(?:[·;]|\s+)\s*(?:\[n\]|\(n\.?\)|\bdanh từ:?)\s*(.+)/i);
-
-  if (dualMatch) {
-    const isFirstNoun = /(?:\[n\]|\(n\.?\)|\bdanh từ)/i.test(m.slice(0, 15));
-    return {
-      isDual: true,
-      nounMeaning: (isFirstNoun ? dualMatch[1] : dualMatch[2]).trim(),
-      verbMeaning: (isFirstNoun ? dualMatch[2] : dualMatch[1]).trim(),
-      nounAudioUrl: `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=noun`,
-      verbAudioUrl: `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=verb`,
-      primaryRole,
-    };
+  // 3. Nếu từ vựng có posString là n/v, v/n, n,v. hoặc DUAL_NOUN_VERB_WORDS và meaning có dấu chấm phẩy ; hoặc ·
+  if (isBothInP || DUAL_NOUN_VERB_WORDS.has(cleanWord)) {
+    const parts = m.split(/[;·]+/).map((s) => s.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const isFirstVerb = p.startsWith("v") || p.startsWith("động");
+      return {
+        isDual: true,
+        nounMeaning: isFirstVerb ? parts.slice(1).join("; ") : parts[0],
+        verbMeaning: isFirstVerb ? parts[0] : parts.slice(1).join("; "),
+        nounAudioUrl: `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=noun&text=${encodeURIComponent(cleanWord)}`,
+        verbAudioUrl: `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=verb&text=${encodeURIComponent("to " + cleanWord)}`,
+        primaryRole,
+      };
+    }
   }
 
   return {

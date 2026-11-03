@@ -64,6 +64,49 @@ export function normalizeWord(raw: string): string {
 }
 
 /**
+ * Kiểm định an toàn URL phát âm từ API bên ngoài:
+ * - Bắt buộc giao thức HTTPS
+ * - Kiểm tra định dạng URL hợp lệ
+ * - Chặn tuyệt đối javascript:, data:, file:, ftp: và các scheme nguy hiểm
+ * - Chỉ chấp nhận các domain từ điển/ngữ âm uy tín hoặc đường dẫn file âm thanh hợp lệ
+ */
+export function validateSafeAudioUrl(rawUrl?: string | null): string {
+  if (!rawUrl || typeof rawUrl !== "string") return "";
+  const trimmed = rawUrl.trim();
+  if (!trimmed.startsWith("https://")) return "";
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "https:") return "";
+
+    const hostname = parsed.hostname.toLowerCase();
+    const ALLOWED_HOSTS = [
+      "api.dictionaryapi.dev",
+      "ssl.gstatic.com",
+      "commons.wikimedia.org",
+      "upload.wikimedia.org",
+      "dictionary.cambridge.org",
+      "cdn.jsdelivr.net",
+      "raw.githubusercontent.com",
+      "storage.googleapis.com",
+    ];
+
+    const isAllowedHost = ALLOWED_HOSTS.some(
+      (h) => hostname === h || hostname.endsWith(`.${h}`)
+    );
+
+    const hasAudioExtension = /\.(mp3|ogg|wav|m4a)$/i.test(parsed.pathname);
+
+    if (isAllowedHost || hasAudioExtension) {
+      return trimmed;
+    }
+    return "";
+  } catch {
+    return "";
+  }
+}
+
+/**
  * Chọn URL phát âm tối ưu nhất (Ưu tiên giọng Anh - Mỹ chuẩn US theo đề thi TOEIC)
  */
 export function selectBestUsAudioUrl(phonetics?: FreeDictPhonetic[]): string {
@@ -73,15 +116,141 @@ export function selectBestUsAudioUrl(phonetics?: FreeDictPhonetic[]): string {
   const usAudio = phonetics.find(
     (p) => p.audio && (p.audio.includes("-us.mp3") || p.audio.includes("/us/"))
   );
-  if (usAudio?.audio) return usAudio.audio;
+  if (usAudio?.audio) {
+    const safe = validateSafeAudioUrl(usAudio.audio);
+    if (safe) return safe;
+  }
 
   // 2. Dự phòng: bất kỳ file audio nào có đuôi .mp3
   const anyMp3 = phonetics.find((p) => p.audio && p.audio.endsWith(".mp3"));
-  if (anyMp3?.audio) return anyMp3.audio;
+  if (anyMp3?.audio) {
+    const safe = validateSafeAudioUrl(anyMp3.audio);
+    if (safe) return safe;
+  }
 
   // 3. Dự phòng cuối: bất kỳ audio nào không rỗng
   const anyAudio = phonetics.find((p) => p.audio && p.audio.trim().length > 0);
-  return anyAudio?.audio ?? "";
+  return validateSafeAudioUrl(anyAudio?.audio ?? "");
+}
+
+/**
+ * Chọn URL phát âm tối ưu nhất từ danh sách các mục từ điển (hỗ trợ phân biệt Noun / Verb)
+ * Ưu tiên tuyệt đối:
+ * 1. Khớp từ loại (Noun / Verb) và có giọng Anh - Mỹ (-us.mp3)
+ * 2. Khớp từ loại (Noun / Verb) và có định dạng .mp3
+ * 3. Bất kỳ giọng Anh - Mỹ (-us.mp3)
+ * 4. Bất kỳ file audio .mp3 an toàn
+ */
+export function selectBestAudioForPos(
+  entries: FreeDictApiResponseItem[],
+  posHint?: string
+): string {
+  if (!entries || entries.length === 0) return "";
+  const pos = (posHint || "").toLowerCase().trim();
+
+  // Helper trích xuất danh sách audio từ một entry
+  const getAudiosFromEntry = (entry: FreeDictApiResponseItem) =>
+    (entry.phonetics || [])
+      .map((p) => p.audio)
+      .filter((a): a is string => Boolean(a && a.trim().length > 0));
+
+  // 1. Nếu có posHint ("noun" hoặc "verb"):
+  if (pos === "verb" || pos === "noun") {
+    // 1.1 Ưu tiên cao nhất: Audio có tên file chứa rõ từ loại VÀ là giọng US (ví dụ: contract-2-us.mp3, present-us-verb.mp3)
+    for (const entry of entries) {
+      for (const a of getAudiosFromEntry(entry)) {
+        const lower = a.toLowerCase();
+        const isUs = lower.includes("-us.mp3") || lower.includes("/us/");
+        if (
+          pos === "verb" &&
+          (lower.includes("-verb") || lower.includes("-2-us") || lower.includes("-2-")) &&
+          isUs
+        ) {
+          const safe = validateSafeAudioUrl(a);
+          if (safe) return safe;
+        }
+        if (
+          pos === "noun" &&
+          (lower.includes("-noun") || lower.includes("-1-us") || lower.includes("-1-")) &&
+          isUs
+        ) {
+          const safe = validateSafeAudioUrl(a);
+          if (safe) return safe;
+        }
+      }
+    }
+
+    // 1.2 Ưu tiên nhì: Audio nằm trong entry có partOfSpeech khớp với posHint VÀ là file US (-us.mp3)
+    for (const entry of entries) {
+      const hasTargetPos = entry.meanings?.some((m) => m.partOfSpeech.toLowerCase() === pos);
+      if (hasTargetPos) {
+        for (const a of getAudiosFromEntry(entry)) {
+          const lower = a.toLowerCase();
+          if (lower.includes("-us.mp3") || lower.includes("/us/")) {
+            const safe = validateSafeAudioUrl(a);
+            if (safe) return safe;
+          }
+        }
+      }
+    }
+
+    // 1.3 Ưu tiên ba: Audio có tên file chứa chỉ báo từ loại (dù chưa ghi -us, ví dụ -verb.mp3, -2-.mp3)
+    for (const entry of entries) {
+      for (const a of getAudiosFromEntry(entry)) {
+        const lower = a.toLowerCase();
+        if (pos === "verb" && (lower.includes("-verb") || lower.includes("-2-"))) {
+          const safe = validateSafeAudioUrl(a);
+          if (safe) return safe;
+        }
+        if (pos === "noun" && (lower.includes("-noun") || lower.includes("-1-"))) {
+          const safe = validateSafeAudioUrl(a);
+          if (safe) return safe;
+        }
+      }
+    }
+
+    // 1.4 Ưu tiên tư: Audio bất kỳ nằm trong entry có partOfSpeech khớp
+    for (const entry of entries) {
+      const hasTargetPos = entry.meanings?.some((m) => m.partOfSpeech.toLowerCase() === pos);
+      if (hasTargetPos) {
+        for (const a of getAudiosFromEntry(entry)) {
+          const safe = validateSafeAudioUrl(a);
+          if (safe) return safe;
+        }
+      }
+    }
+  }
+
+  // 2. Dự phòng chung: Bất kỳ file US (-us.mp3) trong toàn bộ entries
+  for (const entry of entries) {
+    for (const a of getAudiosFromEntry(entry)) {
+      const lower = a.toLowerCase();
+      if (lower.includes("-us.mp3") || lower.includes("/us/")) {
+        const safe = validateSafeAudioUrl(a);
+        if (safe) return safe;
+      }
+    }
+  }
+
+  // 3. Dự phòng bất kỳ file .mp3 nào
+  for (const entry of entries) {
+    for (const a of getAudiosFromEntry(entry)) {
+      if (a.toLowerCase().endsWith(".mp3")) {
+        const safe = validateSafeAudioUrl(a);
+        if (safe) return safe;
+      }
+    }
+  }
+
+  // 4. Dự phòng bất kỳ audio hợp lệ nào
+  for (const entry of entries) {
+    for (const a of getAudiosFromEntry(entry)) {
+      const safe = validateSafeAudioUrl(a);
+      if (safe) return safe;
+    }
+  }
+
+  return "";
 }
 
 /**
@@ -332,8 +501,9 @@ export const CURATED_TOEIC_TERMS: Record<
     ],
   },
   delegate: {
-    meaning_vi: "Ủy quyền, giao phó (nhiệm vụ) / Đại biểu, người đại diện",
-    part_of_speech: "verb, noun",
+    meaning_vi: "[n] Đại biểu, người đại diện · [v] Ủy quyền, giao phó (nhiệm vụ)",
+    part_of_speech: "noun_verb",
+    phonetic: "[n] /ˈdelɪɡət/ · [v] /ˈdelɪɡeɪt/",
     collocations: ["delegate tasks", "delegate authority", "conference delegates"],
     word_family: [
       { pos: "v", word: "delegate" },
@@ -352,47 +522,54 @@ export const CURATED_TOEIC_TERMS: Record<
 };
 
 /**
- * Phân tích và chuyển đổi dữ liệu từ Free Dictionary API sang cấu trúc chuẩn DictionaryEntry
+ * Phân tích và chuyển đổi dữ liệu từ toàn bộ danh sách Free Dictionary API (hỗ trợ nhiều entry Noun / Verb)
  */
-export function parseFreeDictResponse(
-  rawItem: FreeDictApiResponseItem
+export function parseFreeDictEntries(
+  rawItems: FreeDictApiResponseItem[]
 ): Partial<DictionaryEntry> {
-  const word = normalizeWord(rawItem.word);
+  if (!rawItems || rawItems.length === 0) return {};
+  const firstItem = rawItems[0];
+  const word = normalizeWord(firstItem.word);
 
   // 1. Lấy phiên âm
-  let phonetic = rawItem.phonetic ?? "";
-  if (!phonetic && rawItem.phonetics) {
-    const withText = rawItem.phonetics.find((p) => p.text && p.text.trim().length > 0);
-    phonetic = withText?.text ?? "";
+  let phonetic = firstItem.phonetic ?? "";
+  if (!phonetic) {
+    for (const item of rawItems) {
+      const withText = (item.phonetics || []).find((p) => p.text && p.text.trim().length > 0);
+      if (withText?.text) {
+        phonetic = withText.text;
+        break;
+      }
+    }
   }
 
-  // 2. Lấy audio US
-  const audioUrl = selectBestUsAudioUrl(rawItem.phonetics);
-
-  // 3. Từ loại và định nghĩa tiếng Anh
+  // 2. Gom tất cả từ loại và định nghĩa tiếng Anh từ tất cả các entries
   const partsOfSpeechSet = new Set<string>();
   const examples: DictionaryExample[] = [];
   let definitionEn = "";
 
-  if (rawItem.meanings && rawItem.meanings.length > 0) {
-    for (const m of rawItem.meanings) {
-      if (m.partOfSpeech) {
-        partsOfSpeechSet.add(m.partOfSpeech);
-      }
-      for (const d of m.definitions) {
-        if (!definitionEn && d.definition) {
-          definitionEn = d.definition;
+  for (const item of rawItems) {
+    if (item.meanings && item.meanings.length > 0) {
+      for (const m of item.meanings) {
+        if (m.partOfSpeech) {
+          partsOfSpeechSet.add(m.partOfSpeech.toLowerCase());
         }
-        if (d.example && examples.length < 3) {
-          examples.push({ en: d.example });
+        for (const d of m.definitions) {
+          if (!definitionEn && d.definition) {
+            definitionEn = d.definition;
+          }
+          if (d.example && examples.length < 5) {
+            examples.push({ en: d.example });
+          }
         }
       }
     }
   }
 
   const partOfSpeech = Array.from(partsOfSpeechSet).join(", ");
+  const audioUrl = selectBestAudioForPos(rawItems);
 
-  // 4. Kiểm tra xem có trong bộ từ điển tuyển chọn sẵn không
+  // 3. Kiểm tra xem có trong bộ từ điển tuyển chọn sẵn không
   const curated = CURATED_TOEIC_TERMS[word];
   const meaningVi = curated ? curated.meaning_vi : "";
   const wordFamily = curated ? curated.word_family : [];
@@ -412,4 +589,13 @@ export function parseFreeDictResponse(
     word_family: wordFamily,
     collocations,
   };
+}
+
+/**
+ * Phân tích và chuyển đổi dữ liệu từ Free Dictionary API sang cấu trúc chuẩn DictionaryEntry (tương thích ngược)
+ */
+export function parseFreeDictResponse(
+  rawItem: FreeDictApiResponseItem
+): Partial<DictionaryEntry> {
+  return parseFreeDictEntries([rawItem]);
 }

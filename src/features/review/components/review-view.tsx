@@ -3,6 +3,7 @@
 import { useState, useCallback, useTransition } from "react";
 import Link from "next/link";
 import {
+  Check,
   CheckCircle2,
   Sparkles,
   BookOpen,
@@ -12,6 +13,16 @@ import {
   Folder,
   Loader2,
   X,
+  FileText,
+  Briefcase,
+  TrendingUp,
+  CreditCard,
+  ShoppingBag,
+  Plane,
+  UtensilsCrossed,
+  Cpu,
+  GraduationCap,
+  Users,
 } from "lucide-react";
 import type { ReviewCardItem, ReviewSessionSummary, ReviewTopicInfo } from "../types";
 import type { Notebook } from "@/features/vocab/types";
@@ -76,7 +87,7 @@ export function ReviewView({
 
   // Settings
   const [settings, setSettings] = useState<ReviewSettings>({
-    autoPlayAudio: true,
+    autoPlayAudio: false,
     typoTolerance: true,
     audioSpeed: 1.0,
   });
@@ -268,7 +279,7 @@ export function ReviewView({
         </span>
       </div>
 
-      {/* 2. BỐ CỤC 2 CỘT CHUẨN PARROTO */}
+      {/* 2. BỐ CỤC 2 CỘT CHUẨN */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-4 pb-6 w-full flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
         {/* CỘT TRÁI: DANH SÁCH CHỦ ĐỀ (~30-50 THẺ MỖI CHỦ ĐỀ) */}
         <aside className="hidden lg:flex w-80 shrink-0 bg-white rounded-2xl border border-[#E2E8F0] shadow-xs p-4 flex-col max-h-[calc(100vh-100px)] sticky top-16">
@@ -284,7 +295,7 @@ export function ReviewView({
             </span>
           </div>
 
-          <div className="overflow-y-auto space-y-1.5 pr-1 no-scrollbar flex-1 pb-4">
+          <div className="overflow-y-auto space-y-1 pr-1 flex-1 pb-4 scrollbar-thin scrollbar-thumb-slate-200">
             {topics.length === 0 ? (
               <div className="p-4 text-center text-xs text-slate-400">
                 Chưa có danh sách chủ đề
@@ -296,39 +307,36 @@ export function ReviewView({
                   t.learnedCount !== undefined &&
                   t.learnedCount >= t.totalCount &&
                   t.totalCount > 0;
+                const TopicIcon = getTopicLucideIcon(t.name);
 
                 return (
                   <button
                     key={t.name}
                     type="button"
                     onClick={() => handleSelectTopic(t.name)}
-                    className={`w-full p-2.5 sm:p-3 rounded-xl border text-left flex items-center justify-between gap-2.5 transition-all cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors cursor-pointer text-left ${
                       isSelected
-                        ? "bg-[#0F172A] text-white border-[#0F172A] shadow-sm font-semibold"
-                        : "bg-white text-slate-800 border-slate-200/80 hover:bg-slate-50 hover:border-slate-300"
+                        ? "bg-slate-900 text-white font-medium"
+                        : "text-slate-600 hover:bg-slate-100/80"
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0 ${
-                          isSelected
-                            ? "bg-slate-800"
-                            : "bg-blue-50 border border-blue-100/80 text-blue-700"
+                      <TopicIcon
+                        className={`w-4 h-4 shrink-0 ${
+                          isSelected ? "text-white" : "text-slate-400"
                         }`}
-                      >
-                        {getTopicIcon(t.name)}
-                      </div>
+                      />
                       <div className="min-w-0">
                         <div
-                          className={`text-xs sm:text-[13px] font-bold line-clamp-1 ${
-                            isSelected ? "text-white" : "text-[#0F172A]"
+                          className={`text-xs sm:text-[13px] line-clamp-1 ${
+                            isSelected ? "text-white font-semibold" : "text-slate-900 font-medium"
                           }`}
                         >
                           {t.name}
                         </div>
                         <div
                           className={`text-[11px] font-mono mt-0.5 ${
-                            isSelected ? "text-slate-300" : "text-slate-500"
+                            isSelected ? "text-slate-300" : "text-slate-400"
                           }`}
                         >
                           {t.learnedCount || 0}/{t.totalCount} thẻ
@@ -336,23 +344,9 @@ export function ReviewView({
                       </div>
                     </div>
 
-                    <div className="shrink-0">
-                      {isFinished ? (
-                        <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">
-                          ✓
-                        </span>
-                      ) : (
-                        <span
-                          className={`text-xs font-mono px-1.5 py-0.5 rounded ${
-                            isSelected
-                              ? "text-slate-400 bg-slate-800"
-                              : "text-slate-400 bg-slate-100"
-                          }`}
-                        >
-                          —
-                        </span>
-                      )}
-                    </div>
+                    {isFinished && (
+                      <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                    )}
                   </button>
                 );
               })
@@ -565,30 +559,51 @@ export function ReviewView({
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="overflow-y-auto space-y-1.5 flex-1 pr-1">
+            <div className="overflow-y-auto space-y-1 flex-1 pr-1 scrollbar-thin scrollbar-thumb-slate-200">
               {topics.map((t) => {
                 const isSelected = t.name === activeTopic;
+                const isFinished =
+                  t.learnedCount !== undefined &&
+                  t.learnedCount >= t.totalCount &&
+                  t.totalCount > 0;
+                const TopicIcon = getTopicLucideIcon(t.name);
                 return (
                   <button
                     key={`mobile-${t.name}`}
                     type="button"
                     onClick={() => handleSelectTopic(t.name)}
-                    className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between gap-2.5 ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors cursor-pointer text-left ${
                       isSelected
-                        ? "bg-[#0F172A] text-white border-[#0F172A] font-semibold"
-                        : "bg-white text-slate-800 border-slate-200 hover:bg-slate-50"
+                        ? "bg-slate-900 text-white font-medium"
+                        : "text-slate-600 hover:bg-slate-100/80"
                     }`}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-base">{getTopicIcon(t.name)}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <TopicIcon
+                        className={`w-4 h-4 shrink-0 ${
+                          isSelected ? "text-white" : "text-slate-400"
+                        }`}
+                      />
                       <div className="min-w-0">
-                        <div className="text-xs font-bold line-clamp-1">{t.name}</div>
-                        <div className="text-[10px] opacity-75 font-mono">
+                        <div
+                          className={`text-xs line-clamp-1 ${
+                            isSelected ? "text-white font-semibold" : "text-slate-900 font-medium"
+                          }`}
+                        >
+                          {t.name}
+                        </div>
+                        <div
+                          className={`text-[10px] font-mono mt-0.5 ${
+                            isSelected ? "text-slate-300" : "text-slate-400"
+                          }`}
+                        >
                           {t.learnedCount || 0}/{t.totalCount} thẻ
                         </div>
                       </div>
                     </div>
-                    <span className="text-xs font-mono opacity-50">—</span>
+                    {isFinished && (
+                      <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                    )}
                   </button>
                 );
               })}
@@ -626,23 +641,69 @@ export function ReviewView({
 }
 
 /**
- * Trả về icon biểu tượng sinh động cho từng chủ điểm TOEIC / IT
+ * Trả về icon đơn sắc Lucide thanh lịch và nhất quán cho từng chủ điểm
  */
-function getTopicIcon(name: string): string {
+function getTopicLucideIcon(name: string) {
   const lower = name.toLowerCase();
-  if (lower.includes("ai") || lower.includes("machine learning") || lower.includes("data")) return "🧠";
-  if (lower.includes("frontend") || lower.includes("web") || lower.includes("api") || lower.includes("code")) return "💻";
-  if (lower.includes("testing") || lower.includes("qa") || lower.includes("debug")) return "🔍";
-  if (lower.includes("devops") || lower.includes("cloud") || lower.includes("server")) return "☁️";
-  if (lower.includes("hợp đồng") || lower.includes("contract") || lower.includes("luật")) return "📝";
-  if (lower.includes("tiếp thị") || lower.includes("market") || lower.includes("quảng cáo")) return "📢";
-  if (lower.includes("tài chính") || lower.includes("ngân hàng") || lower.includes("finance")) return "💳";
-  if (lower.includes("gia đình") || lower.includes("family")) return "👨‍👩‍👦";
-  if (lower.includes("trường") || lower.includes("học") || lower.includes("school")) return "🏫";
-  if (lower.includes("công việc") || lower.includes("work") || lower.includes("office")) return "💼";
-  if (lower.includes("nghề") || lower.includes("job") || lower.includes("career")) return "👔";
-  if (lower.includes("ăn") || lower.includes("uống") || lower.includes("food") || lower.includes("dining")) return "🍲";
-  if (lower.includes("du lịch") || lower.includes("travel") || lower.includes("hotel")) return "✈️";
-  if (lower.includes("mua sắm") || lower.includes("shop")) return "🛍️";
-  return "📘";
+  if (
+    lower.includes("ai") ||
+    lower.includes("machine learning") ||
+    lower.includes("data") ||
+    lower.includes("frontend") ||
+    lower.includes("web") ||
+    lower.includes("api") ||
+    lower.includes("code") ||
+    lower.includes("devops") ||
+    lower.includes("cloud") ||
+    lower.includes("server")
+  ) {
+    return Cpu;
+  }
+  if (
+    lower.includes("hợp đồng") ||
+    lower.includes("contract") ||
+    lower.includes("luật") ||
+    lower.includes("testing") ||
+    lower.includes("qa") ||
+    lower.includes("debug")
+  ) {
+    return FileText;
+  }
+  if (lower.includes("tiếp thị") || lower.includes("market") || lower.includes("quảng cáo")) {
+    return TrendingUp;
+  }
+  if (
+    lower.includes("tài chính") ||
+    lower.includes("ngân hàng") ||
+    lower.includes("finance") ||
+    lower.includes("accounting")
+  ) {
+    return CreditCard;
+  }
+  if (lower.includes("gia đình") || lower.includes("family")) {
+    return Users;
+  }
+  if (lower.includes("trường") || lower.includes("học") || lower.includes("school")) {
+    return GraduationCap;
+  }
+  if (
+    lower.includes("công việc") ||
+    lower.includes("work") ||
+    lower.includes("office") ||
+    lower.includes("nghề") ||
+    lower.includes("job") ||
+    lower.includes("career")
+  ) {
+    return Briefcase;
+  }
+  if (lower.includes("ăn") || lower.includes("uống") || lower.includes("food") || lower.includes("dining")) {
+    return UtensilsCrossed;
+  }
+  if (lower.includes("du lịch") || lower.includes("travel") || lower.includes("hotel")) {
+    return Plane;
+  }
+  if (lower.includes("mua sắm") || lower.includes("shop")) {
+    return ShoppingBag;
+  }
+  return Folder;
 }

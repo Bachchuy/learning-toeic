@@ -237,7 +237,7 @@ const QUESTIONS: SeedQuestionData[] = [
         C: "Because of: bởi vì (Sai: là giới từ đi với danh từ, và sai logic nghĩa)",
         D: "Therefore: do đó (Sai: là trạng từ liên kết, thường có dấu phẩy đi kèm)",
       },
-      tip_vi: "Bẫy kinh điển ETS: Nhìn thấy có Động từ chính (caused) -> Chọn Liên từ (Although/Because), LOẠI Giới từ (Despite/Because of).",
+      tip_vi: "Bẫy kinh điển: Nhìn thấy có Động từ chính (caused) -> Chọn Liên từ (Although/Because), LOẠI Giới từ (Despite/Because of).",
       example_en: "Although it was raining heavily, we attended the conference.",
       vocab_hints: [
         { word: "severe", meaning_vi: "khắc nghiệt, nghiêm trọng" },

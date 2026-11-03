@@ -7,6 +7,7 @@ import {
   getPosBadgeInfo,
   generateNaturalExplanation,
   getDualPronunciation,
+  resolveDualDetails,
 } from "@/core/vocab";
 import { resolvePhonetic } from "@/core/phonetic";
 import { playPronunciation, playDualPronunciation } from "@/lib/audio";
@@ -107,12 +108,43 @@ export function VocabDetailModal({
 
   const stateInfo = getFSRSStateLabel(card?.state);
 
+  // Tự động đối chiếu bộ 600 từ Barron's nếu từ này từng được nạp từ trước (ngay cả khi DB cũ chưa có metadata)
+  const curatedItem = useMemo(() => {
+    if (!entry) return null;
+    const target = entry.word.toLowerCase().trim();
+    const targetLemma = (entry.lemma || entry.word).toLowerCase().trim();
+    return (
+      (essential600Data as any[]).find(
+        (item) =>
+          item.word.toLowerCase().trim() === target ||
+          item.word.toLowerCase().trim() === targetLemma
+      ) || null
+    );
+  }, [entry]);
+
+  const toeicExample =
+    metadata?.toeic_example || curatedItem?.example || entry.context_sentence;
+
+  const toeicExampleTrans =
+    metadata?.toeic_example_translation ||
+    curatedItem?.example_translation ||
+    entry.context_translation;
+
+  const dualDetails = resolveDualDetails(
+    entry.word,
+    entry.part_of_speech,
+    entry.meaning,
+    toeicExample || entry.context_sentence
+  );
+  const isNounContext = dualDetails.primaryRole === "noun";
+  const isVerbContext = dualDetails.primaryRole === "verb";
+
   // Phát âm kép (Dual-Engine: Audio CDN + Web Speech API fallback)
   const handleSpeak = () => {
-    if (dual) {
+    if (dualDetails.isDual) {
       playDualPronunciation(entry.word, {
-        nounAudioUrl: dual.nounAudioUrl,
-        verbAudioUrl: dual.verbAudioUrl,
+        nounAudioUrl: dualDetails.nounAudioUrl,
+        verbAudioUrl: dualDetails.verbAudioUrl,
       });
     } else {
       playPronunciation(entry.word, entry.audio_url || entry.metadata?.audio_url);
@@ -123,8 +155,11 @@ export function VocabDetailModal({
     entry.word,
     entry.phonetic || metadata?.phonetic
   );
-  const dual = getDualPronunciation(entry.word);
-  const posInfo = getPosBadgeInfo(entry.part_of_speech, entry.meaning, entry.word);
+  const posInfo = getPosBadgeInfo(
+    entry.part_of_speech,
+    entry.meaning,
+    entry.word
+  );
   const topicDisplay = metadata?.topic || "TOEIC Essential Vocabulary";
 
   const isOldBoilerplate =
@@ -140,20 +175,6 @@ export function VocabDetailModal({
     metadata?.detailed_explanation && !isOldBoilerplate
       ? metadata.detailed_explanation
       : generateNaturalExplanation(entry.word, entry.meaning, posInfo.category);
-
-  // Tự động đối chiếu bộ 600 từ Barron's nếu từ này từng được nạp từ trước (ngay cả khi DB cũ chưa có metadata)
-  const curatedItem = useMemo(() => {
-    if (!entry) return null;
-    const target = entry.word.toLowerCase().trim();
-    const targetLemma = (entry.lemma || entry.word).toLowerCase().trim();
-    return (
-      (essential600Data as any[]).find(
-        (item) =>
-          item.word.toLowerCase().trim() === target ||
-          item.word.toLowerCase().trim() === targetLemma
-      ) || null
-    );
-  }, [entry]);
 
   const wordFamily: WordFamilyMember[] =
     metadata?.word_family && metadata.word_family.length > 0
@@ -173,14 +194,6 @@ export function VocabDetailModal({
       : (curatedItem?.collocations as string[]) || [];
 
   const usageNote = metadata?.usage_note || curatedItem?.usage_note;
-
-  const toeicExample =
-    metadata?.toeic_example || curatedItem?.example || entry.context_sentence;
-
-  const toeicExampleTrans =
-    metadata?.toeic_example_translation ||
-    curatedItem?.example_translation ||
-    entry.context_translation;
 
   return (
     <div
@@ -266,35 +279,41 @@ export function VocabDetailModal({
                   {/* Huy hiệu phân loại từ vựng: Danh · Động · Tính · Trạng */}
                   <span
                     className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase tracking-wider border ${
-                      dual ? "bg-indigo-50 text-indigo-700 border-indigo-200" : posInfo.badgeClass
+                      dualDetails.isDual ? "bg-indigo-50 text-indigo-700 border-indigo-200" : posInfo.badgeClass
                     }`}
                   >
-                    {dual ? "DANH TỪ · ĐỘNG TỪ" : posInfo.shortBadge}
+                    {dualDetails.isDual ? "DANH TỪ · ĐỘNG TỪ" : posInfo.shortBadge}
                   </span>
                 </div>
 
                 {/* Phiên âm IPA: Hỗ trợ hiển thị và phát âm song song nếu là từ loại kép */}
-                {dual ? (
+                {dualDetails.isDual ? (
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center gap-2.5 flex-wrap">
                       <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs">
                         <span className="font-bold font-mono">DANH TỪ:</span>
-                        <span className="font-ipa">{dual.nounIpa}</span>
+                        <span className="font-ipa">{dualDetails.nounIpa}</span>
                         <AudioSpeakerButton
                           word={entry.word}
-                          audioUrl={dual.nounAudioUrl}
+                          audioUrl={dualDetails.nounAudioUrl}
                           posHint="noun"
+                          partOfSpeech="noun"
+                          phonetic={dualDetails.nounIpa}
+                          spokenText={entry.word}
                           label="n"
                           size="sm"
                         />
                       </div>
                       <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs">
                         <span className="font-bold font-mono">ĐỘNG TỪ:</span>
-                        <span className="font-ipa">{dual.verbIpa}</span>
+                        <span className="font-ipa">{dualDetails.verbIpa}</span>
                         <AudioSpeakerButton
                           word={entry.word}
-                          audioUrl={dual.verbAudioUrl}
+                          audioUrl={dualDetails.verbAudioUrl}
                           posHint="verb"
+                          partOfSpeech="verb"
+                          phonetic={dualDetails.verbIpa}
+                          spokenText={`to ${entry.word}`}
                           label="v"
                           size="sm"
                         />
@@ -309,39 +328,91 @@ export function VocabDetailModal({
                   )
                 )}
 
-                {/* Nghĩa tiếng Việt trọng tâm */}
-                <div className="text-xl sm:text-2xl font-bold text-[#2563EB] tracking-tight pt-0.5">
-                  {entry.meaning}
-                </div>
+                {/* Nghĩa tiếng Việt trọng tâm (khi không hiển thị dạng song song) */}
+                {!(dualDetails.isDual && dualDetails.nounMeaning && dualDetails.verbMeaning) && (
+                  <div className="text-xl sm:text-2xl font-bold text-[#2563EB] tracking-tight pt-0.5">
+                    {entry.meaning}
+                  </div>
+                )}
 
-                {/* Chi tiết nét nghĩa kép nếu có */}
-                {dual && dual.nounMeaning && dual.verbMeaning && (
+                {/* Chi tiết nét nghĩa kép phân bổ rõ ràng: Danh từ biết nghĩa danh từ, Động từ biết nghĩa động từ */}
+                {dualDetails.isDual && dualDetails.nounMeaning && dualDetails.verbMeaning && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 my-2 max-w-xl">
-                    <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200 space-y-1">
+                    <div
+                      className={`p-3 rounded-xl border transition-all ${
+                        isNounContext
+                          ? "bg-blue-50/90 border-blue-300 ring-2 ring-blue-200/70 shadow-xs"
+                          : "bg-blue-50/50 border-blue-200 text-slate-700"
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded-md bg-blue-600 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
-                          [n] Danh từ
-                        </span>
-                        <span className="text-xs font-ipa font-medium text-blue-900">
-                          {dual.nounIpa}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded-md bg-blue-600 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
+                            [n] Danh từ
+                          </span>
+                          {isNounContext && (
+                            <span className="text-[10px] font-bold text-blue-700 bg-blue-100/90 px-1.5 py-0.5 rounded">
+                              Trọng tâm ngữ cảnh
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-ipa font-medium text-blue-900">
+                            {dualDetails.nounIpa}
+                          </span>
+                          <AudioSpeakerButton
+                            word={entry.word}
+                            audioUrl={dualDetails.nounAudioUrl}
+                            posHint="noun"
+                            partOfSpeech="noun"
+                            phonetic={dualDetails.nounIpa}
+                            spokenText={entry.word}
+                            label="n"
+                            size="sm"
+                          />
+                        </div>
                       </div>
                       <p className="text-xs sm:text-sm font-bold text-slate-900 pt-1 leading-snug">
-                        {dual.nounMeaning}
+                        {dualDetails.nounMeaning}
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 space-y-1">
+                    <div
+                      className={`p-3 rounded-xl border transition-all ${
+                        isVerbContext
+                          ? "bg-emerald-50/90 border-emerald-300 ring-2 ring-emerald-200/70 shadow-xs"
+                          : "bg-emerald-50/50 border-emerald-200 text-slate-700"
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
-                          [v] Động từ
-                        </span>
-                        <span className="text-xs font-ipa font-medium text-emerald-900">
-                          {dual.verbIpa}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
+                            [v] Động từ
+                          </span>
+                          {isVerbContext && (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded">
+                              Trọng tâm ngữ cảnh
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-ipa font-medium text-emerald-900">
+                            {dualDetails.verbIpa}
+                          </span>
+                          <AudioSpeakerButton
+                            word={entry.word}
+                            audioUrl={dualDetails.verbAudioUrl}
+                            posHint="verb"
+                            partOfSpeech="verb"
+                            phonetic={dualDetails.verbIpa}
+                            spokenText={`to ${entry.word}`}
+                            label="v"
+                            size="sm"
+                          />
+                        </div>
                       </div>
                       <p className="text-xs sm:text-sm font-bold text-slate-900 pt-1 leading-snug">
-                        {dual.verbMeaning}
+                        {dualDetails.verbMeaning}
                       </p>
                     </div>
                   </div>
@@ -464,9 +535,16 @@ export function VocabDetailModal({
               {/* Ví dụ trong đề thi */}
               {toeicExample && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
-                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Câu ví dụ trong đề thi</span>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                      <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Câu ví dụ trong đề thi</span>
+                    </div>
+                    {dualDetails.isDual && dualDetails.primaryRole && (
+                      <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        💡 Vai trò trong câu: {dualDetails.primaryRole === "verb" ? "Động từ" : "Danh từ"}
+                      </span>
+                    )}
                   </div>
                   <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/40 space-y-2">
                     <div className="text-sm font-semibold text-slate-900 leading-relaxed">

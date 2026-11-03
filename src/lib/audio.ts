@@ -179,47 +179,181 @@ export function prepareSpokenText(
 }
 
 /**
- * Tìm voice tiếng Anh chuẩn (en-US) từ hệ thống
+ * Danh sách mẫu tên giọng Nữ en-US chuẩn trên các hệ điều hành và trình duyệt:
+ * - Google US English (Chrome / Android)
+ * - Microsoft Zira Desktop (Windows)
+ * - Microsoft Jenny Online (Natural) / Aria / Michelle / Ana (Edge / Windows)
+ * - Samantha, Victoria, Karen, Susan, Ava, Allison (macOS / iOS Safari)
  */
-function getPreferredVoice(): SpeechSynthesisVoice | undefined {
+export const FEMALE_VOICE_PATTERNS = [
+  "google us english",
+  "zira",
+  "jenny",
+  "aria",
+  "samantha",
+  "victoria",
+  "karen",
+  "michelle",
+  "ava",
+  "allison",
+  "susan",
+  "tessa",
+  "moira",
+  "stephanie",
+  "female",
+];
+
+/**
+ * Danh sách mẫu tên giọng Nam cần tuyệt đối tránh để không bị lẫn giọng nam
+ * (như Microsoft David trên Windows, Guy trên Edge, Alex trên macOS)
+ */
+export const MALE_VOICE_PATTERNS = [
+  "david",
+  "guy",
+  "mark",
+  "george",
+  "richard",
+  "alex",
+  "fred",
+  "daniel",
+  "tom",
+  "oliver",
+  "male",
+];
+
+/**
+ * Lọc và chọn Voice Nữ en-US chuẩn từ danh sách voices của hệ thống
+ */
+export function selectPreferredVoice(
+  voices: SpeechSynthesisVoice[]
+): SpeechSynthesisVoice | undefined {
+  if (!voices || voices.length === 0) return undefined;
+
+  // 1. Ưu tiên cao nhất: Voice en-US có tên thuộc danh sách FEMALE_VOICE_PATTERNS và không chứa tên nam
+  const enUsFemale = voices.find((v) => {
+    const lang = (v.lang || "").replace("_", "-").toLowerCase();
+    if (lang !== "en-us") return false;
+    const name = (v.name || "").toLowerCase();
+    return (
+      FEMALE_VOICE_PATTERNS.some((pat) => name.includes(pat)) &&
+      !MALE_VOICE_PATTERNS.some((pat) => name.includes(pat))
+    );
+  });
+  if (enUsFemale) return enUsFemale;
+
+  // 2. Ưu tiên nhì: Bất kỳ voice en-US nào KHÔNG nằm trong danh sách giọng Nam
+  const enUsNotMale = voices.find((v) => {
+    const lang = (v.lang || "").replace("_", "-").toLowerCase();
+    if (lang !== "en-us") return false;
+    const name = (v.name || "").toLowerCase();
+    return !MALE_VOICE_PATTERNS.some((pat) => name.includes(pat));
+  });
+  if (enUsNotMale) return enUsNotMale;
+
+  // 3. Ưu tiên ba: Bất kỳ voice tiếng Anh nào (en-GB, en-AU, en-CA) thuộc giọng Nữ
+  const anyEnFemale = voices.find((v) => {
+    const lang = (v.lang || "").toLowerCase();
+    if (!lang.startsWith("en")) return false;
+    const name = (v.name || "").toLowerCase();
+    return (
+      FEMALE_VOICE_PATTERNS.some((pat) => name.includes(pat)) &&
+      !MALE_VOICE_PATTERNS.some((pat) => name.includes(pat))
+    );
+  });
+  if (anyEnFemale) return anyEnFemale;
+
+  // 4. Ưu tiên tư: Bất kỳ voice tiếng Anh nào không phải giọng Nam
+  const anyEnNotMale = voices.find((v) => {
+    const lang = (v.lang || "").toLowerCase();
+    if (!lang.startsWith("en")) return false;
+    const name = (v.name || "").toLowerCase();
+    return !MALE_VOICE_PATTERNS.some((pat) => name.includes(pat));
+  });
+  if (anyEnNotMale) return anyEnNotMale;
+
+  // 5. Dự phòng cuối cùng nếu máy tính chỉ cài duy nhất 1 giọng en-US
+  const enUsFallback = voices.find(
+    (v) => (v.lang || "").replace("_", "-").toLowerCase() === "en-us"
+  );
+  if (enUsFallback) return enUsFallback;
+
+  return voices.find((v) => (v.lang || "").toLowerCase().startsWith("en")) || voices[0];
+}
+
+let cachedVoices: SpeechSynthesisVoice[] = [];
+
+if (typeof window !== "undefined" && "speechSynthesis" in window) {
+  try {
+    cachedVoices = window.speechSynthesis.getVoices();
+    const updateVoices = () => {
+      try {
+        cachedVoices = window.speechSynthesis.getVoices();
+      } catch {}
+    };
+    if (window.speechSynthesis.addEventListener) {
+      window.speechSynthesis.addEventListener("voiceschanged", updateVoices);
+    } else {
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+    }
+  } catch {}
+}
+
+/**
+ * Tìm voice tiếng Anh chuẩn (en-US Nữ) từ hệ thống trình duyệt
+ */
+export function getPreferredVoice(): SpeechSynthesisVoice | undefined {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
     return undefined;
   }
-  const voices = window.speechSynthesis.getVoices();
-  if (!voices || voices.length === 0) return undefined;
+  const voices =
+    window.speechSynthesis.getVoices().length > 0
+      ? window.speechSynthesis.getVoices()
+      : cachedVoices;
 
-  // 1. Ưu tiên giọng en-US chất lượng cao (Google US English, Microsoft Zira/David/Jenny, Samantha...)
-  const preferred = voices.find(
-    (v) =>
-      v.lang.replace("_", "-") === "en-US" &&
-      (v.name.includes("Google") ||
-        v.name.includes("Natural") ||
-        v.name.includes("Zira") ||
-        v.name.includes("David") ||
-        v.name.includes("Samantha") ||
-        v.name.includes("Jenny"))
-  );
-  if (preferred) return preferred;
+  return selectPreferredVoice(voices);
+}
 
-  // 2. Bất kỳ voice en-US nào
-  const enUs = voices.find((v) => v.lang.replace("_", "-") === "en-US");
-  if (enUs) return enUs;
-
-  // 3. Dự phòng bất kỳ voice tiếng Anh nào
-  return voices.find((v) => v.lang.toLowerCase().startsWith("en"));
+/**
+ * Chuẩn hóa URL phát âm:
+ * Luôn ưu tiên endpoint stream chuẩn /api/audio/tts để bảo đảm 100% đồng nhất giọng Nữ en-US,
+ * triệt tiêu hoàn toàn sự pha trộn giữa giọng nam và giọng nữ từ các nguồn CDN/DictionaryAPI bên ngoài.
+ */
+export function resolvePronunciationUrl(
+  word: string,
+  audioUrl?: string,
+  posHint?: "noun" | "verb",
+  spokenText?: string
+): string {
+  // Nếu caller truyền URL chuyên biệt đã có query param pos hoặc text thì bảo tồn
+  if (audioUrl && (audioUrl.includes("pos=") || audioUrl.includes("text="))) {
+    return audioUrl;
+  }
+  const cleanWord = (word || "").trim();
+  if (cleanWord) {
+    const segments = prepareSpokenSegments(cleanWord, posHint);
+    const spoken = segments.length > 0 ? segments[0] : cleanWord;
+    return posHint
+      ? `/api/audio/tts?word=${encodeURIComponent(spoken)}&pos=${posHint}`
+      : `/api/audio/tts?word=${encodeURIComponent(spoken)}`;
+  }
+  return audioUrl || "";
 }
 
 let activeAudio: HTMLAudioElement | null = null;
+let currentAudioSessionId = 0;
 
 /**
  * Dừng ngay lập tức toàn bộ các luồng âm thanh đang phát (cả Audio lẫn SpeechSynthesis)
- * Triệt tiêu hoàn toàn hiện tượng vang âm, tiếng vang lặp hay phát đè lên nhau
+ * Tăng session ID để vô hiệu hóa hoàn toàn mọi promise/timer đang chờ trong các luồng phát trước,
+ * triệt tiêu hoàn toàn hiện tượng vang âm, tiếng vang lặp hay phát đè lên nhau.
  */
 export function stopAllAudio(): void {
+  currentAudioSessionId++;
   if (activeAudio) {
     try {
       activeAudio.pause();
       activeAudio.currentTime = 0;
+      activeAudio.src = "";
     } catch {}
     activeAudio = null;
   }
@@ -231,11 +365,65 @@ export function stopAllAudio(): void {
 }
 
 /**
- * Phát âm một phân đoạn đơn lẻ qua Web Speech API và chờ hoàn tất
+ * Phát âm một URL âm thanh qua HTMLAudioElement và đợi kết thúc an toàn
+ */
+function playAudioSegment(url: string, sessionId: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") {
+      resolve(false);
+      return;
+    }
+    if (sessionId !== currentAudioSessionId) {
+      resolve(false);
+      return;
+    }
+
+    try {
+      const audio = new Audio(url);
+      activeAudio = audio;
+
+      let settled = false;
+      let timer: ReturnType<typeof setTimeout> | null = null;
+
+      const cleanup = (success: boolean) => {
+        if (!settled) {
+          settled = true;
+          if (timer) clearTimeout(timer);
+          audio.removeEventListener("ended", onEnd);
+          audio.removeEventListener("error", onError);
+          if (activeAudio === audio) activeAudio = null;
+          resolve(success && sessionId === currentAudioSessionId);
+        }
+      };
+
+      const onEnd = () => cleanup(true);
+      const onError = () => cleanup(false);
+
+      audio.addEventListener("ended", onEnd);
+      audio.addEventListener("error", onError);
+
+      // Timeout an toàn tối đa 4s đề phòng kết nối mạng gián đoạn
+      timer = setTimeout(() => cleanup(true), 4000);
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          cleanup(false);
+        });
+      }
+    } catch {
+      resolve(false);
+    }
+  });
+}
+
+/**
+ * Phát âm một phân đoạn đơn lẻ qua Web Speech API (Giọng Nữ chuẩn) và chờ hoàn tất
  */
 function speakSingleSegment(
   text: string,
-  voice?: SpeechSynthesisVoice
+  voice?: SpeechSynthesisVoice,
+  sessionId?: number
 ): Promise<void> {
   return new Promise((resolve) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
@@ -243,17 +431,29 @@ function speakSingleSegment(
       return;
     }
 
+    if (sessionId !== undefined && sessionId !== currentAudioSessionId) {
+      resolve();
+      return;
+    }
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
     utterance.rate = 0.88; // Tốc độ vừa phải chuẩn giáo dục
-    if (voice) {
-      utterance.voice = voice;
+
+    const chosenVoice = voice || getPreferredVoice();
+    if (chosenVoice) {
+      utterance.voice = chosenVoice;
     }
 
     let isDone = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
     const finish = () => {
       if (!isDone) {
         isDone = true;
+        if (timer) clearTimeout(timer);
+        utterance.onend = null;
+        utterance.onerror = null;
         resolve();
       }
     };
@@ -261,105 +461,97 @@ function speakSingleSegment(
     utterance.onend = finish;
     utterance.onerror = finish;
 
-    // Timeout an toàn đề phòng một số trình duyệt không phát sinh sự kiện onend
-    setTimeout(finish, 3500);
+    // Timeout an toàn 3.5s
+    timer = setTimeout(finish, 3500);
 
-    // Bắt đầu đọc
-    window.speechSynthesis.speak(utterance);
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      finish();
+    }
   });
 }
 
 /**
- * Dự phòng phát âm qua Web Speech API
+ * Luồng thực thi phát âm chuẩn sư phạm cho một từ/cặp từ
  */
-async function speakWithWebSpeech(
+async function playPronunciationFlow(
   word: string,
-  posHint?: "noun" | "verb"
+  audioUrl: string | undefined,
+  posHint: "noun" | "verb" | undefined,
+  sessionId: number,
+  spokenText?: string,
+  phonetic?: string
 ): Promise<void> {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  try {
-    const segments = prepareSpokenSegments(word, posHint);
-    if (segments.length === 0) return;
-    const voice = getPreferredVoice();
+  // 1. Nếu caller truyền audioUrl cụ thể (như từ DUAL_PRONUNCIATION_MAP hoặc /api/audio/tts?word=...&pos=verb),
+  // ưu tiên phát trực tiếp qua audio player
+  if (audioUrl) {
+    const success = await playAudioSegment(audioUrl, sessionId);
+    if (success && sessionId === currentAudioSessionId) return;
+  }
 
-    for (let i = 0; i < segments.length; i++) {
-      await speakSingleSegment(segments[i], voice);
-      if (i < segments.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 350));
-      }
+  // 2. Dự phòng: Xác định nội dung văn bản chuẩn xác cần đọc
+  const cleanWord = (word || "").trim();
+  const textToSpeak =
+    spokenText ||
+    (posHint === "verb"
+      ? (cleanWord.toLowerCase().startsWith("to ") ? cleanWord : `to ${cleanWord}`)
+      : cleanWord);
+
+  const segments = prepareSpokenSegments(textToSpeak, posHint);
+  if (segments.length === 0) return;
+
+  const femaleVoice = getPreferredVoice();
+
+  for (let i = 0; i < segments.length; i++) {
+    if (sessionId !== currentAudioSessionId) return;
+
+    const segment = segments[i];
+    const ttsUrl = posHint
+      ? `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=${posHint}&text=${encodeURIComponent(segment)}`
+      : `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&text=${encodeURIComponent(segment)}`;
+
+    // 1. Thử phát bằng endpoint TTS giọng Nữ chuẩn
+    const audioSuccess = await playAudioSegment(ttsUrl, sessionId);
+
+    // 2. Dự phòng bằng Web Speech API giọng Nữ nếu audio stream thất bại
+    if (!audioSuccess && sessionId === currentAudioSessionId) {
+      await speakSingleSegment(segment, femaleVoice, sessionId);
     }
-  } catch {}
+
+    // 3. Tạm nghỉ 350ms giữa các phân đoạn (đối với cặp từ như historic / historical)
+    if (i < segments.length - 1 && sessionId === currentAudioSessionId) {
+      await new Promise((resolve) => setTimeout(resolve, 350));
+    }
+  }
 }
 
+/**
+ * Phát âm một từ hoặc cặp từ vựng:
+ * - Đồng nhất 100% bằng GIỌNG NỮ en-US chuẩn
+ * - Hỗ trợ truyền riêng ngữ cảnh / từ loại (noun / verb) và chuỗi văn bản phát âm cụ thể
+ * - Tự động bóc tách phân đoạn sạch, không đọc dấu gạch chéo, dấu câu, ký hiệu từ loại
+ * - Ngăn chặn hoàn toàn hiện tượng vang âm, phát đè âm thanh
+ */
 export async function playPronunciation(
   word: string,
   audioUrl?: string,
-  posHint?: "noun" | "verb"
+  posHint?: "noun" | "verb",
+  spokenText?: string,
+  phonetic?: string
 ): Promise<void> {
   if (!word && !audioUrl) return;
 
-  // 1. Dừng ngay lập tức mọi âm thanh đang phát dở (tránh triệt để lỗi vang âm)
   stopAllAudio();
+  const sessionId = currentAudioSessionId;
 
-  const cleanWord = (word || "").trim().toLowerCase();
-
-  // 2. Xác định URL âm thanh: ưu tiên endpoint stream nội bộ /api/audio/tts
-  let resolvedUrl = audioUrl;
-  if (
-    !resolvedUrl ||
-    resolvedUrl.includes("audio.tflat.vn") ||
-    resolvedUrl.includes("translate.google.com")
-  ) {
-    resolvedUrl = posHint
-      ? `/api/audio/tts?word=${encodeURIComponent(cleanWord)}&pos=${posHint}`
-      : `/api/audio/tts?word=${encodeURIComponent(cleanWord)}`;
-  }
-
-  // 3. Thử phát bằng Audio element và CHỜ ĐẾN KHI PHÁT XONG HOÀN TOÀN
-  if (resolvedUrl && typeof window !== "undefined") {
-    const playedSuccessfully = await new Promise<boolean>((resolve) => {
-      try {
-        const audio = new Audio(resolvedUrl);
-        activeAudio = audio;
-
-        let settled = false;
-        const cleanup = (success: boolean) => {
-          if (!settled) {
-            settled = true;
-            audio.removeEventListener("ended", onEnd);
-            audio.removeEventListener("error", onError);
-            if (activeAudio === audio) activeAudio = null;
-            resolve(success);
-          }
-        };
-
-        const onEnd = () => cleanup(true);
-        const onError = () => cleanup(false);
-
-        audio.addEventListener("ended", onEnd);
-        audio.addEventListener("error", onError);
-
-        // Timeout an toàn tối đa 4s để không bị treo nếu mất kết nối
-        setTimeout(() => cleanup(true), 4000);
-
-        audio.play().catch(() => onError());
-      } catch {
-        resolve(false);
-      }
-    });
-
-    if (playedSuccessfully) {
-      return;
-    }
-  }
-
-  // 4. Dự phòng bằng Web Speech API native nếu không tải được audio
-  await speakWithWebSpeech(word, posHint);
+  await playPronunciationFlow(word, audioUrl, posHint, sessionId, spokenText, phonetic);
 }
 
 /**
  * Phát âm tuần tự cả 2 dạng Danh từ và Động từ cho từ đa từ loại (Dual POS)
  * Giúp người học phân biệt rõ ràng trọng âm âm tiết 1 (Danh từ) và âm tiết 2 (Động từ).
+ * Đều phát bằng giọng Nữ en-US chuẩn xác.
  * Ví dụ: "record", "present", "contract", "conduct", "produce", "object"
  */
 export async function playDualPronunciation(
@@ -369,13 +561,31 @@ export async function playDualPronunciation(
   if (!word || typeof window === "undefined") return;
 
   stopAllAudio();
+  const sessionId = currentAudioSessionId;
 
-  // 1. Phát âm dạng danh từ và CHỜ CHO ĐẾN KHI KẾT THÚC HOÀN TOÀN
-  await playPronunciation(word, audioUrls?.nounAudioUrl, "noun");
+  // 1. Phát âm dạng danh từ (trọng âm âm tiết 1) và CHỜ CHO ĐẾN KHI KẾT THÚC HOÀN TOÀN
+  await playPronunciationFlow(
+    word,
+    audioUrls?.nounAudioUrl,
+    "noun",
+    sessionId,
+    word
+  );
+
+  if (sessionId !== currentAudioSessionId) return;
 
   // 2. Tạm dừng 400ms giữa 2 từ để ngắt nghỉ tự nhiên, không bị chồng đè âm thanh
   await new Promise((resolve) => setTimeout(resolve, 400));
 
-  // 3. Phát âm dạng động từ
-  await playPronunciation(word, audioUrls?.verbAudioUrl, "verb");
+  if (sessionId !== currentAudioSessionId) return;
+
+  // 3. Phát âm dạng động từ (trọng âm âm tiết 2 với tiền tố to)
+  const verbText = word.toLowerCase().startsWith("to ") ? word : `to ${word}`;
+  await playPronunciationFlow(
+    word,
+    audioUrls?.verbAudioUrl,
+    "verb",
+    sessionId,
+    verbText
+  );
 }

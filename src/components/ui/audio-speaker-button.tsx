@@ -8,6 +8,9 @@ interface AudioSpeakerButtonProps {
   word: string;
   audioUrl?: string;
   posHint?: "noun" | "verb";
+  partOfSpeech?: "noun" | "verb";
+  phonetic?: string;
+  spokenText?: string;
   label?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
@@ -17,17 +20,21 @@ export function AudioSpeakerButton({
   word,
   audioUrl,
   posHint,
+  partOfSpeech,
+  phonetic,
+  spokenText,
   label,
   size = "md",
   className = "",
 }: AudioSpeakerButtonProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const effectivePos = partOfSpeech || posHint;
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsPlaying(true);
     try {
-      await playPronunciation(word, audioUrl, posHint);
+      await playPronunciation(word, audioUrl, effectivePos, spokenText, phonetic);
     } finally {
       setTimeout(() => setIsPlaying(false), 600);
     }
@@ -46,9 +53,9 @@ export function AudioSpeakerButton({
   };
 
   const posTitle =
-    posHint === "noun"
+    effectivePos === "noun"
       ? "danh từ"
-      : posHint === "verb"
+      : effectivePos === "verb"
       ? "động từ"
       : "";
 

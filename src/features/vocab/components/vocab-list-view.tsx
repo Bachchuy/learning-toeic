@@ -8,6 +8,7 @@ import {
   getPosBadgeInfo,
   getPosCategory,
   getDualPronunciation,
+  resolveDualDetails,
   type PosCategory,
 } from "@/core/vocab";
 import { resolvePhonetic } from "@/core/phonetic";
@@ -2354,7 +2355,12 @@ export function VocabListView({
               const isDue =
                 item.card?.due && new Date(item.card.due).getTime() <= currentTime;
               const posInfo = getPosBadgeInfo(item.part_of_speech, item.meaning, item.word);
-              const dual = getDualPronunciation(item.word);
+              const dualDetails = resolveDualDetails(
+                item.word,
+                item.part_of_speech,
+                item.meaning,
+                item.context_sentence
+              );
               const phonetic = resolvePhonetic(
                 item.word,
                 item.phonetic || item.metadata?.phonetic
@@ -2381,12 +2387,30 @@ export function VocabListView({
                             {item.word}
                           </button>
 
-                          {dual ? (
+                          {dualDetails.isDual ? (
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <AudioSpeakerButton word={item.word} posHint="noun" label="n" size="sm" />
-                              <span className="text-[12px] font-ipa text-slate-500">{dual.nounIpa}</span>
-                              <AudioSpeakerButton word={item.word} posHint="verb" label="v" size="sm" />
-                              <span className="text-[12px] font-ipa text-slate-500">{dual.verbIpa}</span>
+                              <AudioSpeakerButton
+                                word={item.word}
+                                audioUrl={dualDetails.nounAudioUrl}
+                                posHint="noun"
+                                partOfSpeech="noun"
+                                phonetic={dualDetails.nounIpa}
+                                spokenText={item.word}
+                                label="n"
+                                size="sm"
+                              />
+                              <span className="text-[12px] font-ipa text-slate-500">{dualDetails.nounIpa}</span>
+                              <AudioSpeakerButton
+                                word={item.word}
+                                audioUrl={dualDetails.verbAudioUrl}
+                                posHint="verb"
+                                partOfSpeech="verb"
+                                phonetic={dualDetails.verbIpa}
+                                spokenText={`to ${item.word}`}
+                                label="v"
+                                size="sm"
+                              />
+                              <span className="text-[12px] font-ipa text-slate-500">{dualDetails.verbIpa}</span>
                             </div>
                           ) : (
                             <>
@@ -2401,9 +2425,11 @@ export function VocabListView({
 
                           {/* Huy hiệu phân loại từ loại chuẩn: Danh · Động · Tính · Trạng */}
                           <span
-                            className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold uppercase tracking-wider border ${posInfo.badgeClass}`}
+                            className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold uppercase tracking-wider border ${
+                              dualDetails.isDual ? "bg-indigo-50 text-indigo-700 border-indigo-200" : posInfo.badgeClass
+                            }`}
                           >
-                            {posInfo.shortBadge}
+                            {dualDetails.isDual ? "DANH TỪ · ĐỘNG TỪ" : posInfo.shortBadge}
                           </span>
 
                           {/* Huy hiệu Chuẩn Barron's 600 Words */}
@@ -2496,6 +2522,39 @@ export function VocabListView({
                           <EyeOff className="w-3.5 h-3.5 text-amber-600" />
                           <span>Bấm để hiện nghĩa</span>
                         </button>
+                      </div>
+                    ) : dualDetails.isDual && dualDetails.nounMeaning && dualDetails.verbMeaning ? (
+                      <div
+                        onClick={() => {
+                          if (hideMeanings) {
+                            setRevealedCardIds((prev) => {
+                              const next = new Set(prev);
+                              next.delete(item.id);
+                              return next;
+                            });
+                          } else {
+                            setSelectedDetailEntry(item);
+                          }
+                        }}
+                        className={`space-y-1 cursor-pointer ${
+                          hideMeanings
+                            ? "bg-amber-50/70 border border-amber-200 p-1.5 rounded inline-block text-amber-900"
+                            : ""
+                        }`}
+                        title={hideMeanings ? "Bấm để che lại nghĩa" : "Xem chi tiết từ vựng"}
+                      >
+                        <div className="flex items-baseline gap-1.5 text-xs text-slate-700">
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold uppercase bg-blue-100 text-blue-800 shrink-0">
+                            [n]
+                          </span>
+                          <span className="font-semibold text-slate-900">{dualDetails.nounMeaning}</span>
+                        </div>
+                        <div className="flex items-baseline gap-1.5 text-xs text-slate-700">
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold uppercase bg-emerald-100 text-emerald-800 shrink-0">
+                            [v]
+                          </span>
+                          <span className="font-semibold text-slate-900">{dualDetails.verbMeaning}</span>
+                        </div>
                       </div>
                     ) : (
                       <div

@@ -1,9 +1,12 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   normalizeWord,
   parseFreeDictResponse,
+  parseFreeDictEntries,
+  validateSafeAudioUrl,
   CURATED_TOEIC_TERMS,
   type DictionaryEntry,
   type FreeDictApiResponseItem,
@@ -32,17 +35,18 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
       .maybeSingle();
 
     if (!cacheError && cached) {
-      // Cập nhật số lượt tra cứu (await thay vì fire-and-forget)
-      const { error: updateError } = await supabase
-        .from("dictionary_cache")
-        .update({
-          lookup_count: (cached.lookup_count || 1) + 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", cached.id);
-
-      if (updateError) {
-        console.warn("[DictionaryCache] Lỗi cập nhật lookup_count:", updateError);
+      // Cập nhật số lượt tra cứu an toàn qua Backend Admin Client (service_role)
+      try {
+        const adminClient = createAdminClient();
+        await adminClient
+          .from("dictionary_cache")
+          .update({
+            lookup_count: (cached.lookup_count || 1) + 1,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", cached.id);
+      } catch (updateErr) {
+        console.warn("[DictionaryCache] Lỗi cập nhật lookup_count:", updateErr);
       }
 
       return {
@@ -52,7 +56,7 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
         part_of_speech: cached.part_of_speech || "",
         meaning_vi: cached.meaning_vi || "",
         definition_en: cached.definition_en || "",
-        audio_url: cached.audio_url || "",
+        audio_url: validateSafeAudioUrl(cached.audio_url || ""),
         examples: cached.examples || [],
         word_family: cached.word_family || [],
         collocations: cached.collocations || [],
@@ -81,7 +85,7 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
         if (res.ok) {
           const json = (await res.json()) as FreeDictApiResponseItem[];
           if (json && json.length > 0) {
-            apiEntry = parseFreeDictResponse(json[0]);
+            apiEntry = parseFreeDictEntries(json);
           }
         }
       } catch {
@@ -105,7 +109,7 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
         curated?.meaning_vi ||
         (dual ? `[n] ${dual.nounMeaning} · [v] ${dual.verbMeaning}` : apiEntry?.meaning_vi || ""),
       definition_en: apiEntry?.definition_en || "",
-      audio_url: isPhrase ? "" : (apiEntry?.audio_url || ""),
+      audio_url: isPhrase ? "" : (dual?.nounAudioUrl || apiEntry?.audio_url || ""),
       examples:
         curated?.examples && curated.examples.length > 0
           ? curated.examples
@@ -115,31 +119,39 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
       lookup_count: 1,
     };
 
-    // 4. Lưu vào dictionary_cache trong database
-    const { data: inserted, error: upsertError } = await supabase
-      .from("dictionary_cache")
-      .upsert(
-        {
-          word: newEntry.word,
-          phonetic: newEntry.phonetic,
-          part_of_speech: newEntry.part_of_speech,
-          meaning_vi: newEntry.meaning_vi,
-          definition_en: newEntry.definition_en,
-          audio_url: newEntry.audio_url,
-          examples: newEntry.examples,
-          word_family: newEntry.word_family,
-          collocations: newEntry.collocations,
-          lookup_count: 1,
-        },
-        { onConflict: "word" }
-      )
-      .select()
-      .maybeSingle();
+    // 4. Kiểm định dữ liệu và lưu vào dictionary_cache qua Backend Admin Client (service_role)
+    newEntry.audio_url = validateSafeAudioUrl(newEntry.audio_url);
 
-    if (upsertError) {
-      console.warn("[DictionaryCache] Lỗi upsert dictionary_cache:", upsertError);
-    } else if (inserted) {
-      newEntry.id = inserted.id;
+    try {
+      const adminClient = createAdminClient();
+      const { data: inserted, error: upsertError } = await adminClient
+        .from("dictionary_cache")
+        .upsert(
+          {
+            word: newEntry.word,
+            phonetic: newEntry.phonetic,
+            part_of_speech: newEntry.part_of_speech,
+            meaning_vi: newEntry.meaning_vi,
+            definition_en: newEntry.definition_en,
+            audio_url: newEntry.audio_url,
+            examples: newEntry.examples,
+            word_family: newEntry.word_family,
+            collocations: newEntry.collocations,
+            lookup_count: 1,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "word" }
+        )
+        .select()
+        .maybeSingle();
+
+      if (upsertError) {
+        console.warn("[DictionaryCache] Lỗi upsert dictionary_cache:", upsertError);
+      } else if (inserted) {
+        newEntry.id = inserted.id;
+      }
+    } catch (saveErr) {
+      console.warn("[DictionaryCache] Lỗi lưu cache qua admin client:", saveErr);
     }
 
     return newEntry;

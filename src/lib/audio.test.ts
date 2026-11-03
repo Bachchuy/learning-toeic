@@ -3,6 +3,8 @@ import {
   cleanSpeechSegment,
   prepareSpokenSegments,
   prepareSpokenText,
+  selectPreferredVoice,
+  resolvePronunciationUrl,
 } from "./audio";
 
 describe("cleanSpeechSegment - Làm sạch phân đoạn từ vựng loại bỏ hoàn toàn dấu", () => {
@@ -123,5 +125,95 @@ describe("prepareSpokenText - Định dạng văn bản phát âm chuẩn sư ph
   it("giữ nguyên từ hoặc cụm từ thông thường", () => {
     expect(prepareSpokenText("historic")).toBe("historic");
     expect(prepareSpokenText("touch base")).toBe("touch base");
+  });
+});
+
+describe("selectPreferredVoice - Chọn chính xác GIỌNG NỮ en-US, triệt tiêu 100% giọng Nam", () => {
+  const createMockVoice = (name: string, lang: string): SpeechSynthesisVoice => ({
+    name,
+    lang,
+    default: false,
+    localService: true,
+    voiceURI: name,
+  });
+
+  it("trên Windows Desktop: luôn chọn Microsoft Zira Desktop (Nữ) và loại bỏ Microsoft David Desktop (Nam)", () => {
+    const windowsVoices = [
+      createMockVoice("Microsoft David Desktop - English (United States)", "en-US"),
+      createMockVoice("Microsoft Zira Desktop - English (United States)", "en-US"),
+    ];
+
+    const chosen = selectPreferredVoice(windowsVoices);
+    expect(chosen).toBeDefined();
+    expect(chosen?.name).toContain("Zira");
+    expect(chosen?.name).not.toContain("David");
+  });
+
+  it("trên Chrome: luôn ưu tiên Google US English (Nữ)", () => {
+    const chromeVoices = [
+      createMockVoice("Microsoft David Desktop - English (United States)", "en-US"),
+      createMockVoice("Google US English", "en-US"),
+      createMockVoice("Google UK English Male", "en-GB"),
+    ];
+
+    const chosen = selectPreferredVoice(chromeVoices);
+    expect(chosen).toBeDefined();
+    expect(chosen?.name).toBe("Google US English");
+  });
+
+  it("trên Microsoft Edge: chọn Microsoft Jenny Online (Natural) thay vì Microsoft Guy Online", () => {
+    const edgeVoices = [
+      createMockVoice("Microsoft Guy Online (Natural) - English (United States)", "en-US"),
+      createMockVoice("Microsoft Jenny Online (Natural) - English (United States)", "en-US"),
+    ];
+
+    const chosen = selectPreferredVoice(edgeVoices);
+    expect(chosen).toBeDefined();
+    expect(chosen?.name).toContain("Jenny");
+    expect(chosen?.name).not.toContain("Guy");
+  });
+
+  it("trên macOS / iOS Safari: chọn Samantha (Nữ) thay vì Alex (Nam)", () => {
+    const macVoices = [
+      createMockVoice("Alex", "en-US"),
+      createMockVoice("Samantha", "en-US"),
+      createMockVoice("Fred", "en-US"),
+    ];
+
+    const chosen = selectPreferredVoice(macVoices);
+    expect(chosen).toBeDefined();
+    expect(chosen?.name).toBe("Samantha");
+    expect(chosen?.name).not.toBe("Alex");
+  });
+
+  it("trả về undefined nếu danh sách voices rỗng", () => {
+    expect(selectPreferredVoice([])).toBeUndefined();
+  });
+});
+
+describe("resolvePronunciationUrl - Định tuyến phát âm thống nhất giọng Nữ en-US", () => {
+  it("luôn chuyển hướng từ vựng sang /api/audio/tts bất kể audioUrl truyền vào từ nguồn nào", () => {
+    // Từ vựng có audio_url từ Wikimedia / Free Dictionary API (vốn có thể là giọng nam)
+    const dictApiUrl = "https://api.dictionaryapi.dev/media/pronunciations/en/implement-us.mp3";
+    const resolved = resolvePronunciationUrl("implement", dictApiUrl);
+
+    expect(resolved).toBe("/api/audio/tts?word=implement");
+  });
+
+  it("hỗ trợ posHint khi định tuyến từ vựng đa từ loại", () => {
+    const resolved = resolvePronunciationUrl("contract", undefined, "verb");
+    // Phân đoạn sạch cho verb của contract là con-TRACT
+    expect(resolved).toBe("/api/audio/tts?word=con-TRACT&pos=verb");
+  });
+
+  it("bảo tồn audioUrl chuyên dụng khi đã có tham số pos hoặc text", () => {
+    const verbUrl = "/api/audio/tts?word=contract&pos=verb&text=to%20contract";
+    expect(resolvePronunciationUrl("contract", verbUrl, "verb")).toBe(verbUrl);
+  });
+
+  it("dự phòng audioUrl nguyên bản khi từ vựng bị rỗng", () => {
+    const customUrl = "https://cdn.example.com/custom.mp3";
+    expect(resolvePronunciationUrl("", customUrl)).toBe(customUrl);
+    expect(resolvePronunciationUrl("", "")).toBe("");
   });
 });

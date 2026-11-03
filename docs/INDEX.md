@@ -209,6 +209,9 @@ Spacing / radius / shadow / motion
 ## Cây 5 — TECH (kiến trúc & code)
 
 ```
+Bộ nhớ dự án / Luồng dữ liệu liên hoàn / Ranh giới cấm chạm
+  └─► PROJECT_CONTEXT.md
+
 Kiến trúc tổng quan / Next.js / Supabase / luồng dữ liệu 6 luồng
   └─► 06-architecture.md  §6.1
 
@@ -285,6 +288,9 @@ Definition of Ready / Definition of Done
 Chiến lược kiểm thử / pgTAP / Vitest / Playwright / axe
   └─► 08-testing.md  §8
 
+Checklist kiểm thử hồi quy / Hàng rào phòng vệ / Golden Paths
+  └─► tests/REGRESSION_CHECKLIST.md
+
 Quy trình 7 bước làm việc với AI / spec → review diff
   └─► 09-ai-workflow.md  §9
 
@@ -350,6 +356,9 @@ ui-ux-pro-max      Kho dữ liệu UI intelligence (palette, font, styles, stack
 grounded-knowledge Curation tri thức chuẩn ngữ pháp & từ vựng qua MCP / NotebookLM
   └─► .agents/skills/grounded-knowledge-curation/SKILL.md
   └─► .cursor/rules/knowledge-grounding-mcp.mdc
+
+task-execution     Quy trình làm việc chuẩn SOP 5 bước (Analyze → Plan → Code → Verify → Diff)
+  └─► .agents/skills/task-execution/SKILL.md
 ```
 
 ---

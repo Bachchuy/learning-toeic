@@ -2,7 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   normalizeWord,
   selectBestUsAudioUrl,
+  selectBestAudioForPos,
+  validateSafeAudioUrl,
   parseFreeDictResponse,
+  parseFreeDictEntries,
   CURATED_TOEIC_TERMS,
 } from "./dictionary";
 
@@ -48,6 +51,77 @@ describe("Smart Dictionary Core Service", () => {
       expect(selectBestUsAudioUrl([])).toBe("");
       expect(selectBestUsAudioUrl([{ text: "/abc/" }])).toBe("");
     });
+
+    it("từ chối các URL không an toàn hoặc không phải HTTPS", () => {
+      const insecure = [
+        { audio: "http://insecure-cdn.com/audio.mp3" },
+        { audio: "javascript:alert(1)" },
+        { audio: "data:audio/mp3;base64,AAAA" },
+      ];
+      expect(selectBestUsAudioUrl(insecure)).toBe("");
+    });
+  });
+
+  describe("2b. Phân định Audio bản xứ theo Từ loại (selectBestAudioForPos)", () => {
+    const mockMultiEntries = [
+      {
+        word: "contract",
+        phonetics: [
+          { audio: "https://api.dictionaryapi.dev/media/pronunciations/en/contract-1-uk.mp3" },
+          { audio: "https://api.dictionaryapi.dev/media/pronunciations/en/contract-1-us.mp3" },
+        ],
+        meanings: [{ partOfSpeech: "noun", definitions: [{ definition: "A binding agreement." }] }],
+      },
+      {
+        word: "contract",
+        phonetics: [
+          { audio: "https://api.dictionaryapi.dev/media/pronunciations/en/contract-2-uk.mp3" },
+          { audio: "https://api.dictionaryapi.dev/media/pronunciations/en/contract-2-us.mp3" },
+        ],
+        meanings: [{ partOfSpeech: "verb", definitions: [{ definition: "To enter into agreement; decrease in size." }] }],
+      },
+    ];
+
+    it("chọn đúng file audio US của Danh từ khi posHint = 'noun'", () => {
+      expect(selectBestAudioForPos(mockMultiEntries, "noun")).toBe(
+        "https://api.dictionaryapi.dev/media/pronunciations/en/contract-1-us.mp3"
+      );
+    });
+
+    it("chọn đúng file audio US của Động từ khi posHint = 'verb'", () => {
+      expect(selectBestAudioForPos(mockMultiEntries, "verb")).toBe(
+        "https://api.dictionaryapi.dev/media/pronunciations/en/contract-2-us.mp3"
+      );
+    });
+
+    it("chọn file audio US bất kỳ nếu không truyền posHint", () => {
+      expect(selectBestAudioForPos(mockMultiEntries)).toBe(
+        "https://api.dictionaryapi.dev/media/pronunciations/en/contract-1-us.mp3"
+      );
+    });
+  });
+
+  describe("2c. Kiểm định URL âm thanh an toàn (validateSafeAudioUrl)", () => {
+    it("chấp nhận URL HTTPS từ domain uy tín hoặc file mp3 hợp lệ", () => {
+      expect(
+        validateSafeAudioUrl(
+          "https://api.dictionaryapi.dev/media/pronunciations/en/word-us.mp3"
+        )
+      ).toBe("https://api.dictionaryapi.dev/media/pronunciations/en/word-us.mp3");
+
+      expect(
+        validateSafeAudioUrl("https://ssl.gstatic.com/dictionary/static/sounds/20200429/word--_us_1.mp3")
+      ).toBe("https://ssl.gstatic.com/dictionary/static/sounds/20200429/word--_us_1.mp3");
+    });
+
+    it("chặn các URL độc hại, giao thức lạ hoặc không phải HTTPS", () => {
+      expect(validateSafeAudioUrl("http://example.com/audio.mp3")).toBe("");
+      expect(validateSafeAudioUrl("javascript:exploit()")).toBe("");
+      expect(validateSafeAudioUrl("ftp://files.com/audio.mp3")).toBe("");
+      expect(validateSafeAudioUrl("data:text/html,<script>alert(1)</script>")).toBe("");
+      expect(validateSafeAudioUrl(null)).toBe("");
+      expect(validateSafeAudioUrl("")).toBe("");
+    });
   });
 
   describe("3. Phân tích kết quả API (parseFreeDictResponse)", () => {
@@ -80,6 +154,39 @@ describe("Smart Dictionary Core Service", () => {
       expect(result.word_family?.length).toBeGreaterThan(0);
       expect(result.collocations?.length).toBeGreaterThan(0);
       expect(result.examples?.[0].en).toBe("The company will implement new policies next month.");
+    });
+
+    it("gom đầy đủ các từ loại và định nghĩa khi API trả về nhiều entries (parseFreeDictEntries)", () => {
+      const mockMulti = [
+        {
+          word: "contract",
+          phonetic: "/ˈkɒntɹækt/",
+          phonetics: [{ audio: "https://api.dictionaryapi.dev/media/pronunciations/en/contract-1-us.mp3" }],
+          meanings: [
+            {
+              partOfSpeech: "noun",
+              definitions: [{ definition: "An agreement between two or more parties." }],
+            },
+          ],
+        },
+        {
+          word: "contract",
+          phonetic: "/kənˈtɹækt/",
+          phonetics: [{ audio: "https://api.dictionaryapi.dev/media/pronunciations/en/contract-2-us.mp3" }],
+          meanings: [
+            {
+              partOfSpeech: "verb",
+              definitions: [{ definition: "To enter into an agreement with someone." }],
+            },
+          ],
+        },
+      ];
+
+      const result = parseFreeDictEntries(mockMulti);
+      expect(result.word).toBe("contract");
+      expect(result.part_of_speech).toBe("noun_verb");
+      expect(result.definition_en).toBe("An agreement between two or more parties.");
+      expect(result.audio_url).toBe("https://api.dictionaryapi.dev/media/pronunciations/en/contract-1-us.mp3");
     });
   });
 
