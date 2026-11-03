@@ -17,9 +17,11 @@
 1. *Đăng nhập*: Supabase Auth, cookie phiên, trigger tự tạo hồ sơ, chuyển vào `/`.
 2. *Làm bài*: Server Action gọi `create_session` → trả danh sách câu không kèm đáp án → client giữ trạng thái bằng reducer → mỗi lần nộp gọi `submit_answer` (kiểm tra câu thuộc phiên, ghi attempt, trả đúng/sai + đáp án + giải thích) → `finish_session` → trang kết quả gọi `get_session_review`.
 3. *Drill*: chạy hoàn toàn ở client trên mảng câu sai đã có; không có lệnh ghi nào.
-4. *Từ vựng và ôn tập*: lưu từ vào `vocab_entries`; trigger tạo `review_cards` (thẻ mới, đến hạn ngay); `/review` lấy thẻ đến hạn; Server Action dùng ts-fsrs tính trạng thái mới rồi ghi `review_cards` và `card_reviews` trong một giao dịch.
-5. *Thống kê*: view `v_skill_mastery` (Wilson) và các truy vấn đọc cho `/` và `/stats`.
-6. *Admin*: phiên của tài khoản `role = admin`, RLS qua `is_admin()`; ghi `review_log`.
+4. *Từ vựng và ôn tập (FSRS)*: lưu từ vào `vocab_entries` hoặc nạp từ Curated Deck (D-28); trigger tạo `review_cards` (thẻ mới, đến hạn ngay); `/review` lấy thẻ đến hạn; Server Action dùng `ts-fsrs` ở server tính toán trạng thái trí nhớ và gọi RPC `record_card_review_atomic` (D-32) cập nhật thẻ + ghi lịch sử `card_reviews` nguyên tử trong cùng 1 transaction. RLS chỉ mở quyền SELECT cho client.
+5. *Đọc hiểu đoạn văn & Thi thử*: Đọc hiểu Part 6/7 nộp qua RPC `submit_passage_answers` có kiểm soát oracle leak (D-26); Thi thử `/exam/[slug]` chạy bộ đếm ngược 75 phút, nộp 100 câu qua Server Action và quy đổi thang điểm tham chiếu ETS 5-495 (D-27).
+6. *Từ điển & Tra cứu*: Tra từ Free Dictionary API, ghi bộ đệm `dictionary_cache` qua Server Action bảo mật, lọc an toàn URL âm thanh (D-30).
+7. *Thống kê*: view `v_skill_mastery` (Wilson) và các truy vấn đọc cho `/` và `/stats`.
+8. *Admin*: phiên của tài khoản `role = admin`, RLS qua `is_admin()`; ghi `review_log`.
 
 ### 6.2 Công nghệ và quyết định
 
@@ -36,7 +38,8 @@
 | GitHub Actions + Vercel | CI/CD, hosting | CI từ M1; deploy từ M4 | Tách staging và production |
 | Sentry (PDF đề xuất) | Quan sát lỗi | Có thể sau | Không ghi nội dung câu trả lời |
 | Pipeline AI Python/FastAPI | Sinh và kiểm duyệt đề hàng loạt | **Hoãn** (D-11, D-12) | Chi phí, chất lượng, bản quyền; làm khi có số liệu thật |
-| ts-fsrs (FSRS) | Lập lịch ôn tập ngắt quãng, xem trước giờ hẹn cho 4 mức chấm | Ngay (M8) | Cần Node.js 20 trở lên; khóa phiên bản; hiểu Difficulty, Stability, Retrievability và 4 trạng thái thẻ (New, Learning, Review, Relearning); kiểm tra tham số lưu trữ bằng Zod; tối ưu tham số theo người dùng là việc sau MVP |
+| ts-fsrs (FSRS) | Lập lịch ôn tập ngắt quãng, xem trước giờ hẹn cho 4 mức chấm | Ngay (M8, D-32) | Chạy tại server; atomic RPC `record_card_review_atomic`; client không được tự ý sửa state FSRS |
+| Free Dictionary API | Tra từ điển, IPA, phát âm audio | Mở rộng (D-30) | Lưu cache tại `dictionary_cache`, kiểm tra an toàn URL âm thanh, giảm tải mạng |
 
 ### 6.3 Route
 
@@ -53,6 +56,12 @@
 | `/stats` | Đăng nhập | Server | stats |
 | `/profile` | Đăng nhập | Server + Client form | profile |
 | `/admin/review` | Admin | Server + Client (phím tắt) | admin |
+| `/reading/[id]` | Đăng nhập | Server + Client | reading (Part 6/7 Passages) |
+| `/exam` | Đăng nhập | Server | exam (Danh sách đề thi thử) |
+| `/exam/[slug]` | Đăng nhập | Client Runner (FOCUSED 75m) | exam (ETS Exam Simulator) |
+| `/learn` | Đăng nhập | Server | learn (16 bài học ngữ pháp) |
+| `/learn/[tagCode]` | Đăng nhập | Server | learn (Chi tiết bài học) |
+| `/api/audio/tts` | Đăng nhập | Route Handler | audio (Phát âm dự phòng) |
 
 Nhóm route: `(auth)` công khai; `(app)` có thanh điều hướng; `(focus)` ẩn điều hướng (`/practice/[sessionId]`, `/review`); `(admin)` có layout kiểm tra role (chỉ phục vụ giao diện; bảo mật thật là RLS).
 
@@ -77,7 +86,7 @@ toeic-ai/
 │  │  ├─ (app)/              # có nav: /, practice/new, vocab, stats, profile, result
 │  │  ├─ (focus)/            # ẩn nav: practice/[sessionId], review
 │  │  └─ (admin)/admin/review/
-│  ├─ features/              # auth, practice, vocab, review, stats, profile, admin
+│  ├─ features/              # auth, practice, vocab, review, stats, profile, admin, reading, exam, learn, dictionary
 │  │  └─ <feature>/ components/ actions.ts queries.ts schemas.ts
 │  ├─ core/                  # hàm thuần: sm2, mastery, scoring, practiceReducer, drill
 │  ├─ components/ui/         # shadcn và primitive theo token

@@ -10,4 +10,6 @@
 5. **OQ-5 (ĐÃ CHỐT)**: Google OAuth làm ngay sau M4, khi đã có URL staging (khoảng 3–4 giờ), trước M13.
 6. **OQ-6 (ĐÃ CHỐT)**: Asia/Ho\_Chi\_Minh; mọi thời điểm lưu UTC; chuỗi ngày tính khi có ít nhất 1 câu luyện hoặc 1 thẻ ôn; loại câu đã làm đúng theo 7×24 giờ trượt; biểu đồ 14 ngày theo ngày lịch giờ Việt Nam.
 7. **OQ-7 (ĐÃ CHỐT)**: viền ô nhập `#8190A6` (3,24:1 trên nền trắng); có hộp thoại xác nhận khi thoát phiên; phím tắt một ký tự chỉ hoạt động khi khu vực câu hỏi, thẻ hoặc hàng đợi admin đang có focus (tự focus khi vào màn hình); `/vocab` có hai tab lọc Tất cả và Đến hạn.
-
+8. **OQ-8 Mở rộng Đọc hiểu Part 6/7 và Exam Simulator (ĐÃ CHỐT - D-26, D-27)**: Chế độ luyện tập hàng ngày vẫn tuân thủ PD-06 (không bấm giờ); riêng phòng thi thử ETS Exam Simulator áp dụng đồng hồ đếm ngược 75 phút cho 100 câu đọc hiểu và quy đổi điểm tham chiếu 5–495.
+9. **OQ-9 Bộ thẻ mẫu Curated Decks và Sổ tay cá nhân (ĐÃ CHỐT - D-28, D-29)**: Cung cấp sẵn 600 từ Barron's định dạng tĩnh chất lượng cao, phát âm kép Danh/Động từ; bổ sung bảng `notebooks` cho phép người dùng tự tạo nhiều sổ tay tùy biến.
+10. **OQ-10 Toàn vẹn dữ liệu FSRS và Bộ đệm từ điển (ĐÃ CHỐT - D-30, D-32)**: RLS khóa toàn bộ quyền ghi client trên `review_cards`, `card_reviews` và `dictionary_cache`; mọi thao tác ghi thực hiện qua RPC nguyên tử hoặc Server Actions tin cậy.

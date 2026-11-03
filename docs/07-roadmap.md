@@ -35,5 +35,16 @@ Tổng khoảng 135–202 giờ làm việc. Google OAuth làm ngay sau M4, khi 
 
 Lỗi hay gặp theo giai đoạn: M1 commit nhầm secret hoặc tắt `strict`; M3 quên bật RLS ở một bảng hoặc đặt policy quá rộng; M4 để lộ đáp án trong payload, nộp lại tạo bản ghi đôi; M6 vô tình gọi `submit_answer` trong Drill; M7 không chuẩn hóa `lemma`; M8 tự viết công thức lập lịch thay vì dùng thư viện, quên lưu lịch sử mỗi lần chấm, lưu hạn ôn sai múi giờ; M9 gắn nhãn Cần ôn cho chủ điểm chưa đủ 5 câu; M10 để lộ service role ra client; M11 chỉ ẩn nút mà không có RLS.
 
-**Sau MVP (có cổng quyết định):** pipeline AI theo PDF chương 5 và 16, `/admin/batches`, Part 6 và 7, chế độ bấm giờ, FSRS; chỉ làm khi có số liệu thật về nhu cầu số lượng câu hỏi và chất lượng.
+
+### 7.1 Các Milestone nâng cao đã hoàn thành (Post-MVP Extensions)
+
+| ID | Milestone và nội dung triển khai | Quyết định | Trạng thái |
+| --- | --- | --- | --- |
+| M14 | **Luyện Đọc hiểu đoạn văn Part 6 & 7**: bảng `passages`, cloze & multi-passages, RPC `submit_passage_answers` bảo mật | D-26 | ĐÃ HOÀN THÀNH |
+| M15 | **Thi thử Đọc hiểu ETS (Reading Exam Simulator)**: 100 câu Part 5-7, bấm giờ 75 phút, thang điểm tham chiếu ETS 5-495 | D-27 | ĐÃ HOÀN THÀNH |
+| M16 | **Bộ thẻ từ vựng mẫu (Curated Decks) & Sổ tay tùy chỉnh**: 600 từ Barron's, phát âm kép Danh/Động từ, bảng `notebooks` | D-28, D-29 | ĐÃ HOÀN THÀNH |
+| M17 | **Học lý thuyết 16 chủ điểm ngữ pháp (`/learn`) & Tra từ điển**: 16 bài học bài bản, bảng `dictionary_cache` | D-30, D-31 | ĐÃ HOÀN THÀNH |
+| M18 | **Kiểm toán Bảo mật & Toàn vẹn Dữ liệu (Security & Integrity Remediation)**: Vá RPC oracle leak, RPC `record_card_review_atomic`, chuẩn hóa ARM SQL View, khóa quyền ghi dictionary cache | P0.1 - P1.3, D-32 | ĐÃ HOÀN THÀNH |
+
+**Các hạng mục tương lai (Sau M18 - có cổng quyết định):** pipeline AI theo PDF chương 5 và 16, `/admin/batches`, Part 6 và 7, chế độ bấm giờ, FSRS; chỉ làm khi có số liệu thật về nhu cầu số lượng câu hỏi và chất lượng.
 

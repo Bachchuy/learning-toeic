@@ -14,4 +14,6 @@
 | Người học không quay lại | Trung bình / Cao | Phỏng vấn sớm, thử nghiệm khả dụng với 3–5 người, nhắc ôn hợp lý | Giữ chân ngày 7 thấp |
 | Mâu thuẫn tài liệu quay lại | Trung bình / Trung bình | Mục 0.3 và sổ quyết định; chỉ sửa ở tài liệu này | Hai nguồn nói khác nhau |
 | Thư viện FSRS đổi phiên bản, kết quả lập lịch đổi theo | Thấp đến trung bình / Trung bình | Khóa phiên bản chính xác; test snapshot kết quả; đọc ghi chú phát hành trước khi nâng cấp; lưu lịch sử chấm thẻ để dựng lại trạng thái | Test snapshot lệch sau khi cập nhật thư viện |
-
+| Lỗ hổng rò rỉ đáp án qua RPC đoạn văn | Thấp / Rất cao | Vá RPC `submit_passage_answers` (chỉ trả đáp án câu đã chọn, loại câu chưa làm, kiểm tra question thuộc passage) | Test integration kiểm thử oracle leak tự động |
+| Dữ liệu FSRS ghi dở dang khi mất kết nối | Thấp / Cao | Nguyên tử hóa qua RPC `record_card_review_atomic` trong transaction ACID, khóa quyền ghi client bằng RLS | Test rollback transaction khi lỗi |
+| Bộ đệm từ điển bị ô nhiễm hoặc tấn công SSRF | Thấp / Trung bình | Khóa quyền INSERT/UPDATE client trên `dictionary_cache`, whitelist domain CDN âm thanh | Test xác thực URL âm thanh và RLS cache |

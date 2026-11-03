@@ -72,3 +72,47 @@
 - Hành động: Duyệt (Y) → `published`; Loại (N) → `retired`; Sửa nhẹ (kiểm tra đúng một chỗ trống, đúng một đáp án) → ghi `review_log`. Phím J/K chuyển câu.
 - Chỉ tài khoản `role = admin` mới thấy; bảo vệ thật bằng RLS, ẩn nút chỉ là phụ.
 
+### 4.10 Luyện đọc hiểu đoạn văn (Part 6 & Part 7 Passage Practice - D-26)
+
+- Phân loại đoạn văn: `cloze` (Part 6 - điền từ vào đoạn văn 16 câu), `single` (Part 7 - đoạn đơn), `multi` (Part 7 - đoạn kép/ba). Mỗi bài đọc liên kết 1-n với các câu hỏi (`questions.passage_id`).
+- Chấm điểm & Nộp bài an toàn: Gọi RPC `submit_passage_answers`.
+  1. Payload gửi lên: mảng các câu đã chọn `[{question_id, selected_index}]`.
+  2. Bất biến bảo mật: Server chỉ kiểm tra, chấm điểm, lưu `attempts` và trả về đáp án đúng/giải thích cho các câu ĐÃ CHỌN hợp lệ (`selected_index >= 0`).
+  3. Tuyệt đối không trả về đáp án của câu chưa làm, không tính câu chưa làm là câu sai, ngăn chặn triệt để hành vi quét đáp án (oracle leak).
+  4. Giao dịch nguyên tử: Mọi lượt làm trong cùng một lần nộp được ghi nhất quán trong một transaction PostgreSQL.
+
+### 4.11 Thi thử Đọc hiểu ETS (Reading Exam Simulator - D-27)
+
+- Cấu trúc đề chuẩn: 100 câu Đọc hiểu (Part 5: 30 câu, Part 6: 16 câu, Part 7: 54 câu).
+- Bộ đếm thời gian nghiêm ngặt 75 phút:
+  - Khác với Luyện tập Part 5 hàng ngày (luôn tuân thủ PD-06: không bấm giờ), chế độ Thi thử Exam Simulator bắt buộc đếm ngược 75 phút mô phỏng áp lực phòng thi thật.
+  - Hết 75 phút: Tự động khóa thao tác và nộp bài với các câu đã chọn.
+- Điều hướng & Trạng thái làm bài (Question Palette):
+  - Hiển thị ma trận 100 nút câu hỏi (101 - 200).
+  - Phân loại trực quan: Đã làm (xanh dương nhạt), Chưa làm (trắng viền xám), Đánh dấu cờ xem lại (chấm vàng cam).
+  - Phím tắt bàn phím: A/B/C/D chọn đáp án nhanh, F gắn cờ, Mũi tên trái/phải chuyển câu.
+- Thang điểm tham chiếu ETS (Estimated Reference Scoring):
+  - Chuyển đổi số câu đúng (0 - 100) sang dải điểm 5 - 495 theo Bảng ánh xạ tham chiếu chuẩn hóa từ dữ liệu ETS công khai.
+  - Khuyến cáo bắt buộc hiển thị trên UI: Điểm số chỉ mang tính chất tham khảo, không đại diện cho chứng chỉ ETS TOEIC chính thức.
+
+### 4.12 Sổ từ vựng mở rộng & Bộ thẻ mẫu (Curated Decks & Custom Notebooks - D-28, D-29)
+
+- Bộ thẻ định sẵn (Curated Decks): Cung cấp các gói từ vựng chất lượng cao nạp sẵn:
+  - Barron's 600 Essential Words for the TOEIC (50 chủ đề kinh thương).
+  - Từ vựng Công nghệ Thông tin (IT TOEIC) & Idioms văn phòng.
+  - Hỗ trợ phát âm song song Danh từ / Động từ (`nounAudioUrl`, `verbAudioUrl`) cho các từ đổi trọng âm theo từ loại (ví dụ: *record*, *present*).
+  - Nạp 1 chạm: Người học có thể nạp toàn bộ một danh mục vào sổ từ cá nhân chỉ bằng một click, tự động khởi tạo thẻ FSRS ở trạng thái mới.
+- Sổ tay tùy chỉnh (Custom Notebooks): Cho phép tạo nhiều sổ tay phân loại theo mục đích cá nhân (ví dụ: "Từ vựng dễ nhầm", "Từ vựng Hợp đồng"), liên kết khóa ngoại với `vocab_entries`.
+
+### 4.13 Bộ đệm từ điển toàn cục (Global Dictionary Cache - D-30)
+
+- Tra cứu API: Tích hợp Free Dictionary API để tra nhanh nghĩa, phiên âm IPA, từ loại và phát âm audio.
+- Bộ đệm Server-Side: Mọi kết quả tra cứu được lưu đệm trong bảng `dictionary_cache`. Khi người dùng khác tra cùng từ, hệ thống đọc trực tiếp từ cache DB, giảm 90% latency và triệt tiêu giới hạn rate limit của API bên thứ ba.
+- Bảo vệ dữ liệu & Audio: Chỉ ghi cache thông qua SSR / Server Actions đáng tin cậy (service_role), cấm client sửa tùy ý. URL âm thanh bắt buộc qua hàm kiểm tra whitelist domain CDN được phê duyệt.
+
+### 4.14 Bài học lý thuyết ngữ pháp 16 chủ điểm (`/learn` - D-31)
+
+- Cung cấp 16 mô-đun bài học ngữ pháp sư phạm chuyên sâu tại `/learn` và `/learn/[tagCode]`.
+- Cấu trúc bài học: Khái niệm & Bản chất -> Dấu hiệu nhận biết trong đề thi -> Các bẫy đề thi thường gặp -> Ví dụ mẫu song ngữ.
+- Tích hợp liên hoàn: Từ bài học ngữ pháp có nút bấm chuyển thẳng sang Luyện tập Part 5 của chính chủ điểm đó (`/practice/new?tagId=...`).
+
