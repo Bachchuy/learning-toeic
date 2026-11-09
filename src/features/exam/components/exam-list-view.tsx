@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import type { ExamMetaSummary } from "../types";
-import { Clock, BookOpen, Award, CheckCircle2, ArrowRight } from "lucide-react";
+import { Clock, BookOpen, CheckCircle2, ArrowRight } from "lucide-react";
 
 interface ExamListViewProps {
   exams: ExamMetaSummary[];
@@ -12,31 +12,15 @@ interface ExamListViewProps {
 export function ExamListView({ exams }: ExamListViewProps) {
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
-      {/* Hero Header */}
-      <div className="border-b border-[#E2E8F0] pb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-xs font-semibold text-[#2563EB] mb-2">
-              <Award className="w-3.5 h-3.5" />
-              <span>ETS TOEIC Simulation</span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-[#0F172A] tracking-tight">
-              Phòng Thi Thử TOEIC Reading
-            </h1>
-            <p className="text-sm md:text-base text-[#475569] mt-1.5 max-w-2xl">
-              Mô phỏng trọn vẹn 100 câu phần Đọc (Part 5, 6, 7) trong 75 phút theo format chuẩn ETS. Chấm điểm thang 5–495 điểm và phân tích chi tiết bẫy đề thi.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 bg-white p-3.5 rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0">
-            <div className="p-2.5 rounded-lg bg-[#EFF6FF] text-[#2563EB]">
-              <Clock className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-xs text-[#475569] font-medium">Thời gian thi chuẩn</div>
-              <div className="text-base font-bold text-[#0F172A]">75 phút / 100 câu</div>
-            </div>
-          </div>
+      {/* Header: Đơn giản, tự tin, đồng bộ với Lý thuyết & Luyện tập */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 border-b border-[#E2E8F0] pb-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
+            Thi thử TOEIC
+          </h1>
+        </div>
+        <div className="text-[13px] font-mono text-[#64748B]">
+          Hiển thị <span className="font-semibold text-[#0F172A]">{exams.length}</span> đề thi · 75 phút / 100 câu
         </div>
       </div>
 

@@ -45,33 +45,29 @@ export function StatsView({
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pt-2 pb-16 animate-in fade-in duration-200">
-      {/* 1. Header Màn hình Thống kê */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#E2E8F0] pb-6">
+      {/* 1. Header Màn hình Thống kê: Đơn giản, tự tin, đồng bộ với Lý thuyết & Luyện tập */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-4">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569] mb-1.5 flex items-center gap-2">
-            <span>Độ vững kỹ năng</span>
-            <span className="text-slate-300">•</span>
-            <span>Mô hình Đánh giá Thích ứng (Cửa sổ 20 câu)</span>
-          </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
-            Thống kê &amp; Chẩn đoán Điểm số
+            Thống kê học tập
           </h1>
-          <p className="text-sm text-[#475569] mt-1.5 leading-relaxed max-w-xl">
-            Đánh giá mức độ thành thạo từng chủ điểm và xác định chính xác phần kiến thức cần củng cố.
-          </p>
         </div>
 
         {/* Nút Primary duy nhất của màn hình: Luyện chủ điểm yếu nhất ngay */}
-        {weakestTopic && (
+        {weakestTopic ? (
           <Link
             href={`/practice/new?tagId=${weakestTopic.tagId}`}
             className="shrink-0"
           >
-            <Button variant="primary" size="cta" className="shadow-sm">
+            <Button variant="primary" size="cta" className="shadow-xs">
               <TrendingUp className="w-4 h-4 mr-2" />
               Luyện chủ điểm yếu nhất ngay →
             </Button>
           </Link>
+        ) : (
+          <div className="text-[13px] font-mono text-[#64748B]">
+            Cửa sổ đánh giá <span className="font-semibold text-[#0F172A]">20 câu</span> gần nhất
+          </div>
         )}
       </div>
 

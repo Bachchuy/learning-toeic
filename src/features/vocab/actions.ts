@@ -228,31 +228,8 @@ export async function getVocabListAction(
     return { entries: [], dueCount: 0, error: "Chưa đăng nhập" };
   }
 
-  // 1. Đếm chính xác tổng số từ vựng của user để bypass giới hạn mặc định 1000 rows của PostgREST
-  let countQuery = supabase
-    .from("vocab_entries")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
-  if (searchQuery.trim()) {
-    const q = searchQuery.trim().toLowerCase();
-    countQuery = countQuery.or(`word.ilike.%${q}%,meaning.ilike.%${q}%`);
-  }
-
-  const { count: totalCount, error: countError } = await countQuery;
-  if (countError) {
-    return { entries: [], dueCount: 0, error: countError.message };
-  }
-
-  const total = totalCount || 0;
-  if (total === 0) {
-    return { entries: [], dueCount: 0 };
-  }
-
-  // 2. Fetch toàn bộ các chunks song song (mỗi chunk 1000 hàng theo giới hạn PostgREST)
+  // 1. Tối ưu: Lấy chunk đầu tiên (tối đa 1000 từ) kèm count='exact' trong 1 truy vấn duy nhất
   const PAGE_CHUNK_SIZE = 1000;
-  const totalPages = Math.ceil(total / PAGE_CHUNK_SIZE);
-
   const selectFields = `
     id,
     user_id,
@@ -278,26 +255,26 @@ export async function getVocabListAction(
     )
   `;
 
-  const fetchChunk = (from: number, to: number) => {
-    let q = supabase
-      .from("vocab_entries")
-      .select(selectFields)
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .range(from, to);
+  let firstQuery = supabase
+    .from("vocab_entries")
+    .select(selectFields, { count: "exact" })
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .range(0, PAGE_CHUNK_SIZE - 1);
 
-    if (searchQuery.trim()) {
-      const qStr = searchQuery.trim().toLowerCase();
-      q = q.or(`word.ilike.%${qStr}%,meaning.ilike.%${qStr}%`);
-    }
-    return q;
-  };
+  if (searchQuery.trim()) {
+    const qStr = searchQuery.trim().toLowerCase();
+    firstQuery = firstQuery.or(`word.ilike.%${qStr}%,meaning.ilike.%${qStr}%`);
+  }
 
-  const chunkPromises = [];
-  for (let i = 0; i < totalPages; i++) {
-    const from = i * PAGE_CHUNK_SIZE;
-    const to = from + PAGE_CHUNK_SIZE - 1;
-    chunkPromises.push(fetchChunk(from, to));
+  const { data: firstChunkData, count: totalCount, error: firstError } = await firstQuery;
+  if (firstError) {
+    return { entries: [], dueCount: 0, error: firstError.message };
+  }
+
+  const total = totalCount || 0;
+  if (total === 0 || !firstChunkData) {
+    return { entries: [], dueCount: 0 };
   }
 
   interface RawCardRow {
@@ -327,12 +304,35 @@ export async function getVocabListAction(
     review_cards: RawCardRow | RawCardRow[] | null;
   }
 
-  const chunkResults = await Promise.all(chunkPromises);
-  const now = new Date();
-  let rawRows: RawVocabRow[] = [];
-  for (const res of chunkResults) {
-    if (res.data) {
-      rawRows = rawRows.concat(res.data as unknown as RawVocabRow[]);
+  let rawRows: RawVocabRow[] = firstChunkData as unknown as RawVocabRow[];
+
+  // 2. Nếu người dùng có > 1000 từ, fetch các chunks còn lại song song
+  if (total > PAGE_CHUNK_SIZE) {
+    const totalPages = Math.ceil(total / PAGE_CHUNK_SIZE);
+    const remainingPromises = [];
+
+    for (let i = 1; i < totalPages; i++) {
+      const from = i * PAGE_CHUNK_SIZE;
+      const to = from + PAGE_CHUNK_SIZE - 1;
+      let q = supabase
+        .from("vocab_entries")
+        .select(selectFields)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (searchQuery.trim()) {
+        const qStr = searchQuery.trim().toLowerCase();
+        q = q.or(`word.ilike.%${qStr}%,meaning.ilike.%${qStr}%`);
+      }
+      remainingPromises.push(q);
+    }
+
+    const remainingResults = await Promise.all(remainingPromises);
+    for (const res of remainingResults) {
+      if (res.data) {
+        rawRows = rawRows.concat(res.data as unknown as RawVocabRow[]);
+      }
     }
   }
 
@@ -392,6 +392,8 @@ export async function getVocabListAction(
         : undefined,
     };
   });
+
+  const now = new Date();
 
   // Đếm số lượng thẻ đến hạn ôn
   const dueCount = allEntries.filter((e) => {

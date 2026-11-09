@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { User } from "@supabase/supabase-js";
@@ -12,18 +13,20 @@ export class UnauthorizedError extends Error {
 /**
  * Lấy thông tin người dùng hiện tại một cách an toàn (tùy chọn).
  * Không gây lỗi hay redirect nếu người dùng chưa đăng nhập (khách vãng lai).
+ * Được memoize bằng React cache() để tránh gọi lặp lại Supabase auth server
+ * nhiều lần trong cùng một chu kỳ request / render trang.
  */
-export async function getOptionalUser(): Promise<{
+export const getOptionalUser = cache(async (): Promise<{
   user: User | null;
   supabase: Awaited<ReturnType<typeof createClient>>;
-}> {
+}> => {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   return { user, supabase };
-}
+});
 
 /**
  * Yêu cầu người dùng phải đăng nhập trước khi thực thi.

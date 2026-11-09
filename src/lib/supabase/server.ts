@@ -1,11 +1,13 @@
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 /**
  * Supabase client chạy ở Server Components, Server Actions và Route Handlers.
  * Tự động quản lý và đồng bộ Session JWT thông qua Cookies.
+ * Memoized per-request bằng React cache() để tránh khởi tạo lại nhiều lần trong cùng request.
  */
-export async function createClient() {
+export const createClient = cache(async () => {
   const cookieStore = await cookies();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
@@ -32,4 +34,4 @@ export async function createClient() {
       },
     }
   );
-}
+});

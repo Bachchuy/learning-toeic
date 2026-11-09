@@ -1163,37 +1163,24 @@ export function VocabListView({
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pt-2 pb-16 animate-in fade-in duration-200">
-      {/* ========================================================= */}
-      {/* TASK 1: Header Tinh Gọn & Hợp Nhất CTA (Layout 2 Cột 7:5) */}
-      {/* ========================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-        {/* Cột trái (lg:col-span-7) */}
-        <div className="lg:col-span-7 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB] text-[11px] font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Ghi nhớ ngắt quãng FSRS</span>
-          </div>
+      {/* Header: Đơn giản, tự tin, đồng bộ với Lý thuyết & Luyện tập */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E2E8F0] pb-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
+            Sổ từ vựng
+          </h1>
+        </div>
 
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 truncate">
-              Sổ từ vựng cá nhân
-            </h1>
-            <p className="text-sm text-[#475569] mt-1.5 leading-relaxed">
-              Tổng cộng{" "}
-              <span className="font-semibold text-slate-900 font-mono">
-                {fsrsActiveEntries.length}
-              </span>{" "}
-              từ vựng được lưu trữ {!includeItVocab && entries.length > fsrsActiveEntries.length ? `(đang ẩn ${entries.length - fsrsActiveEntries.length} từ IT)` : ""} và tối ưu lịch ôn theo thuật toán FSRS.
-            </p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="text-[13px] font-mono text-[#64748B]">
+            Hiển thị <span className="font-semibold text-[#0F172A]">{fsrsActiveEntries.length}</span> từ vựng
           </div>
-
-          {/* Cụm nút công cụ phụ: + Thêm từ mới & Quản lý sổ */}
-          <div className="flex items-center gap-2.5 pt-1 flex-wrap">
+          <div className="flex items-center gap-2">
             <Button
               variant="secondary"
               size="default"
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-1.5 h-10 px-4 text-xs font-semibold border-[#8190A6] text-slate-800 hover:bg-slate-100 transition-colors shadow-xs"
+              className="flex items-center gap-1.5 h-9 px-3.5 text-xs font-semibold border-[#8190A6] text-slate-800 hover:bg-slate-100 transition-colors shadow-xs"
               title="Thêm từ vựng mới vào sổ"
             >
               <Plus className="w-4 h-4 text-[#2563EB]" />
@@ -1204,7 +1191,7 @@ export function VocabListView({
               variant="secondary"
               size="default"
               onClick={() => setIsNotebookManagerOpen(true)}
-              className="flex items-center gap-1.5 h-10 px-4 text-xs font-semibold border-[#8190A6] text-slate-800 hover:bg-slate-100 transition-colors shadow-xs"
+              className="flex items-center gap-1.5 h-9 px-3.5 text-xs font-semibold border-[#8190A6] text-slate-800 hover:bg-slate-100 transition-colors shadow-xs"
               title="Quản lý và tạo sổ riêng"
             >
               <FolderPlus className="w-4 h-4 text-indigo-600" />
@@ -1212,95 +1199,82 @@ export function VocabListView({
             </Button>
           </div>
         </div>
-
-        {/* Cột phải (lg:col-span-5): Action Card FSRS Nổi Bật */}
-        <div className="lg:col-span-5">
-          <Card
-            className={`p-5 rounded-2xl border transition-all shadow-xs relative overflow-hidden ${
-              dueCount > 0
-                ? "bg-gradient-to-br from-[#EFF6FF] via-[#EEF2FF] to-white border-[#C7D2FE]"
-                : "bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-white border-[#E2E8F0]"
-            }`}
-          >
-            {dueCount > 0 ? (
-              <div className="space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <span className="p-2 rounded-xl bg-[#2563EB] text-white shadow-xs shrink-0">
-                      <Flame className="w-5 h-5 fill-white" />
-                    </span>
-                    <div>
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-[#4338CA]">
-                        Mục tiêu hôm nay (Micro-learning)
-                      </div>
-                      <div className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
-                        <span className="font-mono text-[#2563EB] text-xl">
-                          {dueCount}
-                        </span>{" "}
-                        thẻ đến hạn ôn tập {!includeItVocab && <span className="text-xs text-slate-500 font-normal">(TOEIC cốt lõi)</span>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-xs text-[#475569] leading-relaxed">
-                  FSRS khuyến nghị chia nhỏ từng phiên 15 thẻ hoặc ôn theo chuyên đề để học sâu và duy trì trí nhớ dài hạn.
-                </p>
-
-                {/* 1 Nút Primary CTA duy nhất theo chuẩn Bất biến */}
-                <div className="pt-1 flex items-center gap-3">
-                  <Link href={`/review?limit=15${includeItVocab ? "" : "&excludeDeck=it-vocab"}`} className="flex-1">
-                    <Button
-                      variant="primary"
-                      size="default"
-                      className="w-full h-11 text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 shadow-sm"
-                    >
-                      <span>Bắt đầu phiên 15 thẻ</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </Link>
-
-                  <Link
-                    href="/review"
-                    className="text-xs font-semibold text-[#4338CA] hover:text-[#2563EB] underline shrink-0 transition-colors"
-                  >
-                    Học theo chủ đề →
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="p-2 rounded-xl bg-emerald-100 text-[#047857] shrink-0">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </span>
-                  <div>
-                    <div className="text-sm font-bold text-slate-900">
-                      Tuyệt vời! Không có thẻ đến hạn
-                    </div>
-                    <div className="text-xs text-[#475569] mt-0.5">
-                      Bạn đã hoàn thành toàn bộ mục tiêu FSRS hôm nay.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between">
-                  <span className="text-xs text-[#475569]">
-                    Sẵn sàng tiếp tục bứt phá?
-                  </span>
-                  <Link
-                    href="/review"
-                    className="text-xs font-semibold text-[#2563EB] hover:underline flex items-center gap-1"
-                  >
-                    <span>Ôn tập tự do</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            )}
-          </Card>
-        </div>
       </div>
+
+      {/* Thẻ FSRS: Nhắc nhở và mục tiêu ôn tập */}
+      <Card
+        className={`p-4 sm:p-5 rounded-2xl border transition-all shadow-xs relative overflow-hidden ${
+          dueCount > 0
+            ? "bg-gradient-to-br from-[#EFF6FF] via-[#EEF2FF] to-white border-[#C7D2FE]"
+            : "bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-white border-[#E2E8F0]"
+        }`}
+      >
+        {dueCount > 0 ? (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="p-2.5 rounded-xl bg-[#2563EB] text-white shadow-xs shrink-0">
+                <Flame className="w-5 h-5 fill-white" />
+              </span>
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-wider text-[#4338CA]">
+                  Mục tiêu hôm nay (FSRS Spaced Repetition)
+                </div>
+                <div className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                  <span className="font-mono text-[#2563EB] text-xl font-extrabold">
+                    {dueCount}
+                  </span>{" "}
+                  thẻ đến hạn ôn tập {!includeItVocab && <span className="text-xs text-slate-500 font-normal">(TOEIC cốt lõi)</span>}
+                </div>
+              </div>
+            </div>
+
+            {/* 1 Nút Primary CTA duy nhất theo chuẩn Bất biến */}
+            <div className="flex items-center gap-3 shrink-0">
+              <Link href={`/review?limit=15${includeItVocab ? "" : "&excludeDeck=it-vocab"}`}>
+                <Button
+                  variant="primary"
+                  size="default"
+                  className="h-10 px-5 text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  <span>Bắt đầu phiên 15 thẻ</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+
+              <Link
+                href="/review"
+                className="text-xs font-semibold text-[#4338CA] hover:text-[#2563EB] underline shrink-0 transition-colors px-1"
+              >
+                Học theo chủ đề →
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="p-2 rounded-xl bg-emerald-100 text-[#047857] shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
+              </span>
+              <div>
+                <div className="text-sm font-bold text-slate-900">
+                  Tuyệt vời! Không có thẻ đến hạn
+                </div>
+                <div className="text-xs text-[#475569] mt-0.5">
+                  Bạn đã hoàn thành toàn bộ mục tiêu FSRS hôm nay.
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href="/review"
+              className="text-xs font-semibold text-[#2563EB] hover:underline flex items-center gap-1 shrink-0"
+            >
+              <span>Ôn tập tự do</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
+      </Card>
 
       {/* ========================================================= */}
       {/* TASK 2: Tab View Nội Tuyến (Inline Tabs: Sổ từ của tôi & Thư Viện Bộ Thẻ) */}

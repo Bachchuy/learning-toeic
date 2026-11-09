@@ -119,15 +119,17 @@ export function ProfileView({ initialProfile }: ProfileViewProps) {
   return (
     <div className="max-w-xl mx-auto py-8 px-4 sm:px-6 space-y-6">
       {/* ========================================================
-          Tiêu đề trang
+          Tiêu đề trang: Đơn giản, tự tin, đồng bộ với Lý thuyết & Luyện tập
           ======================================================== */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#0F172A]">
-          Hồ sơ cá nhân
-        </h1>
-        <p className="text-sm text-[#475569] mt-1">
-          Quản lý thông tin học tập, điểm mục tiêu và quyền riêng tư dữ liệu cá nhân.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 border-b border-[#E2E8F0] pb-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
+            Hồ sơ cá nhân
+          </h1>
+        </div>
+        <div className="text-[13px] font-mono text-[#64748B]">
+          {profile.role === "admin" ? "Quản trị viên hệ thống" : "Tài khoản học viên"}
+        </div>
       </div>
 
       {/* ========================================================

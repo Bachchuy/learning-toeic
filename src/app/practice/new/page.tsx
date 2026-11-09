@@ -92,21 +92,20 @@ function NewPracticeContent() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 pt-4 pb-12 animate-in fade-in duration-200">
-      <div>
-        {/* Overline */}
-        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569] mb-2">
-          {selectedPart === 5
-            ? "Part 5 — Ngữ pháp & Từ vựng thích ứng"
-            : selectedPart === 6
-            ? "Part 6 — Điền đoạn văn (Text Completion)"
-            : "Part 7 — Đọc hiểu văn bản (Reading Comprehension)"}
+      {/* Header: Đơn giản, tự tin, đồng bộ với Lý thuyết & Luyện tập */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 border-b border-[#E2E8F0] pb-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">
+            Khởi tạo luyện tập
+          </h1>
         </div>
-        <h1 className="text-[26px] sm:text-[30px] font-bold tracking-[-0.02em] leading-[1.2] text-[#0F172A]">
-          Khởi tạo phiên luyện tập
-        </h1>
-        <p className="text-[14px] text-[#475569] mt-2 leading-relaxed">
-          Tùy chỉnh phần thi và chủ điểm phù hợp với quỹ thời gian học tập của bạn.
-        </p>
+        <div className="text-[13px] font-mono text-[#64748B]">
+          {selectedPart === 5
+            ? "Part 5 · Điền câu"
+            : selectedPart === 6
+            ? "Part 6 · Đoạn văn"
+            : "Part 7 · Đọc hiểu"}
+        </div>
       </div>
 
       {/* Bộ chọn Phần thi TOEIC Reading: Part 5 / Part 6 / Part 7 */}
