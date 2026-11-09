@@ -33,20 +33,26 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-const anonClient = createClient(supabaseUrl, anonKey);
-const adminClient = createClient(supabaseUrl, serviceRoleKey, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+const hasLiveDb = Boolean(supabaseUrl && anonKey && serviceRoleKey);
+
+const anonClient = hasLiveDb
+  ? createClient(supabaseUrl, anonKey)
+  : (null as unknown as ReturnType<typeof createClient>);
+const adminClient = hasLiveDb
+  ? createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+  : (null as unknown as ReturnType<typeof createClient>);
 
 describe("Remediation Verification & Regression Test Suite", () => {
   // ============================================================================
   // P0.1: BẢO MẬT RPC submit_passage_answers
   // ============================================================================
-  describe("P0.1: Kiểm tra bảo mật RPC submit_passage_answers trên PostgreSQL thực tế", () => {
+  describe.skipIf(!hasLiveDb)("P0.1: Kiểm tra bảo mật RPC submit_passage_answers trên PostgreSQL thực tế", () => {
     let testPassageId: string;
     let testQuestions: { id: string; correct_index: number }[] = [];
 
@@ -217,7 +223,7 @@ describe("Remediation Verification & Regression Test Suite", () => {
   // ============================================================================
   // P0.2: TÍNH NGUYÊN TỬ CỦA FSRS REVIEW & BẢO VỆ RLS
   // ============================================================================
-  describe("P0.2: Tính nguyên tử FSRS và bảo vệ RLS trên PostgreSQL", () => {
+  describe.skipIf(!hasLiveDb)("P0.2: Tính nguyên tử FSRS và bảo vệ RLS trên PostgreSQL", () => {
     let testCard: {
       id: string;
       user_id: string;
@@ -399,7 +405,7 @@ describe("Remediation Verification & Regression Test Suite", () => {
       expect(getMasteryLabel(20, p17_20)).toBe("mastered");
     });
 
-    it("4. SQL wilson_lower(correct, total, 1.0) cho kết quả khớp 100% với TypeScript", async () => {
+    it.skipIf(!hasLiveDb)("4. SQL wilson_lower(correct, total, 1.0) cho kết quả khớp 100% với TypeScript", async () => {
       const testCases = [
         { c: 0, t: 0, expected: 0 },
         { c: 2, t: 2, expected: 0.5 },
@@ -443,7 +449,7 @@ describe("Remediation Verification & Regression Test Suite", () => {
   // P1.2: BẢO VỆ DICTIONARY CACHE
   // ============================================================================
   describe("P1.2: Bảo vệ Dictionary Cache và lọc URL âm thanh an toàn", () => {
-    it("1. Chặn REST API: Client authenticated / anon KHÔNG THỂ chèn từ tùy ý vào dictionary_cache", async () => {
+    it.skipIf(!hasLiveDb)("1. Chặn REST API: Client authenticated / anon KHÔNG THỂ chèn từ tùy ý vào dictionary_cache", async () => {
       const { error } = await anonClient.from("dictionary_cache").insert({
         word: "hack_attempt_" + Date.now(),
         meaning_vi: "Độc hại",
@@ -453,7 +459,7 @@ describe("Remediation Verification & Regression Test Suite", () => {
       expect(error).toBeDefined();
     });
 
-    it("2. Cho phép mọi người dùng đọc (SELECT) dictionary_cache", async () => {
+    it.skipIf(!hasLiveDb)("2. Cho phép mọi người dùng đọc (SELECT) dictionary_cache", async () => {
       const { data, error } = await anonClient
         .from("dictionary_cache")
         .select("word, meaning_vi")
