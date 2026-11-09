@@ -17,7 +17,7 @@
 - Không chạy AI tự động qua đêm khi chưa có cổng kiểm tra và giới hạn phạm vi.
 - Sau mỗi task ghi ba dòng: đã làm gì, đã học gì, còn gì chưa hiểu.
 
-**Nội dung `AGENTS.md` (bất biến)**: Part 5 là toàn bộ MVP; đáp án không rời server trước khi nộp; Drill không ghi DB; mastery dùng Wilson z = 1,96, ngưỡng 5 / 50 / 75; không bấm giờ; mỗi màn hình một Primary; không màu ngoài token; không màu là tín hiệu duy nhất; mọi bảng có RLS; không thêm thư viện hoặc tính năng ngoài danh sách ở mục 6.2 khi chưa có ADR.
+**Nội dung `AGENTS.md` (bất biến chuẩn hóa)**: Đáp án không rời server trước khi nộp; Drill không ghi DB & không đổi mastery; Mastery theo Adaptive Rolling Mastery (ARM: z=1.0, window 20, fast-track n>=8 & >=90% - D-25); Không bấm giờ trong Luyện tập Part 5 hàng ngày (PD-06; chỉ áp dụng 75 phút trong Exam Simulator - D-27); Mỗi màn hình một nút Primary; Không màu ngoài token; Không màu làm tín hiệu duy nhất; Mọi bảng có RLS; Không thêm thư viện ngoài danh sách §6.2 khi chưa có ADR.
 
 ### 9.1 Mười điều răn vàng bắt buộc cho AI Coding Agent (The 10 Golden Rules)
 

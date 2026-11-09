@@ -73,7 +73,7 @@ Product Decisions đã chốt / PD-01 → PD-09
   PD-08  Dashboard mobile: chỉ Top 3 chủ điểm có ≥5 câu
   PD-09  Word Chip lấy từ vocab_hints đi kèm giải thích; không gọi LLM khi làm bài
 
-Conflict resolutions / D-01 → D-24
+Conflict resolutions / D-01 → D-32
   └─► 03-decisions/D-log.md
 
   Tra nhanh D:
@@ -88,6 +88,14 @@ Conflict resolutions / D-01 → D-24
   D-22   Lập lịch FSRS (thay SM-2); 4 nút Lỗi/Khó/Tốt/Dễ = Again/Hard/Good/Easy
   D-23   card_reviews: ghi mỗi lần chấm thẻ (append-only)
   D-24   Dùng ts-fsrs; khóa version chính xác; chạy ở server
+  D-25   Adaptive Rolling Mastery (ARM): z=1.0, window 20, fast-track n>=8 & >=90%
+  D-26   Đọc hiểu Part 6/7: bài đọc đục lỗ cloze & multi-passages, RPC an toàn
+  D-27   Thi thử ETS Exam Simulator: 100 câu, 75 phút, thang điểm tham chiếu 5-495
+  D-28   Curated Decks: 600 từ Barron's, phát âm kép Danh/Động từ, nạp 1 chạm
+  D-29   Custom Notebooks: sổ tay từ vựng tùy chỉnh cá nhân (bảng notebooks)
+  D-30   Dictionary Cache: Free Dict API, bộ đệm DB, whitelist audio CDN an toàn
+  D-31   Bài học ngữ pháp 16 chủ điểm (/learn) bài bản chuẩn sư phạm
+  D-32   Nguyên tử hóa FSRS Review: RPC record_card_review_atomic, RLS chỉ SELECT
 ```
 
 ---
@@ -116,7 +124,7 @@ Từ vựng / lưu từ / lemma / trùng → "Từ này đã có"
 FSRS / flashcard / chấm thẻ / hàng đợi trong phiên / OQ-2
   └─► 04-business-rules.md  §4.6b
 
-Mastery / Wilson z=1.96 / ngưỡng 5/50/75 / nhãn 4 loại
+Mastery / Adaptive Rolling Mastery (ARM: z=1.0, window 20, fast-track n>=8 & >=90% - D-25)
   └─► 04-business-rules.md  §4.7
 
 Dashboard / thẻ đề xuất / Top 3 / chuỗi ngày
@@ -127,6 +135,20 @@ Profile / xuất JSON / xóa tài khoản 2 lớp (D-17)
 
 Admin / duyệt câu / J-K-Y-N / review_log
   └─► 04-business-rules.md  §4.9
+Đọc hiểu đoạn văn Part 6 & 7 / cloze / multi-text / RPC submit_passage_answers
+  └─► 04-business-rules.md  §4.10 (D-26)
+
+Thi thử Đọc hiểu ETS / Exam Simulator / 75 phút / Thang tham chiếu 5-495
+  └─► 04-business-rules.md  §4.11 (D-27)
+
+Sổ từ vựng mẫu / Curated Decks / 600 từ Barron's / Sổ tay tùy chỉnh (notebooks)
+  └─► 04-business-rules.md  §4.12 (D-28, D-29)
+
+Bộ đệm từ điển toàn cục / Dictionary Cache / Whitelist audio CDN
+  └─► 04-business-rules.md  §4.13 (D-30)
+
+Bài học ngữ pháp 16 chủ điểm / /learn / /learn/[tagCode]
+  └─► 04-business-rules.md  §4.14 (D-31)
 ```
 
 ---
