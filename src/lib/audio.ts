@@ -321,8 +321,7 @@ export function getPreferredVoice(): SpeechSynthesisVoice | undefined {
 export function resolvePronunciationUrl(
   word: string,
   audioUrl?: string,
-  posHint?: "noun" | "verb",
-  spokenText?: string
+  posHint?: "noun" | "verb"
 ): string {
   // Nếu caller truyền URL chuyên biệt đã có query param pos hoặc text thì bảo tồn
   if (audioUrl && (audioUrl.includes("pos=") || audioUrl.includes("text="))) {
@@ -480,8 +479,7 @@ async function playPronunciationFlow(
   audioUrl: string | undefined,
   posHint: "noun" | "verb" | undefined,
   sessionId: number,
-  spokenText?: string,
-  phonetic?: string
+  spokenText?: string
 ): Promise<void> {
   // 1. Nếu caller truyền audioUrl cụ thể (như từ DUAL_PRONUNCIATION_MAP hoặc /api/audio/tts?word=...&pos=verb),
   // ưu tiên phát trực tiếp qua audio player
@@ -540,12 +538,13 @@ export async function playPronunciation(
   spokenText?: string,
   phonetic?: string
 ): Promise<void> {
+  void phonetic;
   if (!word && !audioUrl) return;
 
   stopAllAudio();
   const sessionId = currentAudioSessionId;
 
-  await playPronunciationFlow(word, audioUrl, posHint, sessionId, spokenText, phonetic);
+  await playPronunciationFlow(word, audioUrl, posHint, sessionId, spokenText);
 }
 
 /**

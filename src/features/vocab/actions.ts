@@ -712,17 +712,7 @@ export async function importCuratedDeckAction(deckId: string): Promise<{
     notebook = newNotebook;
   }
 
-  // 2. Lấy danh sách lemma đã có của người dùng để tránh trùng khóa unique(user_id, lemma)
-  const { data: userEntries } = await supabase
-    .from("vocab_entries")
-    .select("id, lemma, notebook_id")
-    .eq("user_id", user.id);
-
-  const existingLemmas = new Set(
-    (userEntries || []).map((e: { lemma: string }) => e.lemma)
-  );
-
-  // 3. Lọc và chuẩn hóa danh sách từ cần nạp (Deduplicate lemma trong chính bộ thẻ và so với sổ người dùng)
+  // 2. Lọc và chuẩn hóa danh sách từ cần nạp (Deduplicate lemma trong chính bộ thẻ)
   const seenLemmas = new Set<string>();
   const itemsToInsert: typeof deck.items = [];
 

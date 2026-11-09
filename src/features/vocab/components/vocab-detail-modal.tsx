@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo } from "react";
 import essential600Data from "@/data/curated-decks/essential-600-words.json";
-import type { VocabEntry, WordFamilyMember } from "@/features/vocab/types";
+import type { VocabEntry, WordFamilyMember, CuratedVocabItem } from "@/features/vocab/types";
+
+const essential600List = essential600Data as CuratedVocabItem[];
 import {
   getPosBadgeInfo,
   generateNaturalExplanation,
-  getDualPronunciation,
   resolveDualDetails,
 } from "@/core/vocab";
 import { resolvePhonetic } from "@/core/phonetic";
@@ -50,6 +51,20 @@ export function VocabDetailModal({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
+
+  // Tự động đối chiếu bộ 600 từ Barron's nếu từ này từng được nạp từ trước (ngay cả khi DB cũ chưa có metadata)
+  const curatedItem = useMemo(() => {
+    if (!isOpen || !entry) return null;
+    const target = entry.word.toLowerCase().trim();
+    const targetLemma = (entry.lemma || entry.word).toLowerCase().trim();
+    return (
+      essential600List.find(
+        (item) =>
+          item.word.toLowerCase().trim() === target ||
+          item.word.toLowerCase().trim() === targetLemma
+      ) || null
+    );
+  }, [isOpen, entry]);
 
   if (!isOpen || !entry) return null;
 
@@ -107,20 +122,6 @@ export function VocabDetailModal({
   };
 
   const stateInfo = getFSRSStateLabel(card?.state);
-
-  // Tự động đối chiếu bộ 600 từ Barron's nếu từ này từng được nạp từ trước (ngay cả khi DB cũ chưa có metadata)
-  const curatedItem = useMemo(() => {
-    if (!entry) return null;
-    const target = entry.word.toLowerCase().trim();
-    const targetLemma = (entry.lemma || entry.word).toLowerCase().trim();
-    return (
-      (essential600Data as any[]).find(
-        (item) =>
-          item.word.toLowerCase().trim() === target ||
-          item.word.toLowerCase().trim() === targetLemma
-      ) || null
-    );
-  }, [entry]);
 
   const toeicExample =
     metadata?.toeic_example || curatedItem?.example || entry.context_sentence;

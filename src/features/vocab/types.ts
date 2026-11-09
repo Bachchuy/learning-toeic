@@ -15,6 +15,23 @@ export interface WordFamilyMember {
   meaning_vi: string;
 }
 
+export interface CuratedVocabItem {
+  word: string;
+  part_of_speech?: string;
+  meaning?: string;
+  phonetic?: string;
+  explanation?: string;
+  example?: string;
+  example_translation?: string;
+  image_url?: string;
+  audio_url?: string;
+  topic?: string;
+  word_families?: WordFamilyMember[];
+  synonyms?: string[];
+  collocations?: string[];
+  usage_note?: string;
+}
+
 export interface VocabMetadata {
   phonetic?: string;
   audio_url?: string;

@@ -3,11 +3,10 @@
 import { useState, useTransition, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { VocabEntry, Notebook } from "@/features/vocab/types";
+import type { VocabEntry, Notebook, CuratedVocabItem } from "@/features/vocab/types";
 import {
   getPosBadgeInfo,
   getPosCategory,
-  getDualPronunciation,
   resolveDualDetails,
   type PosCategory,
 } from "@/core/vocab";
@@ -672,7 +671,12 @@ interface VocabListViewProps {
 }
 
 // Map tra cứu nhanh 600 từ Barron's để đối chiếu tức thời trên UI ngay cả khi DB chưa cập nhật
-const essential600Map = new Map((essential600Data as any[]).map(d => [d.word.toLowerCase().trim(), d]));
+const essential600Map = new Map<string, CuratedVocabItem>(
+  (essential600Data as CuratedVocabItem[]).map((d) => [
+    d.word.toLowerCase().trim(),
+    d,
+  ])
+);
 
 export function VocabListView({
   initialEntries,

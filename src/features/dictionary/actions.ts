@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   normalizeWord,
-  parseFreeDictResponse,
   parseFreeDictEntries,
   validateSafeAudioUrl,
   CURATED_TOEIC_TERMS,

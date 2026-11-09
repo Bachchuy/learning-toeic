@@ -18,8 +18,6 @@ import {
 } from "@/core/toeicScoring";
 import {
   validateSafeAudioUrl,
-  normalizeWord,
-  parseFreeDictResponse,
 } from "@/core/dictionary";
 
 // Đọc biến môi trường từ .env.local
@@ -64,7 +62,7 @@ describe("Remediation Verification & Regression Test Suite", () => {
       expect(passages!.length).toBeGreaterThan(0);
 
       testPassageId = passages![0].id;
-      const qList = (passages![0] as any).questions as { id: string }[];
+      const qList = (passages![0] as unknown as { questions: { id: string }[] }).questions;
       expect(qList.length).toBeGreaterThanOrEqual(2);
 
       // Lấy đáp án thật từ adminClient để kiểm chứng test
@@ -147,7 +145,7 @@ describe("Remediation Verification & Regression Test Suite", () => {
       expect(data.score).toBe(1); // 1 câu đúng
 
       // Kết quả trả về CHỈ chứa câu đã trả lời qAnswered, TUYỆT ĐỐI không chứa qUnanswered
-      const returnedIds = (data.results as any[]).map((r) => r.question_id);
+      const returnedIds = (data.results as Array<{ question_id: string }>).map((r) => r.question_id);
       expect(returnedIds).toContain(qAnswered.id);
       expect(returnedIds).not.toContain(qUnanswered.id);
 
@@ -220,7 +218,15 @@ describe("Remediation Verification & Regression Test Suite", () => {
   // P0.2: TÍNH NGUYÊN TỬ CỦA FSRS REVIEW & BẢO VỆ RLS
   // ============================================================================
   describe("P0.2: Tính nguyên tử FSRS và bảo vệ RLS trên PostgreSQL", () => {
-    let testCard: any;
+    let testCard: {
+      id: string;
+      user_id: string;
+      state: number;
+      stability: number;
+      difficulty: number;
+      reps: number;
+      lapses: number;
+    };
     let testUserId: string;
 
     it("chuẩn bị thẻ ôn tập mẫu trong review_cards", async () => {
