@@ -45,25 +45,26 @@
 
 | Route | Quyền | Render | Module |
 | --- | --- | --- | --- |
-| `/login`, `/auth/callback` | Công khai | Form Client; callback là Route Handler | auth |
+| `/login` | Công khai | Client Form + Server Action | auth |
 | `/terms`, `/privacy` | Công khai | Server | (đề xuất, cho dòng pháp lý) |
 | `/` | Đăng nhập | Server | stats, review, practice |
-| `/practice/new` | Đăng nhập | Server + Client nhỏ | practice |
+| `/practice/new` | Đăng nhập | Client + Server Action | practice |
 | `/practice/[sessionId]` | Chủ phiên | Server lấy dữ liệu + Client Runner | practice, explanation, vocab |
 | `/practice/[sessionId]/result` | Chủ phiên | Server + Client cho Drill | practice |
 | `/vocab` | Đăng nhập | Server + Client (tìm kiếm, sửa tại chỗ) | vocab |
-| `/review` | Đăng nhập | Client | review |
+| `/review` | Đăng nhập | Server + Client | review |
 | `/stats` | Đăng nhập | Server | stats |
 | `/profile` | Đăng nhập | Server + Client form | profile |
 | `/admin/review` | Admin | Server + Client (phím tắt) | admin |
+| `/admin/insights` | Admin | Server + Client | admin, feedback (Hộp thư góp ý & thống kê kho đề) |
 | `/reading/[id]` | Đăng nhập | Server + Client | reading (Part 6/7 Passages) |
 | `/exam` | Đăng nhập | Server | exam (Danh sách đề thi thử) |
-| `/exam/[slug]` | Đăng nhập | Client Runner (FOCUSED 75m) | exam (ETS Exam Simulator) |
-| `/learn` | Đăng nhập | Server | learn (16 bài học ngữ pháp) |
-| `/learn/[tagCode]` | Đăng nhập | Server | learn (Chi tiết bài học) |
+| `/exam/[slug]` | Đăng nhập | Server + Client Runner (FOCUSED 75m) | exam (ETS Exam Simulator) |
+| `/learn` | Đăng nhập | Server (SSR summary) + Client filter | learn (16 bài học ngữ pháp) |
+| `/learn/[tagCode]` | Đăng nhập | Server (SSG `generateStaticParams`) | learn (Chi tiết bài học) |
 | `/api/audio/tts` | Đăng nhập | Route Handler | audio (Phát âm dự phòng) |
 
-Nhóm route: `(auth)` công khai; `(app)` có thanh điều hướng; `(focus)` ẩn điều hướng (`/practice/[sessionId]`, `/review`); `(admin)` có layout kiểm tra role (chỉ phục vụ giao diện; bảo mật thật là RLS).
+Nhóm route: `(auth)` cho `/login` (công khai); các route còn lại dùng flat structure trong `src/app/` và điều khiển hiển thị thanh điều hướng tập trung qua `AppNav` (ẩn nav ở `/login`, `/practice/[id]`, `/exam/[slug]`, `/review`). Xác thực session tập trung qua `src/proxy.ts` (Next.js 16 Proxy convention).
 
 ### 6.4 Quy tắc code
 
@@ -82,21 +83,27 @@ toeic-ai/
 ├─ src/
 │  ├─ app/
 │  │  ├─ (auth)/login/
-│  │  ├─ auth/callback/route.ts
-│  │  ├─ (app)/              # có nav: /, practice/new, vocab, stats, profile, result
-│  │  ├─ (focus)/            # ẩn nav: practice/[sessionId], review
-│  │  └─ (admin)/admin/review/
-│  ├─ features/              # auth, practice, vocab, review, stats, profile, admin, reading, exam, learn, dictionary
-│  │  └─ <feature>/ components/ actions.ts queries.ts schemas.ts
-│  ├─ core/                  # hàm thuần: sm2, mastery, scoring, practiceReducer, drill
-│  ├─ components/ui/         # shadcn và primitive theo token
-│  ├─ lib/supabase/          # browser, server, admin (admin chỉ ở server)
-│  ├─ lib/track.ts
-│  └─ types/database.ts      # sinh tự động từ schema
-├─ supabase/{migrations,tests,seed}/
-├─ data/questions/           # JSONL câu hỏi có phiên bản
-├─ scripts/                  # import-questions
-├─ e2e/  docs/{adr,specs,qa,security}/  .github/workflows/
+│  │  ├─ admin/review/
+│  │  ├─ api/audio/tts/
+│  │  ├─ exam/ & exam/[slug]/
+│  │  ├─ learn/ & learn/[tagCode]/
+│  │  ├─ practice/new/ & practice/[id]/
+│  │  ├─ reading/[id]/
+│  │  └─ vocab/, review/, stats/, profile/
+│  ├─ proxy.ts                 # Next.js 16 Proxy: bảo vệ route & sync session cookie
+│  ├─ features/                # auth, dashboard, dictionary, exam, learn, practice, profile, reading, review, stats, vocab, admin
+│  │  └─ <feature>/ components/ actions.ts types.ts schemas.ts
+│  ├─ core/                    # hàm thuần: fsrs, wilson, toeicScoring, practiceReducer, drill, grammarLessons
+│  ├─ components/{layout,ui}/  # AppNav, shadcn và primitive theo token
+│  ├─ lib/supabase/            # browser, server, admin (admin chỉ ở server)
+│  ├─ lib/audio.ts             # audio CDN whitelist + fallback TTS
+│  ├─ shared/auth.ts           # requireUser, getOptionalUser
+│  └─ types/exam.ts            # kiểu dữ liệu Exam Simulator
+├─ supabase/migrations/        # nguồn sự thật schema, RLS, RPC, triggers
+├─ data/                       # dữ liệu mẫu tham chiếu
+├─ scripts/                    # seed, ingest, benchmark, qa audit
+├─ tests/ & e2e/               # Vitest integration & Playwright E2E
+└─ docs/ & .github/workflows/
 ```
 
 `core/` là chỗ kiểm thử rẻ nhất (không phụ thuộc framework hay DB). `features/` giúp giao việc cho AI theo phạm vi file rõ ràng. `supabase/` là nguồn sự thật của schema: không sửa schema bằng giao diện web mà quên ghi lại.
@@ -117,6 +124,7 @@ toeic-ai/
 | `question_reports` | Lý do, ghi chú, trạng thái; trigger rút câu sau 3 báo cùng lý do | Gốc | Người học thêm và đọc của mình; admin xử lý |
 | `review_log` | Quyết định của admin | Gốc | Chỉ admin |
 | `events` | Tên sự kiện thuộc danh sách đóng (D-08), không ghi nội dung câu trả lời | Gốc | Thêm và đọc của mình |
+| `user_feedback` | Góp ý UX/lỗi/tính năng từ người dùng kèm URL & kích thước màn hình | Gốc | Người học gửi & đọc của mình; admin đọc & xử lý |
 | `generation_batches` | Lô sinh đề và chi phí | Hoãn | Chỉ admin |
 | Độ vững, chuỗi ngày, số thẻ đến hạn, hoạt động 14 ngày | Hiển thị Dashboard và `/stats` | **Tính toán** từ `attempts` và `review_cards` | Chỉ đọc |
 | Drill | Trạng thái ôn lại tạm thời | **Không lưu DB** | — |

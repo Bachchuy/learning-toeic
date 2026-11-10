@@ -35,6 +35,21 @@ export interface CuratedDeckMeta {
   items: CuratedVocabItem[];
 }
 
+export interface CuratedDeckSummary {
+  id: string;
+  title: string;
+  englishTitle: string;
+  subtitle: string;
+  description: string;
+  totalCards: number;
+  badge: string;
+  badgeType: "primary" | "pro" | "accent";
+  color: string;
+  icon: "book" | "sparkles" | "award" | "code";
+  topics: string[];
+  topicCounts: Record<string, number>;
+}
+
 export const CURATED_DECKS: CuratedDeckMeta[] = [
   {
     id: "essential-600",
@@ -96,4 +111,32 @@ export const CURATED_DECKS: CuratedDeckMeta[] = [
 
 export function getCuratedDeckById(id: string): CuratedDeckMeta | undefined {
   return CURATED_DECKS.find((d) => d.id === id);
+}
+
+/**
+ * Trả về metadata gọn nhẹ của các bộ thẻ (loại bỏ mảng items ~2.2MB)
+ * để truyền an toàn qua RSC payload xuống client.
+ */
+export function getCuratedDeckSummaries(): CuratedDeckSummary[] {
+  return CURATED_DECKS.map(({ items, ...meta }) => {
+    const topicCounts: Record<string, number> = {};
+    const topics: string[] = [];
+
+    for (const item of items) {
+      const topic = item.topic?.trim();
+      if (!topic) continue;
+      if (!(topic in topicCounts)) {
+        topics.push(topic);
+        topicCounts[topic] = 1;
+      } else {
+        topicCounts[topic] += 1;
+      }
+    }
+
+    return {
+      ...meta,
+      topics,
+      topicCounts,
+    };
+  });
 }

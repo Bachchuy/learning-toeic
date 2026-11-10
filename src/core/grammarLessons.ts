@@ -125,6 +125,18 @@ export interface GrammarLesson {
   workedExample: WorkedExample;
 }
 
+export interface GrammarLessonSummary {
+  tagCode: string;
+  category: GrammarLesson["category"];
+  categoryVi: string;
+  titleVi: string;
+  taglineVi: string;
+  estimatedMinutes: number;
+  coreDefinition: string;
+  cheatSheetCount: number;
+  trapsCount: number;
+}
+
 export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
   "tenses": {
     "tagCode": "tenses",
@@ -3681,6 +3693,24 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
  */
 export function getAllGrammarLessons(): GrammarLesson[] {
   return Object.values(GRAMMAR_LESSONS);
+}
+
+/**
+ * Trả về bản tóm tắt gọn nhẹ của 16 chủ điểm ngữ pháp phục vụ render SSR trang /learn
+ * (tránh truyền toàn bộ nội dung chi tiết 200KB xuống client bundle).
+ */
+export function getGrammarLessonSummaries(): GrammarLessonSummary[] {
+  return Object.values(GRAMMAR_LESSONS).map((lesson) => ({
+    tagCode: lesson.tagCode,
+    category: lesson.category,
+    categoryVi: lesson.categoryVi,
+    titleVi: lesson.titleVi,
+    taglineVi: lesson.taglineVi,
+    estimatedMinutes: lesson.estimatedMinutes,
+    coreDefinition: lesson.coreRule.definition,
+    cheatSheetCount: lesson.cheatSheet.length,
+    trapsCount: lesson.traps.length,
+  }));
 }
 
 /**

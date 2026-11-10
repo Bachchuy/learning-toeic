@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -81,7 +81,7 @@ export async function middleware(request: NextRequest) {
       hasValidSession = Boolean(userData?.user);
     }
   } catch (err) {
-    console.error("[Middleware Auth Token Sync Error]:", err);
+    console.error("[Proxy Auth Token Sync Error]:", err);
   }
 
   // 3. Cookie không hợp lệ hoặc đã thu hồi mà truy cập route được bảo vệ -> Chuyển hướng sang /login?next=...

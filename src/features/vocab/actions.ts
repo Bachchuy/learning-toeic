@@ -5,10 +5,12 @@ import { normalizeLemma } from "@/core/vocab";
 import { enrichVocabMetadata } from "@/core/vocabDictionary";
 import { trackEventAction } from "@/features/practice/actions";
 import {
-  CURATED_DECKS,
   getCuratedDeckById,
-  type CuratedDeckMeta,
+  getCuratedDeckSummaries,
+  type CuratedDeckSummary,
+  type CuratedVocabItem,
 } from "@/data/curated-decks";
+import essential600Data from "@/data/curated-decks/essential-600-words.json";
 import type {
   SaveVocabParams,
   SaveVocabResult,
@@ -18,6 +20,48 @@ import type {
   VocabMetadata,
   Notebook,
 } from "./types";
+
+const essential600LookupMap = new Map<string, CuratedVocabItem>(
+  (essential600Data as CuratedVocabItem[]).map((item) => [
+    item.word.toLowerCase().trim(),
+    item,
+  ])
+);
+
+function applyEssential600Metadata(
+  word: string,
+  lemma: string,
+  metadata: VocabMetadata
+): VocabMetadata {
+  const curatedItem =
+    essential600LookupMap.get(word.toLowerCase().trim()) ||
+    essential600LookupMap.get((lemma || word).toLowerCase().trim());
+
+  if (!curatedItem) {
+    return metadata;
+  }
+
+  return {
+    ...metadata,
+    is_essential_600: true,
+    usage_note: metadata.usage_note || curatedItem.usage_note,
+    word_family:
+      metadata.word_family && metadata.word_family.length > 0
+        ? metadata.word_family
+        : curatedItem.word_families,
+    synonyms:
+      metadata.synonyms && metadata.synonyms.length > 0
+        ? metadata.synonyms
+        : curatedItem.synonyms,
+    collocations:
+      metadata.collocations && metadata.collocations.length > 0
+        ? metadata.collocations
+        : curatedItem.collocations,
+    toeic_example: metadata.toeic_example || curatedItem.example,
+    toeic_example_translation:
+      metadata.toeic_example_translation || curatedItem.example_translation,
+  };
+}
 
 /**
  * Server Action: Lưu từ vựng mới vào sổ từ
@@ -64,7 +108,11 @@ export async function saveVocabAction(
   const phonetic = params.phonetic || enrichment.phonetic || "";
   const contextTranslation =
     params.contextTranslation || enrichment.context_translation || "";
-  const metadata = enrichment.metadata;
+  const metadata = applyEssential600Metadata(
+    rawWord,
+    lemma,
+    enrichment.metadata
+  );
 
   // 1. Thêm từ vào bảng vocab_entries
   const { data, error } = await supabase
@@ -161,7 +209,11 @@ export async function saveBatchVocabAction(
     const phonetic = item.phonetic || enrichment.phonetic || "";
     const contextTranslation =
       params.contextTranslation || enrichment.context_translation || "";
-    const metadata = enrichment.metadata;
+    const metadata = applyEssential600Metadata(
+      item.word,
+      item.lemma,
+      enrichment.metadata
+    );
 
     const { error } = await supabase.from("vocab_entries").insert({
       user_id: user.id,
@@ -361,7 +413,12 @@ export async function getVocabListAction(
           item.context_sentence
         );
 
-    const metadata = hasValidMetadata ? item.metadata! : enriched!.metadata;
+    const baseMetadata = hasValidMetadata ? item.metadata! : enriched!.metadata;
+    const metadata = applyEssential600Metadata(
+      item.word,
+      item.lemma,
+      baseMetadata
+    );
     const partOfSpeech = item.part_of_speech || enriched?.part_of_speech || "";
     const phonetic = item.phonetic || metadata.phonetic || enriched?.phonetic || "";
 
@@ -603,7 +660,7 @@ export async function moveVocabToNotebookAction(
 }
 
 export interface CuratedDeckStatus {
-  deck: CuratedDeckMeta;
+  deck: CuratedDeckSummary;
   isImported: boolean;
   notebookId?: string;
   userCardsCount: number;
@@ -617,10 +674,11 @@ export async function getCuratedDecksAction(): Promise<{
   error?: string;
 }> {
   const { user, supabase } = await getOptionalUser();
+  const summaries = getCuratedDeckSummaries();
 
   if (!user) {
     return {
-      decks: CURATED_DECKS.map((deck) => ({
+      decks: summaries.map((deck) => ({
         deck,
         isImported: false,
         userCardsCount: 0,
@@ -647,7 +705,7 @@ export async function getCuratedDecksAction(): Promise<{
     }
   }
 
-  const results: CuratedDeckStatus[] = CURATED_DECKS.map((deck) => {
+  const results: CuratedDeckStatus[] = summaries.map((deck) => {
     const existing = notebookMap.get(deck.title);
     return {
       deck,

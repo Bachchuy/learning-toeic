@@ -243,10 +243,10 @@ Stack & quyết định công nghệ / shadcn / ts-fsrs / Vitest / Playwright
 Routes / quyền / render mode
   └─► 06-architecture.md  §6.3
 
-  (auth)   /login, /auth/callback      — công khai
-  (app)    /, /practice/new, /vocab, /stats, /profile, /result  — có nav
-  (focus)  /practice/[id], /review     — ẩn nav
-  (admin)  /admin/review               — role=admin
+  (auth)   /login                      — công khai
+  App      /, /practice/new, /vocab, /stats, /profile, /learn, /exam, /reading/[id]
+  Focused  /practice/[id], /exam/[slug], /review  — ẩn nav
+  Admin    /admin/review               — role=admin
 
 Quy tắc code / Server Component mặc định / reducer / form
   └─► 06-architecture.md  §6.4
@@ -302,7 +302,9 @@ Lộ trình M0-M13 / milestone / giờ ước tính / lỗi hay gặp
   M10 /profile + xóa tài khoản                       6-10h
   M11 /admin/review                                 10-16h
   M12 E2E + bảo mật + responsive + a11y             12-18h
-  M13 Production + demo                              6-10h
+  M13 Production + demo (Vercel deployed)            6-10h
+  M14-M18 Đọc hiểu P6/7, Exam Simulator, Curated Decks, Learn, Security Hardening
+  P2  Dọn nợ kỹ thuật (Bundle /vocab, SSR /learn, proxy.ts, docs sync)
 
 Definition of Ready / Definition of Done
   └─► 07-roadmap.md  §7 (cuối)  /  12-first-task-dod.md

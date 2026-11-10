@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/shared/auth";
 import { formatGrammarTagName } from "@/core/grammarTags";
@@ -5,6 +6,11 @@ import { PracticeRunner } from "@/features/practice/components/practice-runner";
 import type { PracticeQuestion } from "@/features/practice/types";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Phiên luyện tập Part 5",
+  description: "Làm bài luyện tập TOEIC Part 5 tập trung với giải thích thích ứng.",
+};
 
 interface PageProps {
   params: Promise<{ id: string }>;

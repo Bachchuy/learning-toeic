@@ -45,6 +45,7 @@ export interface VocabMetadata {
   toeic_example?: string;
   toeic_example_translation?: string;
   usage_note?: string;
+  is_essential_600?: boolean;
 }
 
 export interface VocabEntry {

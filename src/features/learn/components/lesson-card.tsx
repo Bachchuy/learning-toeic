@@ -1,9 +1,9 @@
 import Link from "next/link";
-import type { GrammarLesson } from "@/core/grammarLessons";
+import type { GrammarLessonSummary } from "@/core/grammarLessons";
 import { BookOpen, AlertTriangle, ArrowRight, Clock } from "lucide-react";
 
 interface LessonCardProps {
-  lesson: GrammarLesson;
+  lesson: GrammarLessonSummary;
 }
 
 export function LessonCard({ lesson }: LessonCardProps) {
@@ -45,12 +45,12 @@ export function LessonCard({ lesson }: LessonCardProps) {
         {/* Quick Highlights */}
         <div className="pt-1 flex flex-wrap items-center gap-2 text-[11px]">
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-[#F1F5F9] text-[#475569] font-medium">
-            ⚡ {lesson.cheatSheet.length} mẹo 
+            ⚡ {lesson.cheatSheetCount} mẹo 
           </span>
-          {lesson.traps.length > 0 && (
+          {lesson.trapsCount > 0 && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#FFFBEB] text-[#B45309] font-medium border border-[#FDE68A]">
               <AlertTriangle className="w-3 h-3 text-[#B45309]" />
-              {lesson.traps.length} bẫy ETS
+              {lesson.trapsCount} bẫy ETS
             </span>
           )}
         </div>

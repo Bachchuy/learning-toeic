@@ -20,7 +20,7 @@ Nguyên tắc: có **vertical slice** chạy trên staging sớm (M4); component
 | M10 | `/profile`, xuất JSON, xóa tài khoản | M3 | Xóa xong dữ liệu biến mất, người dùng bị đăng xuất; service role chỉ ở server | Dùng service role an toàn | Trung bình | 6–10 |
 | M11 | `/admin/review` | M5 | Người thường không vào được và không đọc được dữ liệu admin dù đổi URL | Phân quyền theo role | Trung bình–Khó | 10–16 |
 | M12 | Củng cố: E2E mở rộng, rà bảo mật, responsive thật (D-21), axe và bàn phím | M1–M11 | Không bảng nào thiếu RLS; không lỗi accessibility nghiêm trọng | Playwright, axe | Trung bình | 12–18 |
-| M13 | Production và demo: URL, README, dữ liệu demo, ảnh hoặc video ngắn | M12 | Người ngoài mở URL và làm được một phiên | — | Dễ–TB | 6–10 |
+| M13 | Production và demo: URL, README, dữ liệu demo, ảnh hoặc video ngắn | M12 | Người ngoài mở URL và làm được một phiên (**ĐÃ DEPLOY VERCEL**) | — | Dễ–TB | 6–10 |
 
 Tổng khoảng 135–202 giờ làm việc. Google OAuth làm ngay sau M4, khi đã có URL staging (khoảng 3–4 giờ, chưa tính trong tổng; đã chốt ở OQ-5). Mỗi milestone kết thúc bằng một cổng kiểm tra; không bắt đầu milestone sau khi cổng chưa đạt.
 
@@ -45,6 +45,7 @@ Lỗi hay gặp theo giai đoạn: M1 commit nhầm secret hoặc tắt `strict`
 | M16 | **Bộ thẻ từ vựng mẫu (Curated Decks) & Sổ tay tùy chỉnh**: 600 từ Barron's, phát âm kép Danh/Động từ, bảng `notebooks` | D-28, D-29 | ĐÃ HOÀN THÀNH |
 | M17 | **Học lý thuyết 16 chủ điểm ngữ pháp (`/learn`) & Tra từ điển**: 16 bài học bài bản, bảng `dictionary_cache` | D-30, D-31 | ĐÃ HOÀN THÀNH |
 | M18 | **Kiểm toán Bảo mật & Toàn vẹn Dữ liệu (Security & Integrity Remediation)**: Vá RPC oracle leak, RPC `record_card_review_atomic`, chuẩn hóa ARM SQL View, khóa quyền ghi dictionary cache | P0.1 - P1.3, D-32 | ĐÃ HOÀN THÀNH |
+| P2 | **Dọn nợ kỹ thuật & Tối ưu Production**: Gỡ 2.2MB curated-decks JSON khỏi `/vocab` client bundle, chuyển `/learn` sang SSR, đổi `middleware.ts` → `proxy.ts` (Next.js 16), đồng bộ tài liệu | — | ĐÃ HOÀN THÀNH (10/11/2026) |
 
 **Các hạng mục tương lai (Sau M18 - có cổng quyết định):** pipeline AI theo PDF chương 5 và 16, `/admin/batches`, Part 6 và 7, chế độ bấm giờ, FSRS; chỉ làm khi có số liệu thật về nhu cầu số lượng câu hỏi và chất lượng.
 

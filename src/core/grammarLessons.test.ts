@@ -3,6 +3,7 @@ import {
   getAllGrammarLessons,
   getGrammarLessonByCode,
   getGrammarLessonsByCategory,
+  getGrammarLessonSummaries,
 
 } from "./grammarLessons";
 import { CANONICAL_GRAMMAR_TAGS } from "./grammarTags";
@@ -180,5 +181,18 @@ describe("Grammar Lessons Core Unit Tests", () => {
     // 7. Passive Voice: kiểm tra Bị động khách quan / Tường thuật
     const passive = getGrammarLessonByCode("passive_voice");
     expect(passive?.detailedSections?.some((s) => s.title.includes("Bị động Khách quan"))).toBe(true);
+  });
+
+  it("getGrammarLessonSummaries trả về đủ 16 tóm tắt gọn nhẹ khớp với bài học chi tiết", () => {
+    const lessons = getAllGrammarLessons();
+    const summaries = getGrammarLessonSummaries();
+
+    expect(summaries.length).toBe(16);
+    for (let i = 0; i < lessons.length; i++) {
+      expect(summaries[i].tagCode).toBe(lessons[i].tagCode);
+      expect(summaries[i].cheatSheetCount).toBe(lessons[i].cheatSheet.length);
+      expect(summaries[i].trapsCount).toBe(lessons[i].traps.length);
+      expect(summaries[i].coreDefinition).toBe(lessons[i].coreRule.definition);
+    }
   });
 });

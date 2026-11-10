@@ -26,11 +26,11 @@ User nhập email/password
   └─► /login (Client Form Validation: email format, required password)
         └─► Supabase Auth: signInWithPassword
               └─► Thiết lập Cookie phiên SSR (setAll cookies trong cookie store)
-                    └─► src/middleware.ts chặn và kiểm soát mọi request:
+                    └─► src/proxy.ts chặn và kiểm soát mọi request:
                           ├─► Đã login + vào /login -> Chuyển hướng về / hoặc ?next=
                           ├─► Chưa login + vào route bảo vệ -> Chuyển hướng về /login?next=<path>
                           ├─► Audio public route (/api/audio/*) -> Cho qua không cần auth
-                          └─► Refresh trang -> middleware tự động làm mới token session
+                          └─► Refresh trang -> proxy tự động làm mới token session
 ```
 
 ### Flow 2: Phiên Làm Bài & Bảo Vệ Đáp Án (Practice & Question Shielding)

@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import essential600Data from "@/data/curated-decks/essential-600-words.json";
-import type { VocabEntry, WordFamilyMember, CuratedVocabItem } from "@/features/vocab/types";
-
-const essential600List = essential600Data as CuratedVocabItem[];
+import { useEffect } from "react";
+import type { VocabEntry, WordFamilyMember } from "@/features/vocab/types";
 import {
   getPosBadgeInfo,
   generateNaturalExplanation,
@@ -51,20 +48,6 @@ export function VocabDetailModal({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
-
-  // Tự động đối chiếu bộ 600 từ Barron's nếu từ này từng được nạp từ trước (ngay cả khi DB cũ chưa có metadata)
-  const curatedItem = useMemo(() => {
-    if (!isOpen || !entry) return null;
-    const target = entry.word.toLowerCase().trim();
-    const targetLemma = (entry.lemma || entry.word).toLowerCase().trim();
-    return (
-      essential600List.find(
-        (item) =>
-          item.word.toLowerCase().trim() === target ||
-          item.word.toLowerCase().trim() === targetLemma
-      ) || null
-    );
-  }, [isOpen, entry]);
 
   if (!isOpen || !entry) return null;
 
@@ -123,13 +106,10 @@ export function VocabDetailModal({
 
   const stateInfo = getFSRSStateLabel(card?.state);
 
-  const toeicExample =
-    metadata?.toeic_example || curatedItem?.example || entry.context_sentence;
+  const toeicExample = metadata?.toeic_example || entry.context_sentence;
 
   const toeicExampleTrans =
-    metadata?.toeic_example_translation ||
-    curatedItem?.example_translation ||
-    entry.context_translation;
+    metadata?.toeic_example_translation || entry.context_translation;
 
   const dualDetails = resolveDualDetails(
     entry.word,
@@ -177,24 +157,15 @@ export function VocabDetailModal({
       ? metadata.detailed_explanation
       : generateNaturalExplanation(entry.word, entry.meaning, posInfo.category);
 
-  const wordFamily: WordFamilyMember[] =
-    metadata?.word_family && metadata.word_family.length > 0
-      ? metadata.word_family
-      : (curatedItem?.word_families as WordFamilyMember[]) || [];
+  const wordFamily: WordFamilyMember[] = metadata?.word_family || [];
 
-  const synonyms: string[] =
-    metadata?.synonyms && metadata.synonyms.length > 0
-      ? metadata.synonyms
-      : (curatedItem?.synonyms as string[]) || [];
+  const synonyms: string[] = metadata?.synonyms || [];
 
   const antonyms: string[] = metadata?.antonyms || [];
 
-  const collocations: string[] =
-    metadata?.collocations && metadata.collocations.length > 0
-      ? metadata.collocations
-      : (curatedItem?.collocations as string[]) || [];
+  const collocations: string[] = metadata?.collocations || [];
 
-  const usageNote = metadata?.usage_note || curatedItem?.usage_note;
+  const usageNote = metadata?.usage_note;
 
   return (
     <div
@@ -443,7 +414,7 @@ export function VocabDetailModal({
                   Chủ đề: {topicDisplay}
                 </span>
               )}
-              {curatedItem && (
+              {metadata?.is_essential_600 && (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   Chuẩn Barron&apos;s 600 Words

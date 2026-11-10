@@ -3,7 +3,7 @@
 import { useState, useTransition, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { VocabEntry, Notebook, CuratedVocabItem } from "@/features/vocab/types";
+import type { VocabEntry, Notebook } from "@/features/vocab/types";
 import {
   getPosBadgeInfo,
   getPosCategory,
@@ -17,8 +17,6 @@ import {
   importCuratedDeckAction,
   type CuratedDeckStatus,
 } from "@/features/vocab/actions";
-import { CURATED_DECKS } from "@/data/curated-decks";
-import essential600Data from "@/data/curated-decks/essential-600-words.json";
 import { VocabDetailModal } from "./vocab-detail-modal";
 import { VocabCreateModal } from "./vocab-create-modal";
 import { NotebookManagerModal } from "./notebook-manager-modal";
@@ -607,40 +605,6 @@ const TOPIC_EXACT_MAP: Record<string, TopicVisual> = {
 };
 
 /**
- * Danh sách chủ điểm (Topics) được gom nhóm theo từng Bộ Thẻ Chuẩn
- */
-export const DECK_TOPICS_MAP: Record<string, string[]> = {
-  "ets-vocab": Array.from(
-    new Set(
-      CURATED_DECKS.find((d) => d.id === "ets-vocab")
-        ?.items.map((i) => i.topic)
-        .filter(Boolean) || []
-    )
-  ),
-  "essential-600": Array.from(
-    new Set(
-      CURATED_DECKS.find((d) => d.id === "essential-600")
-        ?.items.map((i) => i.topic)
-        .filter(Boolean) || []
-    )
-  ),
-  "common-idioms": Array.from(
-    new Set(
-      CURATED_DECKS.find((d) => d.id === "common-idioms")
-        ?.items.map((i) => i.topic)
-        .filter(Boolean) || []
-    )
-  ),
-  "it-vocab": Array.from(
-    new Set(
-      CURATED_DECKS.find((d) => d.id === "it-vocab")
-        ?.items.map((i) => i.topic)
-        .filter(Boolean) || []
-    )
-  ),
-};
-
-/**
  * Hàm helper tự động gán Icon, Tên tiếng Việt phụ đề và Màu sắc Pastel cho từng Thẻ Chủ Điểm
  * TUÂN THỦ TASK 3 - QUY TẮC FALLBACK AN TOÀN:
  * 1. Tra cứu chính xác 1-1 trong TOPIC_EXACT_MAP.
@@ -669,14 +633,6 @@ interface VocabListViewProps {
   initialNotebooks?: Notebook[];
   initialCuratedDecks?: CuratedDeckStatus[];
 }
-
-// Map tra cứu nhanh 600 từ Barron's để đối chiếu tức thời trên UI ngay cả khi DB chưa cập nhật
-const essential600Map = new Map<string, CuratedVocabItem>(
-  (essential600Data as CuratedVocabItem[]).map((d) => [
-    d.word.toLowerCase().trim(),
-    d,
-  ])
-);
 
 export function VocabListView({
   initialEntries,
@@ -740,10 +696,19 @@ export function VocabListView({
   // Tập hợp các ID thẻ từ đã được bấm mở nghĩa khi đang ở chế độ Che nghĩa
   const [revealedCardIds, setRevealedCardIds] = useState<Set<string>>(() => new Set<string>());
 
+  // Bản đồ bộ thẻ chuẩn theo ID (nhận metadata gọn nhẹ từ server, không bundle 2MB JSON xuống client)
+  const deckStatusById = useMemo(
+    () => new Map(curatedDecks.map((d) => [d.deck.id, d])),
+    [curatedDecks]
+  );
+
   // Xác định bộ thẻ IT và các topic IT
-  const itDeckStatus = curatedDecks.find((d) => d.deck.id === "it-vocab");
+  const itDeckStatus = deckStatusById.get("it-vocab");
   const itNotebookId = itDeckStatus?.notebookId;
-  const itTopicsSet = useMemo(() => new Set(DECK_TOPICS_MAP["it-vocab"] || []), []);
+  const itTopicsSet = useMemo(
+    () => new Set(itDeckStatus?.deck.topics || []),
+    [itDeckStatus]
+  );
 
   const isItEntry = useCallback(
     (e: VocabEntry) => {
@@ -775,47 +740,51 @@ export function VocabListView({
   // 1. Nhóm 3 Sổ TOEIC Cốt Lõi (ETS, 600 Essential, Idioms)
   const coreBooks = useMemo(() => {
     const ids = ["ets-vocab", "essential-600", "common-idioms"];
-    return ids.map((id) => {
-      const meta = CURATED_DECKS.find((d) => d.id === id)!;
-      const status = curatedDecks.find((d) => d.deck.id === id);
-      const topics = DECK_TOPICS_MAP[id] || [];
+    return ids
+      .map((id) => {
+        const status = deckStatusById.get(id);
+        if (!status) return null;
+        const meta = status.deck;
+        const topics = meta.topics || [];
 
-      const deckEntries = entries.filter((e) => {
-        if (status?.notebookId && e.notebook_id === status.notebookId) return true;
-        if (e.metadata?.topic && topics.includes(e.metadata.topic.trim())) return true;
-        return false;
-      });
+        const deckEntries = entries.filter((e) => {
+          if (status.notebookId && e.notebook_id === status.notebookId) return true;
+          if (e.metadata?.topic && topics.includes(e.metadata.topic.trim())) return true;
+          return false;
+        });
 
-      const wordsCount = deckEntries.length > 0 ? deckEntries.length : (status?.userCardsCount || meta.totalCards);
-      const deckDue = deckEntries.filter(
-        (e) => e.card?.due && new Date(e.card.due).getTime() <= currentTime
-      ).length;
+        const wordsCount =
+          deckEntries.length > 0 ? deckEntries.length : status.userCardsCount || meta.totalCards;
+        const deckDue = deckEntries.filter(
+          (e) => e.card?.due && new Date(e.card.due).getTime() <= currentTime
+        ).length;
 
-      return {
-        id,
-        title: meta.title,
-        englishTitle: meta.englishTitle,
-        description: meta.description,
-        badge: meta.badge,
-        badgeType: meta.badgeType,
-        color: meta.color,
-        totalCards: meta.totalCards,
-        wordsCount,
-        topicsCount: topics.length,
-        topics,
-        isImported: !!status?.isImported,
-        notebookId: status?.notebookId,
-        deckDue,
-        reviewUrl: status?.notebookId ? `/review?notebookId=${status.notebookId}` : `/review?limit=15`,
-      };
-    });
-  }, [curatedDecks, entries, currentTime]);
+        return {
+          id,
+          title: meta.title,
+          englishTitle: meta.englishTitle,
+          description: meta.description,
+          badge: meta.badge,
+          badgeType: meta.badgeType,
+          color: meta.color,
+          totalCards: meta.totalCards,
+          wordsCount,
+          topicsCount: topics.length,
+          topics,
+          isImported: !!status.isImported,
+          notebookId: status.notebookId,
+          deckDue,
+          reviewUrl: status.notebookId ? `/review?notebookId=${status.notebookId}` : `/review?limit=15`,
+        };
+      })
+      .filter((book): book is NonNullable<typeof book> => book !== null);
+  }, [deckStatusById, entries, currentTime]);
 
   // 2. Nhóm Tiếng Anh IT & Công nghệ (Opt-in)
   const itBook = useMemo(() => {
-    const meta = CURATED_DECKS.find((d) => d.id === "it-vocab")!;
-    const status = curatedDecks.find((d) => d.deck.id === "it-vocab");
-    const topics = DECK_TOPICS_MAP["it-vocab"] || [];
+    const status = deckStatusById.get("it-vocab");
+    const meta = status?.deck;
+    const topics = meta?.topics || [];
 
     const deckEntries = entries.filter((e) => {
       if (status?.notebookId && e.notebook_id === status.notebookId) return true;
@@ -823,19 +792,23 @@ export function VocabListView({
       return false;
     });
 
-    const wordsCount = deckEntries.length > 0 ? deckEntries.length : (status?.userCardsCount || meta.totalCards);
+    const totalCards = meta?.totalCards ?? 0;
+    const wordsCount =
+      deckEntries.length > 0 ? deckEntries.length : status?.userCardsCount || totalCards;
     const deckDue = deckEntries.filter(
       (e) => e.card?.due && new Date(e.card.due).getTime() <= currentTime
     ).length;
 
     return {
       id: "it-vocab",
-      title: meta.title,
-      englishTitle: meta.englishTitle,
-      description: meta.description,
+      title: meta?.title ?? "Từ vựng Tiếng Anh IT & Công Nghệ",
+      englishTitle: meta?.englishTitle ?? "English for Information Technology",
+      description:
+        meta?.description ??
+        "Từ vựng tiếng Anh chuyên ngành CNTT, lập trình, mạng và quản lý dự án phần mềm.",
       badge: "Chuyên ngành bổ trợ",
-      color: meta.color,
-      totalCards: meta.totalCards,
+      color: meta?.color ?? "#4338CA",
+      totalCards,
       wordsCount,
       topicsCount: topics.length,
       topics,
@@ -844,13 +817,13 @@ export function VocabListView({
       deckDue,
       reviewUrl: status?.notebookId ? `/review?notebookId=${status.notebookId}` : `/review?limit=15`,
     };
-  }, [curatedDecks, entries, currentTime]);
+  }, [deckStatusById, entries, currentTime]);
 
   // 3. Sổ cá nhân tự tạo (ngoài 4 bộ chuẩn)
   const customNotebooks = useMemo(() => {
-    const curatedTitles = new Set(CURATED_DECKS.map((d) => d.title));
+    const curatedTitles = new Set(curatedDecks.map((d) => d.deck.title));
     return notebooks.filter((nb) => !curatedTitles.has(nb.name));
-  }, [notebooks]);
+  }, [notebooks, curatedDecks]);
 
   // Cuốn sổ đang được chọn xem chủ điểm (Cấp 2)
   const selectedBook = useMemo(() => {
@@ -894,11 +867,10 @@ export function VocabListView({
   // Danh sách chủ điểm con thuộc riêng cuốn sổ đang chọn (Cấp 2)
   const selectedBookTopics = useMemo(() => {
     if (!selectedBook) return [];
+    const deckStatus = deckStatusById.get(selectedBook.id);
     return selectedBook.topics.map((topicName) => {
       const topicEntries = entries.filter((e) => e.metadata?.topic?.trim() === topicName);
-      const deckItemCount = CURATED_DECKS.find((d) => d.id === selectedBook.id)?.items.filter(
-        (i) => i.topic === topicName
-      ).length || 0;
+      const deckItemCount = deckStatus?.deck.topicCounts[topicName] || 0;
       const count = topicEntries.length > 0 ? topicEntries.length : deckItemCount;
       const dueCount = topicEntries.filter(
         (e) => e.card?.due && new Date(e.card.due).getTime() <= currentTime
@@ -910,7 +882,7 @@ export function VocabListView({
         dueCount,
       };
     });
-  }, [selectedBook, entries, currentTime]);
+  }, [selectedBook, deckStatusById, entries, currentTime]);
 
   // Đếm số lượng theo từng loại từ: Danh · Động · Tính · Trạng · Cụm từ (Hỗ trợ từ loại kép)
   const posCounts = useMemo(() => {
@@ -969,10 +941,10 @@ export function VocabListView({
         // Lọc theo Cuốn Sổ đang chọn
         if (selectedBookId === "it-vocab") {
           if (!isItEntry(item)) return false;
-        } else if (selectedBookId in DECK_TOPICS_MAP) {
-          const deckTopics = DECK_TOPICS_MAP[selectedBookId];
-          const status = curatedDecks.find((d) => d.deck.id === selectedBookId);
-          const matchesNb = status?.notebookId && item.notebook_id === status.notebookId;
+        } else if (deckStatusById.has(selectedBookId)) {
+          const status = deckStatusById.get(selectedBookId)!;
+          const deckTopics = status.deck.topics || [];
+          const matchesNb = status.notebookId && item.notebook_id === status.notebookId;
           const matchesTopic = item.metadata?.topic && deckTopics.includes(item.metadata.topic.trim());
           if (!matchesNb && !matchesTopic) return false;
         } else {
@@ -1046,7 +1018,7 @@ export function VocabListView({
     selectedBookId,
     searchQuery,
     currentTime,
-    curatedDecks,
+    deckStatusById,
     isItEntry,
   ]);
 
@@ -2343,9 +2315,6 @@ export function VocabListView({
                 item.word,
                 item.phonetic || item.metadata?.phonetic
               );
-              const curated =
-                essential600Map.get(item.word.toLowerCase().trim()) ||
-                essential600Map.get((item.lemma || item.word).toLowerCase().trim());
 
               return (
                 <Card
@@ -2411,7 +2380,7 @@ export function VocabListView({
                           </span>
 
                           {/* Huy hiệu Chuẩn Barron's 600 Words */}
-                          {curated && (
+                          {item.metadata?.is_essential_600 && (
                             <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
                               Barron&apos;s
                             </span>
@@ -2576,7 +2545,7 @@ export function VocabListView({
                     )}
 
                     {/* Preview Mẹo & Bí kíp TOEIC Part 5 & 7 */}
-                    {(item.metadata?.usage_note || curated?.usage_note) && (
+                    {item.metadata?.usage_note && (
                       <div
                         onClick={() => setSelectedDetailEntry(item)}
                         className="px-2.5 py-1.5 rounded-lg bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 cursor-pointer hover:bg-amber-100/70 transition-colors flex items-center justify-between gap-2"
@@ -2584,11 +2553,11 @@ export function VocabListView({
                       >
                         <div className="flex items-center gap-1.5 truncate">
                           <span className="shrink-0 text-amber-600 font-bold">💡 Mẹo:</span>
-                          <span className="truncate">{item.metadata?.usage_note || curated?.usage_note}</span>
+                          <span className="truncate">{item.metadata.usage_note}</span>
                         </div>
-                        {curated?.word_families && curated.word_families.length > 0 && (
+                        {item.metadata.word_family && item.metadata.word_family.length > 0 && (
                           <span className="shrink-0 text-[10px] font-mono font-medium text-amber-800/80 bg-amber-100/80 px-1.5 py-0.5 rounded border border-amber-300/40">
-                            {curated.word_families.length} dạng từ
+                            {item.metadata.word_family.length} dạng từ
                           </span>
                         )}
                       </div>

@@ -163,10 +163,15 @@ export function AdminReviewView({ initialQuestions }: AdminReviewViewProps) {
             Toàn bộ câu hỏi trong hệ thống đã được kiểm định hoặc xuất bản. Không còn câu nào đang chờ xem xét.
           </p>
         </div>
-        <div className="pt-2">
+        <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
           <Link href="/">
             <Button variant="secondary" className="gap-2">
               <ArrowLeft className="w-4 h-4" /> Quay lại Trang chủ
+            </Button>
+          </Link>
+          <Link href="/admin/insights">
+            <Button variant="secondary" className="gap-2">
+              Xem Admin Insights
             </Button>
           </Link>
         </div>
@@ -217,6 +222,12 @@ export function AdminReviewView({ initialQuestions }: AdminReviewViewProps) {
 
         {/* Bộ điều hướng câu & Phím tắt nhắc nhở */}
         <div className="flex items-center gap-3">
+          <Link
+            href="/admin/insights"
+            className="text-xs font-medium text-[#2563EB] hover:underline hidden sm:inline"
+          >
+            Insights &amp; Góp ý
+          </Link>
           <Badge variant="neutral" showIcon={false} className="font-mono text-xs px-2.5 py-1">
             <Inbox className="w-3.5 h-3.5 mr-1 text-[#2563EB]" />
             Câu {currentIndex + 1} / {questions.length} (Còn {questions.length} câu)

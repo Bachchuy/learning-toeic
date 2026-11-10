@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandLogo } from "@/components/ui/brand-logo";
+import { FeedbackModal } from "@/features/feedback/components/feedback-modal";
+import { MessageSquarePlus } from "lucide-react";
 
 interface NavItem {
   name: string;
@@ -141,6 +144,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export function AppNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   // Ẩn Navigation hoàn toàn ở màn hình Focus làm bài: /practice/[id] (trừ /practice/new), /exam/[slug] (trừ /exam), /review, và màn hình Auth (/login)
   const isFocusScreen =
@@ -208,19 +212,36 @@ export function AppNav({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
 
-        {/* Bottom App Info */}
-        <div className="pt-4 border-t border-[#E2E8F0] px-2 text-xs text-[#475569] flex items-center justify-between shrink-0">
-          <span className="font-medium text-slate-500">Học tập thông minh</span>
-          <span className="text-[11px] text-slate-400">ETS 2026</span>
+        {/* Bottom App Info + Feedback Trigger */}
+        <div className="space-y-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsFeedbackOpen(true)}
+            className="w-full min-h-[44px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A] transition-colors cursor-pointer"
+          >
+            <MessageSquarePlus className="w-4 h-4 text-[#475569]" aria-hidden="true" />
+            <span>Góp ý &amp; Báo lỗi</span>
+          </button>
+
+          <div className="pt-4 border-t border-[#E2E8F0] px-2 text-xs text-[#475569] flex items-center justify-between">
+            <span className="font-medium text-slate-500">Học tập thông minh</span>
+            <span className="text-[11px] text-slate-400">ETS 2026</span>
+          </div>
         </div>
       </aside>
 
       {/* Mobile Top Header (h-13 / 52px) - chỉ hiện trên mobile (<768px) */}
       <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] px-4 h-13 flex items-center justify-between shrink-0">
         <BrandLogo variant="horizontal" size="xs" href="/" priority />
-        <span className="text-[11px] font-mono font-medium text-[var(--color-text-secondary)]">
-          ETS 2026
-        </span>
+        <button
+          type="button"
+          onClick={() => setIsFeedbackOpen(true)}
+          aria-label="Mở hộp góp ý"
+          className="min-h-[44px] px-2.5 inline-flex items-center gap-1.5 rounded-lg text-xs font-medium text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A] transition-colors cursor-pointer"
+        >
+          <MessageSquarePlus className="w-4 h-4" aria-hidden="true" />
+          <span>Góp ý</span>
+        </button>
       </header>
 
       {/* Main Content Area */}
@@ -262,6 +283,11 @@ export function AppNav({ children }: { children: React.ReactNode }) {
           );
         })}
       </nav>
+
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+      />
     </div>
   );
 }
