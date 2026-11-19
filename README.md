@@ -2,6 +2,7 @@
 
 <div align="center">
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-learning--toeic.vercel.app-0070F3?style=flat-square&logo=vercel)](https://learning-toeic.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-16.4.3-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.3.0-blue?style=flat-square&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x_Strict-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)

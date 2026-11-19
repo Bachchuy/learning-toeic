@@ -5,7 +5,20 @@ import {
   getGrammarLessonsByCategory,
   getGrammarLessonSummaries,
 
+  buildLessonMicroModules,
+  getLessonMicroSummary,
 } from "./grammarLessons";
+import {
+  getExampleHighlights,
+  splitTextWithHighlights,
+} from "./lessonHighlights";
+import {
+  LESSON_PRACTICE_EXERCISES,
+  getLessonPracticeExercises,
+  isFillBlankExercise,
+  checkFillBlankAnswer,
+  normalizeFillBlankAnswer,
+} from "./lessonExercises";
 import { CANONICAL_GRAMMAR_TAGS } from "./grammarTags";
 
 describe("Grammar Lessons Core Unit Tests", () => {
@@ -193,6 +206,161 @@ describe("Grammar Lessons Core Unit Tests", () => {
       expect(summaries[i].cheatSheetCount).toBe(lessons[i].cheatSheet.length);
       expect(summaries[i].trapsCount).toBe(lessons[i].traps.length);
       expect(summaries[i].coreDefinition).toBe(lessons[i].coreRule.definition);
+    }
+  });
+
+  it("chia nhỏ đủ 16 bài học thành các học phần ngắn kèm bài tập áp dụng ngay tại mọi phần và không còn gán nhãn Murphy/Appendix/Barron", () => {
+    const lessons = getAllGrammarLessons();
+
+    for (const lesson of lessons) {
+      const modules = buildLessonMicroModules(lesson);
+      const summary = getLessonMicroSummary(lesson.tagCode);
+
+      expect(modules.length).toBeGreaterThanOrEqual(3);
+      expect(modules.length).toBeLessThanOrEqual(6);
+      expect(summary.moduleCount).toBe(modules.length);
+      expect(summary.exerciseCount).toBeGreaterThanOrEqual(5);
+
+      for (const mod of modules) {
+        expect(mod.titleVi).not.toMatch(/Murphy|Appendix|Barron/i);
+        expect(mod.exercises.length).toBeGreaterThanOrEqual(3);
+        for (const ex of mod.exercises) {
+          expect(ex.questionStem).toContain("_______");
+          expect(ex.explanationStepByStep.length).toBeGreaterThanOrEqual(2);
+          if (isFillBlankExercise(ex)) {
+            expect(ex.acceptedAnswers.length).toBeGreaterThanOrEqual(1);
+            expect(
+              checkFillBlankAnswer(ex.acceptedAnswers[0], ex.acceptedAnswers)
+            ).toBe(true);
+          } else {
+            expect(ex.options.length).toBe(4);
+            expect(ex.correctIndex).toBeGreaterThanOrEqual(0);
+            expect(ex.correctIndex).toBeLessThan(4);
+          }
+        }
+      }
+
+      const exercises = LESSON_PRACTICE_EXERCISES[lesson.tagCode] ?? [];
+      expect(exercises.length).toBeGreaterThanOrEqual(4);
+      const mergedExercises = getLessonPracticeExercises(lesson.tagCode);
+      expect(mergedExercises.length).toBeGreaterThanOrEqual(9);
+    }
+  });
+
+  it("toàn bộ câu ví dụ trong 16 bài học đều có cụm từ đánh dấu/gạch chân khớp chính xác chuỗi gốc", () => {
+    const lessons = getAllGrammarLessons();
+    let totalVerifiedExamples = 0;
+
+    const verifySentence = (sentence: string) => {
+      totalVerifiedExamples++;
+      const highlights = getExampleHighlights(sentence);
+      expect(
+        highlights.length,
+        `Thiếu highlight cho câu ví dụ: "${sentence}"`
+      ).toBeGreaterThan(0);
+
+      for (const h of highlights) {
+        expect(
+          sentence.includes(h),
+          `Cụm đánh dấu "${h}" không khớp trong câu "${sentence}"`
+        ).toBe(true);
+      }
+
+      const segments = splitTextWithHighlights(sentence, highlights);
+      expect(segments.some((s) => s.highlighted)).toBe(true);
+      expect(segments.map((s) => s.text).join("")).toBe(sentence);
+    };
+
+    for (const lesson of lessons) {
+      for (const item of lesson.cheatSheet) {
+        verifySentence(item.example);
+      }
+      for (const sec of lesson.detailedSections ?? []) {
+        for (const rule of sec.rules) {
+          for (const ex of rule.examples) {
+            verifySentence(ex.en);
+          }
+        }
+      }
+      if (lesson.tensesDetail) {
+        for (const t of lesson.tensesDetail.tenses) {
+          for (const u of t.usages) {
+            verifySentence(u.exampleEn);
+          }
+        }
+        for (const seq of lesson.tensesDetail.sequenceRules) {
+          verifySentence(seq.exampleEn);
+          for (const extra of seq.extraExamples ?? []) {
+            verifySentence(extra.en);
+          }
+        }
+        for (const comp of lesson.tensesDetail.tenseComparisons ?? []) {
+          for (const pair of comp.examplePairs ?? []) {
+            verifySentence(pair.exampleA.en);
+            verifySentence(pair.exampleB.en);
+          }
+        }
+      }
+    }
+
+    expect(totalVerifiedExamples).toBeGreaterThanOrEqual(320);
+  });
+
+  it("mọi quy tắc trong 16 bài học đều có ít nhất 2 ví dụ minh họa song ngữ", () => {
+    const lessons = getAllGrammarLessons();
+
+    for (const lesson of lessons) {
+      for (const sec of lesson.detailedSections ?? []) {
+        for (const rule of sec.rules) {
+          expect(
+            rule.examples.length,
+            `Quy tắc "${lesson.tagCode}::${rule.title}" chỉ có ${rule.examples.length} ví dụ`
+          ).toBeGreaterThanOrEqual(2);
+        }
+      }
+      if (lesson.tensesDetail) {
+        for (const tense of lesson.tensesDetail.tenses) {
+          expect(
+            tense.usages.length,
+            `Thì "${tense.id}" chỉ có ${tense.usages.length} cách dùng/ví dụ`
+          ).toBeGreaterThanOrEqual(2);
+        }
+        for (const seq of lesson.tensesDetail.sequenceRules) {
+          const totalSeqExamples = 1 + (seq.extraExamples?.length ?? 0);
+          expect(
+            totalSeqExamples,
+            `Quy tắc phối hợp thì "${seq.pattern}" chỉ có ${totalSeqExamples} ví dụ`
+          ).toBeGreaterThanOrEqual(2);
+        }
+      }
+    }
+  });
+
+  it("chuẩn hóa và chấm đúng bài tập điền từ (khoảng trắng, viết hoa, nháy cong và dấu chấm cuối)", () => {
+    expect(normalizeFillBlankAnswer("  IS   Attending. ")).toBe("is attending");
+    expect(normalizeFillBlankAnswer("doesn’t work!")).toBe("doesn't work");
+
+    expect(
+      checkFillBlankAnswer("  Agreement ", ["agreement", "agreements"])
+    ).toBe(true);
+    expect(
+      checkFillBlankAnswer("DOESN’T WORK.", ["does not work", "doesn't work"])
+    ).toBe(true);
+    expect(checkFillBlankAnswer("agreeable", ["agreement"])).toBe(false);
+    expect(checkFillBlankAnswer("   ", ["agreement"])).toBe(false);
+  });
+
+  it("mỗi bài học đều có cả dạng chọn đáp án và điền từ với id không trùng lặp", () => {
+    const lessons = getAllGrammarLessons();
+    for (const lesson of lessons) {
+      const merged = getLessonPracticeExercises(lesson.tagCode);
+      const ids = merged.map((ex) => ex.id);
+      expect(new Set(ids).size).toBe(ids.length);
+
+      const mcqCount = merged.filter((ex) => !isFillBlankExercise(ex)).length;
+      const fillCount = merged.filter((ex) => isFillBlankExercise(ex)).length;
+      expect(mcqCount).toBeGreaterThanOrEqual(4);
+      expect(fillCount).toBeGreaterThanOrEqual(3);
     }
   });
 });

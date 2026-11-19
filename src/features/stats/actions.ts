@@ -3,14 +3,16 @@
 import { getOptionalUser } from "@/shared/auth";
 import { formatGrammarTagName } from "@/core/grammarTags";
 import {
-
-
   getMasteryBadgeInfo,
   calculateAdaptiveMastery,
   type MasteryLabel,
   type MasteryBadgeInfo,
   type AttemptRecord,
 } from "@/core/wilson";
+import {
+  buildLearningRoadmap,
+  type LearningRoadmapState,
+} from "@/core/roadmap";
 
 export interface TopicMasteryItem {
   tagId: number;
@@ -49,6 +51,7 @@ export interface DashboardSummaryResult {
   totalQuestionsAnswered: number;
   averageMasteryScore: number;
   recentActivity: DailyActivityItem[];
+  roadmap: LearningRoadmapState;
 }
 
 /**
@@ -169,8 +172,8 @@ export async function getSkillMasteryStatsAction(): Promise<SkillMasteryStatsRes
   if (group1.length > 0) {
     weakestTopic = group1[0];
   } else if (group2.length > 0) {
-    // Nếu chưa có chủ điểm nào đủ 5 câu, chọn chủ điểm phổ biến nhất ("Dạng từ" id=1)
-    weakestTopic = group2.find((t) => t.tagCode === "part_of_speech") || group2[0];
+    // Nếu chưa có chủ điểm nào đủ 5 câu, chọn chủ điểm nền tảng ("Từ loại")
+    weakestTopic = group2.find((t) => t.tagCode === "word_form") || group2[0];
   }
 
   const overallAccuracy =
@@ -329,6 +332,35 @@ export async function getUserStreakAction(): Promise<number> {
   return streakDays;
 }
 
+async function fetchUserTargetScore(): Promise<number> {
+  const { user, supabase } = await getOptionalUser();
+  if (!user) return 650;
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("target_score")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return typeof data?.target_score === "number" ? data.target_score : 650;
+}
+
+/**
+ * Server Action: Tính trạng thái Lộ trình 4 chặng cá nhân hóa theo năng lực ARM
+ */
+export async function getLearningRoadmapAction(): Promise<LearningRoadmapState> {
+  const [masteryStats, targetScore] = await Promise.all([
+    getSkillMasteryStatsAction(),
+    fetchUserTargetScore(),
+  ]);
+
+  const allTopics = [
+    ...masteryStats.group1Sufficient,
+    ...masteryStats.group2Insufficient,
+  ];
+  return buildLearningRoadmap(allTopics, targetScore);
+}
+
 /**
  * Server Action: Lấy tổng hợp thông số Dashboard cho trang chủ M2
  */
@@ -336,19 +368,21 @@ export async function getDashboardSummaryAction(): Promise<DashboardSummaryResul
   const { user, supabase } = await getOptionalUser();
   const nowIso = new Date().toISOString();
 
-  // Tối ưu hóa: Chạy song song cả 4 tác vụ độc lập (giảm độ trễ từ ~1.2s xuống ~300ms)
-  const [masteryStats, recentActivity, dueCardsRes, streakDays] = await Promise.all([
-    getSkillMasteryStatsAction(),
-    getDailyActivityStatsAction(),
-    user
-      ? supabase
-          .from("review_cards")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .lte("due", nowIso)
-      : Promise.resolve({ count: 0 }),
-    getUserStreakAction(),
-  ]);
+  // Tối ưu hóa: Chạy song song các tác vụ độc lập
+  const [masteryStats, recentActivity, dueCardsRes, streakDays, targetScore] =
+    await Promise.all([
+      getSkillMasteryStatsAction(),
+      getDailyActivityStatsAction(),
+      user
+        ? supabase
+            .from("review_cards")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .lte("due", nowIso)
+        : Promise.resolve({ count: 0 }),
+      getUserStreakAction(),
+      fetchUserTargetScore(),
+    ]);
 
   const dueCardsCount = dueCardsRes.count || 0;
 
@@ -375,6 +409,11 @@ export async function getDashboardSummaryAction(): Promise<DashboardSummaryResul
     );
   }
 
+  const roadmap = buildLearningRoadmap(
+    [...masteryStats.group1Sufficient, ...masteryStats.group2Insufficient],
+    targetScore
+  );
+
   return {
     streakDays,
     dueCardsCount,
@@ -383,5 +422,6 @@ export async function getDashboardSummaryAction(): Promise<DashboardSummaryResul
     totalQuestionsAnswered: masteryStats.totalAttempts,
     averageMasteryScore,
     recentActivity,
+    roadmap,
   };
 }

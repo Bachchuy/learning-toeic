@@ -1,5 +1,11 @@
 
 
+import {
+  getLessonPracticeExercises,
+  type LessonPracticeExercise,
+} from "./lessonExercises";
+import { enrichGrammarLessonsWithExtraExamples } from "./lessonExtraExamples";
+
 export interface GrammarLessonCheatSheetItem {
   signal: string;
   rule: string;
@@ -52,6 +58,11 @@ export interface SequenceOfTensesRule {
   ruleVi: string;
   exampleEn: string;
   exampleVi: string;
+  extraExamples?: {
+    en: string;
+    vi: string;
+    highlight?: string;
+  }[];
   trapNote?: string;
 }
 
@@ -137,13 +148,13 @@ export interface GrammarLessonSummary {
   trapsCount: number;
 }
 
-export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
+const BASE_GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
   "tenses": {
     "tagCode": "tenses",
     "category": "verbs",
     "categoryVi": "Động từ & Thời gian",
     "titleVi": "Thì động từ (Tenses)",
-    "taglineVi": "Giáo trình toàn diện trọn bộ 12 thì chuẩn tiếng Anh, cấu trúc (+ / - / ?), 6 cặp so sánh đối chiếu Murphy & quy tắc phối hợp thì",
+    "taglineVi": "Hệ thống đầy đủ 12 thì chuẩn tiếng Anh, cấu trúc (+ / - / ?), 6 cặp so sánh đối chiếu và quy tắc phối hợp thì",
     "estimatedMinutes": 12,
     "coreRule": {
       "definition": "Trong đề thi TOEIC Part 5, các câu hỏi về Thì động từ chiếm từ 15-20% (trung bình 4-6 câu mỗi đề). Bản chất của thì là diễn đạt hai thông tin cốt lõi: THỜI ĐIỂM hành động diễn ra (quá khứ, hiện tại, tương lai) và TÍNH CHẤT của hành động (đơn, tiếp diễn, hoàn thành, hoàn thành tiếp diễn).",
@@ -430,7 +441,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
           "usages": [
             {
               "context": "Hành động kéo dài liên tục vừa kết thúc trước một thời điểm quá khứ, để lại kết quả trong quá khứ",
-              "explanation": "Tình huống kinh điển của Murphy: Sáng hôm qua thức dậy thấy mặt đất ướt dù trời đã tạnh -> 'It had been raining'. Nhấn mạnh tiến trình hoạt động kéo dài giải thích cho hiện trạng quá khứ.",
+              "explanation": "Tình huống kinh điển: Sáng hôm qua thức dậy thấy mặt đất ướt dù trời đã tạnh -> 'It had been raining'. Nhấn mạnh tiến trình hoạt động kéo dài giải thích cho hiện trạng quá khứ.",
               "exampleEn": "Tom was completely exhausted when he got home because he had been working hard all day.",
               "exampleVi": "Tom đã kiệt sức khi về đến nhà vì anh ấy đã làm việc cật lực suốt cả ngày."
             },
@@ -618,7 +629,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
               "tenseB": "Sự thật hiển nhiên, thói quen thường nhật, mang tính cố định, lâu dài."
             },
             {
-              "aspect": "Ví dụ Murphy",
+              "aspect": "Ví dụ minh họa",
               "tenseA": "The water is boiling. Be careful! (Nước đang sôi sùng sục ngay lúc này)",
               "tenseB": "Water boils at 100 degrees Celsius. (Quy luật vật lý bất biến)"
             },
@@ -662,7 +673,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
               "tenseB": "Khoảng thời gian đã kết thúc hẳn: yesterday, last year, 5 days ago, in 2018."
             },
             {
-              "aspect": "Chuyển đổi hội thoại Murphy",
+              "aspect": "Chuyển đổi hội thoại",
               "tenseA": "Đưa tin mới: 'Ow! I have burnt myself.' (Vừa bị bỏng)",
               "tenseB": "Đào sâu chi tiết quá khứ: 'How did you do that? - I picked up a hot dish.'"
             }
@@ -688,7 +699,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
           "title": "Hiện tại hoàn thành tiếp diễn vs Hiện tại hoàn thành đơn",
           "pair": ["Present Perfect Continuous (I have been doing)", "Present Perfect (I have done)"],
           "murphyUnit": "English Grammar in Use — Unit 10",
-          "explanation": "Bức tranh cô gái Kate sơn phòng nổi tiếng của Murphy: 'Have been doing' tập trung vào BẢN THÂN TIẾN TRÌNH HOẠT ĐỘNG (chưa chắc đã xong); 'Have done' tập trung vào THÀNH QUẢ / SỰ HOÀN TẤT.",
+          "explanation": "Hình dung qua tình huống sơn phòng: 'Have been doing' tập trung vào BẢN THÂN TIẾN TRÌNH HOẠT ĐỘNG (chưa chắc đã xong); 'Have done' tập trung vào THÀNH QUẢ / SỰ HOÀN TẤT.",
           "table": [
             {
               "aspect": "Trọng tâm chú ý",
@@ -730,7 +741,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
               "tenseB": "Hành động đã hoàn thành trọn vẹn từ đầu đến cuối: V2/V-ed."
             },
             {
-              "aspect": "Hai câu kinh điển của Murphy",
+              "aspect": "Hai câu đối chiếu",
               "tenseA": "When Karen arrived, we were having dinner. (Karen tới khi chúng tôi đang ăn dở bữa tối)",
               "tenseB": "When Karen arrived, we had dinner. (Karen tới xong xuôi rồi chúng tôi mới bắt đầu ăn tối)"
             }
@@ -764,7 +775,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
               "tenseB": "Hành động diễn ra liên tục kéo dài tới tận một thời điểm quá khứ, giải thích cho hiện trạng."
             },
             {
-              "aspect": "Ví dụ Murphy",
+              "aspect": "Ví dụ minh họa",
               "tenseA": "They couldn't enter the facility because they had lost their key cards. (Mất thẻ - kết quả)",
               "tenseB": "Anna was exhausted yesterday evening because she had been playing tennis for hours. (Quá trình)"
             }
@@ -790,7 +801,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
           "title": "Will vs Be going to",
           "pair": ["Will (I will do)", "Be going to (I am going to do)"],
           "murphyUnit": "English Grammar in Use — Unit 20, 21, 23",
-          "explanation": "Murphy phân biệt qua 2 góc độ: (1) Quyết định tức thì tại lúc nói (Will) vs Kế hoạch đã chốt trước (Going to); (2) Dự đoán theo quan điểm cá nhân (Will) vs Dự đoán có bằng chứng hiện tại (Going to).",
+          "explanation": "Phân biệt qua 2 góc độ: (1) Quyết định tức thì tại lúc nói (Will) vs Kế hoạch đã chốt trước (Going to); (2) Dự đoán theo quan điểm cá nhân (Will) vs Dự đoán có bằng chứng hiện tại (Going to).",
           "table": [
             {
               "aspect": "Thời điểm quyết định",
@@ -805,7 +816,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
           ],
           "examplePairs": [
             {
-              "context": "Hội thoại Murphy: Gary tìm bạn",
+              "context": "Hội thoại tình huống: Gary gọi điện",
               "exampleA": {
                 "en": "Gary has been trying to contact you. – Really? OK, I'll call him right now.",
                 "vi": "Gary đang tìm cậu đấy. – Thật à? Được rồi, tớ sẽ gọi cho anh ấy ngay (quyết định tức thì)."
@@ -853,7 +864,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
           "exampleVi": "Trong khi Laura đang đọc tiểu thuyết ngoài vườn thì điện thoại của cô ấy đột ngột reo."
         },
         {
-          "pattern": "Used to + V-inf  VS  Be/Get used to + V-ing (Murphy Unit 18 & 61)",
+          "pattern": "Used to + V-inf  VS  Be/Get used to + V-ing",
           "ruleVi": "'used to + V-inf' chỉ thói quen trong quá khứ đã chấm dứt; 'be/get used to + V-ing/Noun' chỉ việc đã quen hoặc dần quen với điều gì ở hiện tại.",
           "exampleEn": "He used to commute by train, but now he is used to driving to the office every morning.",
           "exampleVi": "Anh ấy từng đi làm bằng tàu hỏa (thói quen quá khứ), nhưng giờ anh ấy đã quen với việc tự lái xe đến công ty mỗi sáng.",
@@ -894,7 +905,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
       },
       {
         "signal": "be/get used to + _______",
-        "rule": "Chia V-ING hoặc Danh từ (đã quen với việc gì - Murphy Unit 61)",
+        "rule": "Chia V-ING hoặc Danh từ (đã quen với việc gì)",
         "example": "Our support agents are used to handling urgent technical queries promptly."
       }
     ],
@@ -921,7 +932,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         "goodExample": "Over the last two years, consumer interest has increased steadily. (ĐÚNG)"
       },
       {
-        "title": "Bẫy 'Used to + V-inf' vs 'Be/Get used to + V-ing' (Murphy Unit 18 & 61)",
+        "title": "Bẫy 'Used to + V-inf' vs 'Be/Get used to + V-ing'",
         "trapDescription": "Thí sinh hay nhầm lẫn giữa thói quen quá khứ đã chấm dứt (used to + V) và trạng thái đã quen thuộc với việc gì ở hiện tại (be/get used to + V-ing). Đề thi TOEIC thường gài chỗ trống sau 'is used to' để bẫy thí sinh chọn V nguyên mẫu.",
         "correctRule": "S + used to + V-inf (từng làm gì trong quá khứ) VS S + be/get used to + V-ing/Noun (đã quen với việc gì ở hiện tại).",
         "badExample": "Ms. Patel is used to work late during the peak audit season. (SAI)",
@@ -1107,7 +1118,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "Vị trí & Dấu hiệu nhận diện Động từ (Verbs) và Word Families (Barron's 600 Words & Murphy Units 98-100)",
+        "title": "Vị trí & Dấu hiệu nhận diện Động từ (Verbs) và Word Families",
         "description": "Động từ là trái tim của câu. Part 5 kiểm tra cả vị trí động từ chính lẫn các hậu tố tạo động từ.",
         "rules": [
           {
@@ -1145,7 +1156,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
           },
           {
             "title": "Họ từ vựng (Word Families) kinh điển trong đề thi TOEIC",
-            "formula": "Verb -> Noun -> Adjective -> Adverb (Barron's 600 Words)",
+            "formula": "Verb -> Noun -> Adjective -> Adverb (Chuỗi họ từ vựng 4 từ loại)",
             "explanation": "Nắm vững chuỗi biến đổi gốc từ giúp giải nhanh mọi câu hỏi từ loại mà không cần đoán mò.",
             "examples": [
               {
@@ -1362,7 +1373,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "4. Danh từ Tập hợp (Collective Nouns) & Cấu trúc Chủ ngữ giả (Murphy Units 79-84)",
+        "title": "4. Danh từ Tập hợp (Collective Nouns) & Cấu trúc Chủ ngữ giả",
         "description": "Quy tắc hòa hợp trong ngữ cảnh thông báo và báo cáo doanh nghiệp.",
         "rules": [
           {
@@ -1431,7 +1442,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         "goodExample": "The quality of these components is high. (ĐÚNG)"
       },
       {
-        "title": "Bẫy Chủ ngữ giả 'There is' vs 'There are' (Murphy Unit 84)",
+        "title": "Bẫy Chủ ngữ giả 'There is' vs 'There are'",
         "trapDescription": "Thí sinh thường lúng túng khi gặp 'There' ở đầu câu và không biết chia động từ số ít hay số nhiều.",
         "correctRule": "Nhìn ngay danh từ đứng SAU động từ Be: Danh từ số ít / không đếm được -> There is/was; Danh từ số nhiều -> There are/were.",
         "badExample": "There is several reasons for the sudden flight cancellation. (SAI: several reasons là số nhiều)",
@@ -1553,7 +1564,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "3. Bị động Khách quan / Bị động Tường thuật & Thể Sai khiến (Murphy Units 45-46)",
+        "title": "3. Bị động Khách quan / Bị động Tường thuật & Thể Sai khiến",
         "description": "Dạng bị động đặc thù trong các bản tin kinh tế, báo cáo thị trường và thông báo văn phòng.",
         "rules": [
           {
@@ -1613,7 +1624,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
       },
       {
         "signal": "S + be + scheduled / expected / supposed + _______",
-        "rule": "Đi với TO + V-inf (được lên lịch / kỳ vọng làm gì - Murphy Unit 45)",
+        "rule": "Đi với TO + V-inf (được lên lịch / kỳ vọng làm gì)",
         "example": "The keynote speaker is expected to arrive at 10 AM."
       }
     ],
@@ -1626,7 +1637,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         "goodExample": "The incident happened during the night shift. (ĐÚNG)"
       },
       {
-        "title": "Bẫy Thể truyền khiến: Have someone DO vs Have something DONE (Murphy Unit 46)",
+        "title": "Bẫy Thể truyền khiến: Have someone DO vs Have something DONE",
         "trapDescription": "Khi dùng 'have / get' để nhờ vả hoặc thuê dịch vụ: Nếu tân ngữ là NGƯỜI làm thì dùng V nguyên mẫu (have someone do); nếu tân ngữ là VẬT chịu tác động thì dùng V3/V-ed (have something done).",
         "correctRule": "Have + person + V-inf (chủ động)  VS  Have + object + V3/V-ed (bị động).",
         "badExample": "The manager had the technician repaired the photocopier. (SAI vì có người technician làm)",
@@ -1723,7 +1734,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "2. Phân biệt Giới từ Thời gian kinh điển: By vs Until, During vs For (Murphy Units 119-120)",
+        "title": "2. Phân biệt Giới từ Thời gian kinh điển: By vs Until, During vs For",
         "description": "Điểm bẫy ngữ nghĩa cực kỳ tinh vi trong các câu hỏi giao việc, hạn chót và lịch trình.",
         "rules": [
           {
@@ -1768,7 +1779,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "3. Liên từ Điều kiện & Giả thiết: Unless, Provided that, In case (Murphy Units 114-115)",
+        "title": "3. Liên từ Điều kiện & Giả thiết: Unless, Provided that, In case",
         "description": "Nhóm liên từ kiểm tra tư duy logic và tính mạch lạc của câu.",
         "rules": [
           {
@@ -1830,7 +1841,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
       },
       {
         "signal": "By + mốc  VS  Until + mốc",
-        "rule": "By = nộp/hoàn tất trước hạn; Until = duy trì liên tục tới mốc (Murphy Unit 120)",
+        "rule": "By = nộp/hoàn tất trước hạn; Until = duy trì liên tục tới mốc",
         "example": "Submit by Friday (hoàn tất) vs Open until Friday (liên tục)"
       }
     ],
@@ -1843,7 +1854,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         "goodExample": "Despite the heavy rain falling since morning, we went. (ĐÚNG)"
       },
       {
-        "title": "Bẫy Hạn chót 'By' vs Hành động duy trì 'Until' (Murphy Unit 120)",
+        "title": "Bẫy Hạn chót 'By' vs Hành động duy trì 'Until'",
         "trapDescription": "Cả 'by' và 'until' đều có thể dịch nôm na là 'đến...'. Thí sinh hay chọn nhầm khi thấy mốc thời gian ở cuối câu.",
         "correctRule": "Hành động kết thúc dứt điểm (submit, finish, arrive, return) dùng BY. Trạng thái duy trì liên tục (stay, wait, remain, delay) dùng UNTIL.",
         "badExample": "You must submit your monthly expense claims until Friday. (SAI vì nộp là hành động dứt điểm)",
@@ -1962,7 +1973,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "4. Động từ đi với cả TO-V và V-ING nhưng KHÁC BIỆT HOÀN TOÀN về nghĩa (Murphy Units 56-57)",
+        "title": "4. Động từ đi với cả TO-V và V-ING nhưng KHÁC BIỆT HOÀN TOÀN về nghĩa",
         "description": "Nhóm động từ kiểm tra sự hiểu biết sâu sắc về ngữ cảnh quá khứ vs tương lai.",
         "rules": [
           {
@@ -2028,7 +2039,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "5. Các Thành ngữ đặc biệt bắt buộc đi kèm V-ING (Murphy Unit 63)",
+        "title": "5. Các Thành ngữ đặc biệt bắt buộc đi kèm V-ING",
         "description": "Các cấu trúc cố định không thể phân tích theo logic thông thường.",
         "rules": [
           {
@@ -2086,7 +2097,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         "goodExample": "We look forward to meeting you. (ĐÚNG)"
       },
       {
-        "title": "Bẫy 'Remember / Regret / Stop' đi với To-V vs V-ing (Murphy Unit 56-57)",
+        "title": "Bẫy 'Remember / Regret / Stop' đi với To-V vs V-ing",
         "trapDescription": "Trong thư từ thương mại, 'regret to inform' là cấu trúc cố định để báo tin từ chối. Thí sinh hay nhầm lẫn chọn V-ing.",
         "correctRule": "regret to inform/announce (lấy làm tiếc phải thông báo)  VS  regret doing something (hối hận vì chuyện đã qua).",
         "badExample": "We regret informing you that the position has been filled. (SAI trong thư thông báo trang trọng)",
@@ -2202,7 +2213,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
             ]
           },
           {
-            "title": "Mệnh đề Phân từ hoàn thành: Having + V3/V-ed (Murphy Unit 68)",
+            "title": "Mệnh đề Phân từ hoàn thành: Having + V3/V-ed",
             "formula": "Having + V3/V-ed + (Object), S + V(quá khứ đơn)",
             "explanation": "Nhấn mạnh hành động thứ nhất đã hoàn tất trọn vẹn TRƯỚC KHI hành động thứ hai trong quá khứ diễn ra.",
             "examples": [
@@ -2325,7 +2336,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "3. Mệnh đề Quan hệ Không Xác định (Non-defining) & Giới từ trước Đại từ (Murphy Units 94-96)",
+        "title": "3. Mệnh đề Quan hệ Không Xác định (Non-defining) & Giới từ trước Đại từ",
         "description": "Hai dạng bài câu hỏi mệnh đề quan hệ phân hóa thí sinh đạt 800+ điểm.",
         "rules": [
           {
@@ -2390,7 +2401,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         "goodExample": "The project in which we invested was successful. (ĐÚNG)"
       },
       {
-        "title": "Bẫy Lược bỏ Đại từ Quan hệ: Chỉ được lược bỏ khi làm Tân ngữ (Murphy Unit 93)",
+        "title": "Bẫy Lược bỏ Đại từ Quan hệ: Chỉ được lược bỏ khi làm Tân ngữ",
         "trapDescription": "Thí sinh hay nhầm lẫn quy tắc lược bỏ đại từ. Bạn CHỈ ĐƯỢC lược bỏ đại từ quan hệ khi sau nó là một Mệnh đề (S+V). Nếu sau đại từ là Động từ (đại từ làm chủ ngữ), KHÔNG ĐƯỢC tự ý bỏ đại từ trừ khi rút gọn thành V-ing/V-ed.",
         "correctRule": "The report (that) you wrote -> ĐÚNG (làm tân ngữ). The woman who works here -> CẤM bỏ 'who' thành 'The woman works here'.",
         "badExample": "The technician fixed the server was praised. (SAI vì thiếu who hoặc phải rút gọn thành fixing/having fixed)",
@@ -2495,7 +2506,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "3. Hệ thống 3 Loại Câu Điều kiện Căn bản & Cấu trúc WISH (Murphy Units 38-41)",
+        "title": "3. Hệ thống 3 Loại Câu Điều kiện Căn bản & Cấu trúc WISH",
         "description": "Quy tắc phối hợp thì nền tảng trước khi bước vào các dạng biến thể đảo ngữ.",
         "rules": [
           {
@@ -2532,7 +2543,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
             ]
           },
           {
-            "title": "Cấu trúc Ao ước với WISH / IF ONLY (Murphy Unit 41)",
+            "title": "Cấu trúc Ao ước với WISH / IF ONLY",
             "formula": "wish + S + V2/were (ước trái hiện tại)  |  wish + S + had + V3 (ước trái quá khứ)",
             "explanation": "Diễn tả mong ước một điều gì đó khác đi so với thực tế hiện tại hoặc quá khứ.",
             "examples": [
@@ -2664,7 +2675,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "3. Quy tắc Biến đổi Tính từ/Trạng từ Ngắn vs Dài và So sánh Bội số (Murphy Units 105, 107-108)",
+        "title": "3. Quy tắc Biến đổi Tính từ/Trạng từ Ngắn vs Dài và So sánh Bội số",
         "description": "Nắm vững nguyên tắc hình thành dạng so sánh và so sánh gấp nhiều lần.",
         "rules": [
           {
@@ -2827,7 +2838,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "3. Lượng từ & Từ Hạn định theo Loại Danh từ (Quantifiers & Determiners - Murphy Units 85-91)",
+        "title": "3. Lượng từ & Từ Hạn định theo Loại Danh từ (Quantifiers & Determiners)",
         "description": "Phân biệt chính xác từ chỉ số lượng đi với danh từ đếm được số nhiều vs không đếm được.",
         "rules": [
           {
@@ -2853,7 +2864,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
             ]
           },
           {
-            "title": "Sắc thái khác biệt: Few vs A few & Little vs A little (Murphy Unit 87)",
+            "title": "Sắc thái khác biệt: Few vs A few & Little vs A little",
             "formula": "few / little (rất ít, hầu như không có - tiêu cực)  VS  a few / a little (một vài, một chút - tích cực)",
             "explanation": "'Few' và 'little' mang hàm ý thiếu thốn; 'A few' và 'A little' mang hàm ý vẫn đủ dùng.",
             "examples": [
@@ -2891,7 +2902,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         "goodExample": "We received their application. (ĐÚNG)"
       },
       {
-        "title": "Bẫy Phân biệt 'Few / Little' (tiêu cực) vs 'A few / A little' (tích cực) (Murphy Unit 87)",
+        "title": "Bẫy Phân biệt 'Few / Little' (tiêu cực) vs 'A few / A little' (tích cực)",
         "trapDescription": "Trong các câu có từ chỉ thái độ tiêu cực như 'hardly, unfortunately, difficult', đề thi thường kiểm tra sắc thái 'few / little' (không có mạo từ 'a').",
         "correctRule": "few/little = hầu như không có (negative); a few/a little = một vài/một ít đủ dùng (positive).",
         "badExample": "Because there was a little interest in the workshop, it was canceled. (SAI vì canceled chứng tỏ không có ai)",
@@ -2967,7 +2978,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "2. Các Cặp Tính từ & Trạng từ Dễ Gây Nhầm Lẫn Kinh Điển (Murphy Unit 101)",
+        "title": "2. Các Cặp Tính từ & Trạng từ Dễ Gây Nhầm Lẫn Kinh Điển",
         "description": "Các cặp từ có hình thức bề ngoài rất giống nhau nhưng ngữ nghĩa và ngữ pháp trái ngược hoàn toàn.",
         "rules": [
           {
@@ -3017,15 +3028,15 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
             "explanation": "'Highly' là trạng từ chỉ mức độ đánh giá cao, thường đi cùng các tính từ phân từ.",
             "examples": [
               {
-                "en": "Mr. Raymond Murphy's grammar handbook is highly recommended for intermediate learners.",
-                "vi": "Cuốn cẩm nang ngữ pháp của thầy Raymond Murphy được đánh giá rất cao dành cho học viên trình độ trung cấp."
+                "en": "The revised compliance handbook is highly recommended for intermediate learners.",
+                "vi": "Cuốn cẩm nang quy trình sửa đổi được đánh giá rất cao dành cho học viên trình độ trung cấp."
               }
             ]
           }
         ]
       },
       {
-        "title": "3. Vị trí Chuẩn của Trạng từ trong Câu (Murphy Units 109-110)",
+        "title": "3. Vị trí Chuẩn của Trạng từ trong Câu",
         "description": "Quy tắc định vị trạng từ trong các cấu trúc câu phức tạp.",
         "rules": [
           {
@@ -3067,7 +3078,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         "goodExample": "We want to make the process easy. (ĐÚNG)"
       },
       {
-        "title": "Bẫy 'Hard' vs 'Hardly' & 'Late' vs 'Lately' (Murphy Unit 101)",
+        "title": "Bẫy 'Hard' vs 'Hardly' & 'Late' vs 'Lately'",
         "trapDescription": "Thí sinh có thói quen hễ thấy trạng từ là thêm đuôi -ly. 'Hardly' và 'Lately' có nghĩa hoàn toàn khác biệt với 'Hard' và 'Late'.",
         "correctRule": "work hard (chăm chỉ); hardly ever (hầu như không bao giờ); arrive late (đến muộn); seen lately (gặp gần đây).",
         "badExample": "The staff worked hardly to finalize the contract. (SAI vì nghĩa biến thành 'hầu như không làm')",
@@ -3132,7 +3143,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "2. Mức độ Bắt buộc, Cấm đoán & Miễn trừ: Must vs Have to vs Mustn't vs Don't have to (Murphy Units 31-32)",
+        "title": "2. Mức độ Bắt buộc, Cấm đoán & Miễn trừ: Must vs Have to vs Mustn't vs Don't have to",
         "description": "Các sắc thái nghĩa quyết định độ chính xác trong các quy định và thông báo nội bộ.",
         "rules": [
           {
@@ -3168,7 +3179,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "3. Suy luận Logic & Khả năng ở Hiện tại: Must vs Can't vs May/Might (Murphy Units 28-30)",
+        "title": "3. Suy luận Logic & Khả năng ở Hiện tại: Must vs Can't vs May/Might",
         "description": "Đánh giá mức độ chắc chắn của sự việc dựa trên các bằng chứng hiện có.",
         "rules": [
           {
@@ -3221,7 +3232,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         "goodExample": "The supervisor requested that John arrive on time. (ĐÚNG)"
       },
       {
-        "title": "Bẫy Phân biệt 'Mustn't' (Cấm đoán) vs 'Don't have to / Needn't' (Không bắt buộc) (Murphy Unit 32)",
+        "title": "Bẫy Phân biệt 'Mustn't' (Cấm đoán) vs 'Don't have to / Needn't' (Không bắt buộc)",
         "trapDescription": "Khi diễn đạt ý 'bạn không cần phải làm việc đó nếu không thích', thí sinh hay dùng 'mustn't' vì nghĩ 'must not = không phải'. Thực chất 'mustn't' là CẤM TUYỆT ĐỐI.",
         "correctRule": "Cấm làm: must not. Không cần thiết làm: do not have to / needn't.",
         "badExample": "You mustn't pay for parking because it is free on Sundays. (SAI vì free là không cần trả tiền, không phải cấm trả)",
@@ -3299,7 +3310,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "2. Đảo ngữ với Cụm 'ONLY' và Đảo ngữ Đồng tình 'SO / NEITHER' (Murphy Unit 51)",
+        "title": "2. Đảo ngữ với Cụm 'ONLY' và Đảo ngữ Đồng tình 'SO / NEITHER'",
         "description": "Cấu trúc nhấn mạnh điều kiện độc tôn và sự đồng thuận trong đối thoại thương mại.",
         "rules": [
           {
@@ -3324,7 +3335,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
             ]
           },
           {
-            "title": "Đảo ngữ Đồng tình: So (Khẳng định) & Neither / Nor (Phủ định) (Murphy Unit 51)",
+            "title": "Đảo ngữ Đồng tình: So (Khẳng định) & Neither / Nor (Phủ định)",
             "formula": "So + Trợ động từ + S (cũng vậy)  |  Neither + Trợ động từ + S (cũng không)",
             "explanation": "Dùng để đồng thuận với một phát biểu trước đó mà không cần lặp lại toàn bộ câu.",
             "examples": [
@@ -3461,7 +3472,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "3. Cụm Động từ Thương mại (Business Phrasal Verbs - Murphy Units 137-145 & Barron's 600 Words)",
+        "title": "3. Cụm Động từ Thương mại (Business Phrasal Verbs)",
         "description": "Các cụm động từ thường gặp nhất trong trao đổi công việc, lịch trình và đàm phán hợp đồng.",
         "rules": [
           {
@@ -3619,7 +3630,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         ]
       },
       {
-        "title": "3. Song hành với Cặp So sánh & Cấu trúc Lựa chọn (Murphy Units 59, 107)",
+        "title": "3. Song hành với Cặp So sánh & Cấu trúc Lựa chọn",
         "description": "Quy tắc đồng dạng trong các cấu trúc bày tỏ sự ưa thích và so sánh ngang hàng.",
         "rules": [
           {
@@ -3661,7 +3672,7 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
         "goodExample": "The campaign was creative and successful. (ĐÚNG: Adj and Adj)"
       },
       {
-        "title": "Bẫy Cấu trúc Song hành với 'Prefer... to...' vs 'Would rather... than...' (Murphy Unit 59)",
+        "title": "Bẫy Cấu trúc Song hành với 'Prefer... to...' vs 'Would rather... than...'",
         "trapDescription": "Thí sinh hay viết 'prefer doing X than doing Y' hoặc 'prefer to do X than do Y'. Trong tiếng Anh chuẩn: 'prefer V-ing TO V-ing'.",
         "correctRule": "prefer + V-ing + TO + V-ing  VS  would rather + V-inf + THAN + V-inf.",
         "badExample": "She prefers designing interfaces than writing backend code. (SAI)",
@@ -3687,6 +3698,9 @@ export const GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
     }
   }
 };
+
+export const GRAMMAR_LESSONS: Record<string, GrammarLesson> =
+  enrichGrammarLessonsWithExtraExamples(BASE_GRAMMAR_LESSONS);
 
 /**
  * Trả về danh sách tất cả các bài học ngữ pháp sẵn sàng
@@ -3734,4 +3748,186 @@ export function getGrammarLessonsByCategory(
  */
 export function hasGrammarLesson(tagCode: string): boolean {
   return tagCode in GRAMMAR_LESSONS;
+}
+
+export interface LessonMicroModule {
+  index: number;
+  partNumber: number;
+  titleVi: string;
+  shortTitleVi: string;
+  estimatedMinutes: number;
+  kind:
+    | "tenses_present"
+    | "tenses_past"
+    | "tenses_future"
+    | "tenses_sequence"
+    | "section"
+    | "summary_practice";
+  section?: DetailedTopicSection;
+  tensesGroup?: "present" | "past" | "future" | "sequence";
+  exercises: LessonPracticeExercise[];
+}
+
+export interface LessonMicroSummary {
+  moduleCount: number;
+  exerciseCount: number;
+  moduleTitles: string[];
+}
+
+function stripLeadingSectionNumber(title: string): string {
+  return title.replace(/^\d+\.\s*/, "").trim();
+}
+
+function toShortModuleTitle(title: string): string {
+  const cleaned = stripLeadingSectionNumber(title).split(":")[0]?.trim() || title;
+  if (cleaned.length <= 36) return cleaned;
+  return cleaned.slice(0, 34).trim() + "…";
+}
+
+function workedExampleToExercise(
+  lesson: GrammarLesson,
+  moduleIndex: number
+): LessonPracticeExercise {
+  const idx = lesson.workedExample.correctIndex;
+  const safeCorrectIndex = (idx >= 0 && idx <= 3 ? idx : 0) as 0 | 1 | 2 | 3;
+  return {
+    id: `${lesson.tagCode}-worked-example`,
+    moduleIndex,
+    skillFocus: "Câu hỏi tổng hợp chuẩn TOEIC Part 5",
+    questionStem: lesson.workedExample.questionStem,
+    options: lesson.workedExample.options,
+    correctIndex: safeCorrectIndex,
+    explanationStepByStep: lesson.workedExample.explanationStepByStep,
+  };
+}
+
+/**
+ * Chia nhỏ một bài học ngữ pháp thành các Học phần ngắn (2–4 phút/phần),
+ * mỗi học phần gắn kèm bài tập thực hành áp dụng ngay tại chỗ.
+ */
+export function buildLessonMicroModules(
+  lesson: GrammarLesson
+): LessonMicroModule[] {
+  const allExercises = getLessonPracticeExercises(lesson.tagCode);
+
+  if (lesson.tensesDetail) {
+    const tenseModules: Array<{
+      titleVi: string;
+      shortTitleVi: string;
+      estimatedMinutes: number;
+      kind: LessonMicroModule["kind"];
+      tensesGroup?: LessonMicroModule["tensesGroup"];
+    }> = [
+      {
+        titleVi: "Nhóm thì Hiện tại & Cách phân biệt",
+        shortTitleVi: "Thì Hiện tại (4)",
+        estimatedMinutes: 3,
+        kind: "tenses_present",
+        tensesGroup: "present",
+      },
+      {
+        titleVi: "Nhóm thì Quá khứ & Thói quen Used to",
+        shortTitleVi: "Thì Quá khứ (4)",
+        estimatedMinutes: 3,
+        kind: "tenses_past",
+        tensesGroup: "past",
+      },
+      {
+        titleVi: "Nhóm thì Tương lai & Dự định",
+        shortTitleVi: "Thì Tương lai (5)",
+        estimatedMinutes: 2,
+        kind: "tenses_future",
+        tensesGroup: "future",
+      },
+      {
+        titleVi: "Quy tắc Phối hợp thì trong câu phức",
+        shortTitleVi: "Phối hợp thì",
+        estimatedMinutes: 2,
+        kind: "tenses_sequence",
+        tensesGroup: "sequence",
+      },
+      {
+        titleVi: "Mẹo 5 giây, Bẫy ETS & Tổng hợp thực chiến",
+        shortTitleVi: "Mẹo, Bẫy & Tổng hợp",
+        estimatedMinutes: 2,
+        kind: "summary_practice",
+      },
+    ];
+
+    return tenseModules.map((mod, idx) => {
+      const modExercises = allExercises.filter((ex) => ex.moduleIndex === idx);
+      if (mod.kind === "summary_practice") {
+        modExercises.push(workedExampleToExercise(lesson, idx));
+      }
+      return {
+        index: idx,
+        partNumber: idx + 1,
+        titleVi: mod.titleVi,
+        shortTitleVi: mod.shortTitleVi,
+        estimatedMinutes: mod.estimatedMinutes,
+        kind: mod.kind,
+        tensesGroup: mod.tensesGroup,
+        exercises: modExercises,
+      };
+    });
+  }
+
+  const sections = lesson.detailedSections ?? [];
+  const totalCount = sections.length + 1;
+  const perPartMinutes = Math.max(
+    2,
+    Math.round(lesson.estimatedMinutes / totalCount)
+  );
+
+  const sectionModules: LessonMicroModule[] = sections.map((sec, idx) => {
+    const cleanTitle = stripLeadingSectionNumber(sec.title);
+    return {
+      index: idx,
+      partNumber: idx + 1,
+      titleVi: cleanTitle,
+      shortTitleVi: toShortModuleTitle(cleanTitle),
+      estimatedMinutes: perPartMinutes,
+      kind: "section",
+      section: sec,
+      exercises: allExercises.filter((ex) => ex.moduleIndex === idx),
+    };
+  });
+
+  const summaryIdx = sections.length;
+  const summaryExercises = [
+    ...allExercises.filter((ex) => ex.moduleIndex >= summaryIdx),
+    workedExampleToExercise(lesson, summaryIdx),
+  ];
+
+  sectionModules.push({
+    index: summaryIdx,
+    partNumber: summaryIdx + 1,
+    titleVi: "Mẹo 5 giây, Bẫy ETS & Tổng hợp thực chiến",
+    shortTitleVi: "Mẹo, Bẫy & Tổng hợp",
+    estimatedMinutes: 2,
+    kind: "summary_practice",
+    exercises: summaryExercises,
+  });
+
+  return sectionModules;
+}
+
+/**
+ * Tóm tắt nhanh số học phần nhỏ & tổng số bài tập áp dụng của một chủ điểm.
+ */
+export function getLessonMicroSummary(tagCode: string): LessonMicroSummary {
+  const lesson = getGrammarLessonByCode(tagCode);
+  if (!lesson) {
+    return { moduleCount: 0, exerciseCount: 0, moduleTitles: [] };
+  }
+  const modules = buildLessonMicroModules(lesson);
+  const exerciseCount = modules.reduce(
+    (sum, mod) => sum + mod.exercises.length,
+    0
+  );
+  return {
+    moduleCount: modules.length,
+    exerciseCount,
+    moduleTitles: modules.map((m) => m.shortTitleVi),
+  };
 }

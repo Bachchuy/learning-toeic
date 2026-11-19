@@ -11,7 +11,6 @@ import {
   TrendingUp,
   ArrowRight,
   Brain,
-  Sparkles,
   BarChart3,
   Clock,
 } from "lucide-react";
@@ -24,16 +23,18 @@ export function DashboardView({ summary }: DashboardViewProps) {
   const {
     streakDays,
     dueCardsCount,
-    recommendedTopic,
     topAttentionTopics,
     totalQuestionsAnswered,
     averageMasteryScore,
     recentActivity,
+    roadmap,
   } = summary;
 
   const isNewLearner = totalQuestionsAnswered === 0;
   const todayActivity = recentActivity.find((d) => d.isToday);
   const hasStudiedToday = (todayActivity?.count || 0) > 0;
+  const nextStep = roadmap.nextStep;
+  const activeStage = roadmap.activeStage;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pt-2 pb-16 animate-in fade-in duration-200">
@@ -103,61 +104,88 @@ export function DashboardView({ summary }: DashboardViewProps) {
             CỘT TRÁI (5/12 Desktop): THẺ LUYỆN ĐỀ XUẤT + THẺ ÔN TẬP TỪ VỰNG
             ======================================================== */}
         <div className="lg:col-span-5 space-y-6">
-          {/* A. THẺ LUYỆN PART 5 ĐỀ XUẤT (HERO CARD - CHỨA NÚT PRIMARY DUY NHẤT) */}
-          <Card className="p-6 bg-white border border-[#2563EB]/40 shadow-sm relative overflow-hidden space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]">
-                {isNewLearner ? "Khởi động hôm nay" : "Chủ điểm nên ưu tiên"}
+          {/* A. THẺ BƯỚC TIẾP THEO TRONG LỘ TRÌNH (HERO CARD - CHỨA NÚT PRIMARY DUY NHẤT) */}
+          <Card className="p-6 bg-white border border-[#2563EB]/40 border-l-4 border-l-[#2563EB] shadow-sm relative overflow-hidden space-y-4">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]">
+                Lộ trình · Chặng {activeStage.stage.stageNumber} · Bước {nextStep.order}/16
               </span>
-              <Sparkles className="w-4 h-4 text-[#2563EB]" />
+              <span className="text-[11px] font-mono font-semibold text-[#475569] tabular-nums">
+                {roadmap.clearedCount}/{roadmap.totalSteps} chủ điểm ({roadmap.overallProgressPct}%)
+              </span>
             </div>
 
             <div className="space-y-1.5">
-              <div className="text-xs font-medium text-[#64748B]">
-                Bài luyện đề xuất
+              <div className="text-xs font-medium text-[#475569]">
+                {nextStep.masteryLabel === "needs_review"
+                  ? "Ưu tiên củng cố trong chặng"
+                  : isNewLearner
+                  ? "Điểm xuất phát đề xuất theo lộ trình"
+                  : "Bước tiếp theo khuyên học"}
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
-                {recommendedTopic ? recommendedTopic.nameVi : "Dạng từ (Word Forms)"}
+                {nextStep.fullNameVi}
               </h2>
               <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
-                {isNewLearner ? (
-                  "Chủ điểm thường gặp nhất trong đề thi TOEIC. Cùng khởi động với 10 câu ngắn để hệ thống hiểu rõ điểm mạnh của bạn nhé."
-                ) : (
-                  <>
-                    Độ thành thạo hiện tại đang ở mức{" "}
-                    <span className="font-mono font-bold text-amber-700">
-                      {recommendedTopic?.masteryPercentage}%
-                    </span>
-                    . Dành khoảng 5-7 phút làm phiên này sẽ giúp bạn tự tin hơn rất nhiều ở dạng bài này.
-                  </>
-                )}
+                {nextStep.prerequisiteReason}
               </p>
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-mono text-[#475569]">
+                <span className="px-2 py-0.5 rounded bg-[#FAFAF7] border border-[#E2E8F0]">
+                  {nextStep.moduleCount} phần nhỏ · {nextStep.exerciseCount} bài tập
+                </span>
+                {nextStep.totalAttempts > 0 && (
+                  <span className="px-2 py-0.5 rounded bg-[#F1F5F9] border border-[#E2E8F0] text-[#0F172A] font-semibold tabular-nums">
+                    {nextStep.correctAttempts}/{nextStep.totalAttempts} câu
+                    {nextStep.totalAttempts >= 5 ? ` (${nextStep.masteryPercentage}%)` : ""}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Thanh tiến độ lộ trình thu gọn (8px chuẩn D-18) */}
+            <div
+              role="progressbar"
+              aria-label="Tiến độ lộ trình học ngữ pháp"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={roadmap.overallProgressPct}
+              className="w-full h-2 bg-[#F1F5F9] rounded-full overflow-hidden"
+            >
+              <div
+                className="h-full bg-[#2563EB] transition-all duration-300"
+                style={{
+                  width: `${Math.max(roadmap.overallProgressPct, roadmap.clearedCount > 0 ? 4 : 0)}%`,
+                }}
+              />
             </div>
 
             {/* NÚT PRIMARY DUY NHẤT CỦA MÀN HÌNH DASHBOARD (§5.5 & D-02) */}
-            <div className="pt-2 space-y-3">
+            <div className="pt-1 space-y-3">
               <Link
-                href={
-                  recommendedTopic
-                    ? `/practice/new?tagId=${recommendedTopic.tagId}`
-                    : "/practice/new"
-                }
+                href={`/practice/new?topic=${nextStep.tagCode}`}
                 className="block"
               >
                 <Button variant="primary" size="cta" className="w-full shadow-xs">
-                  <span>Bắt đầu luyện 10 câu ngay</span>
+                  <span>Luyện bước {nextStep.order} (10 câu) ngay</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
 
-              <div className="text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-xs font-medium">
+              <div className="text-center flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs font-medium">
                 <Link
-                  href="/learn"
+                  href={`/learn/${nextStep.tagCode}`}
                   className="text-[#2563EB] hover:text-[#1D4ED8] hover:underline"
                 >
-                  📖 Học lý thuyết & mẹo 16 chủ điểm →
+                  Học lý thuyết bước này →
                 </Link>
-                <span className="hidden sm:inline text-slate-300">·</span>
+                <span className="text-[#E2E8F0]" aria-hidden="true">·</span>
+                <Link
+                  href="/learn"
+                  className="text-[#475569] hover:text-[#0F172A] hover:underline"
+                >
+                  Xem lộ trình 4 chặng →
+                </Link>
+                <span className="text-[#E2E8F0]" aria-hidden="true">·</span>
                 <Link
                   href="/practice/new"
                   className="text-[#475569] hover:text-[#0F172A] hover:underline"
@@ -305,7 +333,7 @@ export function DashboardView({ summary }: DashboardViewProps) {
                       </div>
 
                       <Link
-                        href={`/practice/new?tagId=${topic.tagId}`}
+                        href={`/practice/new?topic=${topic.tagCode}`}
                         className="shrink-0"
                       >
                         <button
