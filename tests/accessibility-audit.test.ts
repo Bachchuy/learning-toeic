@@ -134,4 +134,47 @@ describe("Milestone M12: Accessibility (WCAG 2.1 AA) & Keyboard Audit", () => {
       }
     });
   });
+
+  describe("6. HTML Semantics & Mobile 360px Navigation", () => {
+    function collectTsxFiles(dir: string): string[] {
+      const results: string[] = [];
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          results.push(...collectTsxFiles(full));
+        } else if (entry.name.endsWith(".tsx")) {
+          results.push(full);
+        }
+      }
+      return results;
+    }
+
+    it("không lồng phần tử tương tác <button>/<Button> bên trong <Link> (WCAG nested interactive elements)", () => {
+      const tsxFiles = collectTsxFiles(srcDir);
+      const violations: string[] = [];
+
+      for (const filePath of tsxFiles) {
+        const content = fs.readFileSync(filePath, "utf-8");
+        const linkRegex = /<Link\b[\s\S]*?<\/Link>/g;
+        let match: RegExpExecArray | null;
+        while ((match = linkRegex.exec(content)) !== null) {
+          if (/<(?:Button|button)\b/.test(match[0])) {
+            const line = content.slice(0, match.index).split(/\r?\n/).length;
+            violations.push(`${path.relative(srcDir, filePath)}:${line}`);
+          }
+        }
+      }
+
+      expect(violations).toEqual([]);
+    });
+
+    it("thanh điều hướng di động (app-nav.tsx) dùng lưới co giãn vừa màn hình 360px, không ép min-w-[64px]", () => {
+      const navPath = path.join(srcDir, "components/layout/app-nav.tsx");
+      const content = fs.readFileSync(navPath, "utf-8");
+
+      expect(content).toContain("grid-cols-6");
+      expect(content).toContain("min-w-0");
+      expect(content).not.toContain("min-w-[64px]");
+    });
+  });
 });

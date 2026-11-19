@@ -20,8 +20,8 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Tôi Em Íc",
-    default: "Tôi Em Íc — Học TOEIC Dễ Dàng",
+    template: "%s | Tôi Yêu Em Íc",
+    default: "Tôi Yêu Em Íc — Học TOEIC Dễ Dàng",
   },
   description:
     "Hệ thống luyện thi TOEIC thích ứng với mô hình Adaptive Rolling Mastery và ghi nhớ ngắt quãng FSRS khoa học.",

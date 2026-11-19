@@ -9,7 +9,7 @@ import { ReviewView } from "@/features/review/components/review-view";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Ôn tập FSRS Spaced Repetition | TOEIC",
+  title: "Ôn tập FSRS Spaced Repetition",
   description: "Ôn tập ngắt quãng từ vựng TOEIC với thuật toán FSRS và câu ngữ cảnh đục lỗ",
 };
 
@@ -27,7 +27,10 @@ export default async function ReviewPage({ searchParams }: ReviewPageProps) {
   await requireUser({ redirectTo: "/review" });
 
   const { notebookId, topic, limit, studyAll, excludeDeck } = (await searchParams) || {};
-  const parsedLimit = limit ? parseInt(limit, 10) : 15; // Mặc định 15 từ mỗi phiên (Micro-learning)
+  const rawLimit = limit ? parseInt(limit, 10) : 15;
+  const parsedLimit = Number.isFinite(rawLimit)
+    ? Math.min(100, Math.max(1, rawLimit))
+    : 15; // Mặc định 15 từ mỗi phiên (Micro-learning), giới hạn 1..100
 
   const [
     { cards, nextDueFormatted, totalCardsCount, notebookName, topicName },

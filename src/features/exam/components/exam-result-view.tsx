@@ -99,7 +99,7 @@ export function ExamResultView({
               {scaledScore}
             </div>
             <span className="text-xs text-[#475569] mt-1 font-medium">
-              Thang điểm ETS: 5 – 495
+              Thang điểm tham chiếu: 5 – 495
             </span>
             <div className="mt-3 pt-2 border-t border-[#E2E8F0] w-full text-[11px] text-[#475569] flex justify-between">
               <span>Đúng: <strong>{rawScore}/100</strong></span>
@@ -109,6 +109,10 @@ export function ExamResultView({
           </div>
         </div>
       </Card>
+
+      <p className="text-xs text-[#475569] bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-3 leading-relaxed">
+        Lưu ý: Thang điểm quy đổi 5–495 chỉ mang tính tham khảo tự luyện dựa trên mô phỏng cấu trúc đề đọc hiểu. Nền tảng hoạt động độc lập, không liên kết hoặc đại diện cho Educational Testing Service (ETS).
+      </p>
 
       {/* ========================================================
           2. PHÂN TÍCH HIỆU SUẤT TỪNG PHẦN (PART 5, 6, 7)
@@ -289,7 +293,8 @@ export function ExamResultView({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {item.options.map((opt, optIdx) => {
                     const isUserChoice = item.userSelectedIndex === optIdx;
-                    const isCorrectAnswer = item.correctIndex === optIdx;
+                    const isCorrectAnswer =
+                      item.correctIndex !== null && item.correctIndex === optIdx;
 
                     let bgClass = "bg-[#F8FAFC] border-[#E2E8F0] text-[#475569]";
                     if (isCorrectAnswer) {
@@ -313,6 +318,12 @@ export function ExamResultView({
                     );
                   })}
                 </div>
+
+                {item.isAnswerHidden && (
+                  <p className="text-xs text-[#475569] italic pt-2 border-t border-[#F1F5F9]">
+                    Đáp án và giải thích chi tiết được ẩn cho câu chưa chọn phương án. Hãy làm lại đề để mở khóa đầy đủ.
+                  </p>
+                )}
 
                 {/* Toggle xem giải thích & bằng chứng */}
                 {(item.explanation || item.evidence) && (

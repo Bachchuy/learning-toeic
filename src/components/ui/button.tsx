@@ -1,5 +1,37 @@
 import React from "react";
 
+export interface ButtonStyleOptions {
+  variant?: "primary" | "secondary" | "ghost" | "destructive";
+  size?: "default" | "sm" | "cta";
+  className?: string;
+}
+
+export function buttonVariants({
+  variant = "secondary",
+  size = "default",
+  className = "",
+}: ButtonStyleOptions = {}): string {
+  // Height & padding rules from §5.5 (48px CTA / 44px secondary / 36px sm)
+  const sizeClasses = {
+    cta: "h-12 px-6 text-[16px] font-semibold", // 48px
+    default: "h-11 px-4 text-[15px] font-medium", // 44px
+    sm: "h-9 px-3 text-[13px] font-medium", // 36px
+  }[size];
+
+  const variantClasses = {
+    primary:
+      "bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-none border border-transparent",
+    secondary:
+      "bg-white hover:bg-[#F8FAFC] text-[#0F172A] border border-[#8190A6]",
+    ghost:
+      "bg-transparent hover:bg-[#F1F5F9] text-[#0F172A] border border-transparent",
+    destructive:
+      "bg-[#FFF1F2] hover:bg-[#FFE4E6] text-[#BE123C] border border-[#FECDD3]",
+  }[variant];
+
+  return `inline-flex items-center justify-center gap-2 rounded-lg transition-all active:scale-[0.98] duration-150 ease-out cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none focus-visible:outline-2 focus-visible:outline-[#2563EB] focus-visible:outline-offset-2 ${sizeClasses} ${variantClasses} ${className}`.trim();
+}
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "destructive";
@@ -20,29 +52,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    // Height & padding rules from §5.5 (48px CTA / 44px secondary / 36px sm)
-    const sizeClasses = {
-      cta: "h-12 px-6 text-[16px] font-semibold", // 48px
-      default: "h-11 px-4 text-[15px] font-medium", // 44px
-      sm: "h-9 px-3 text-[13px] font-medium", // 36px
-    }[size];
-
-    const variantClasses = {
-      primary:
-        "bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-none border border-transparent",
-      secondary:
-        "bg-white hover:bg-[#F8FAFC] text-[#0F172A] border border-[#8190A6]",
-      ghost:
-        "bg-transparent hover:bg-[#F1F5F9] text-[#0F172A] border border-transparent",
-      destructive:
-        "bg-[#FFF1F2] hover:bg-[#FFE4E6] text-[#BE123C] border border-[#FECDD3]",
-    }[variant];
-
     return (
       <button
         ref={ref}
         disabled={disabled || isLoading}
-        className={`inline-flex items-center justify-center gap-2 rounded-lg transition-all active:scale-[0.98] duration-150 ease-out cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none focus-visible:outline-2 focus-visible:outline-[#2563EB] focus-visible:outline-offset-2 ${sizeClasses} ${variantClasses} ${className}`}
+        className={buttonVariants({ variant, size, className })}
         {...props}
       >
         {isLoading && (

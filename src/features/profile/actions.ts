@@ -121,32 +121,47 @@ export async function exportUserDataAction(): Promise<ExportDataResult> {
 
   try {
     // 1. Lấy thông tin hồ sơ
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
 
     // 2. Lấy sổ từ vựng
-    const { data: vocabList } = await supabase
+    const { data: vocabList, error: vocabError } = await supabase
       .from("vocab_entries")
-      .select("word, pos, meaning, context_sentence, created_at")
+      .select("word, part_of_speech, meaning, context_sentence, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     // 3. Lấy thẻ FSRS
-    const { data: reviewCards } = await supabase
+    const { data: reviewCards, error: cardsError } = await supabase
       .from("review_cards")
       .select("id, state, stability, difficulty, due, reps, lapses")
       .eq("user_id", user.id);
 
-    // 4. Lấy lịch sử attempts gần nhất
-    const { data: attempts } = await supabase
+    // 4. Lấy lịch sử chấm thẻ FSRS (D-23)
+    const { data: cardReviews, error: cardReviewsError } = await supabase
+      .from("card_reviews")
+      .select("id, card_id, rating, state_before, stability_before, difficulty_before, reviewed_at")
+      .eq("user_id", user.id)
+      .order("reviewed_at", { ascending: false })
+      .limit(2000);
+
+    // 5. Lấy lịch sử attempts gần nhất
+    const { data: attempts, error: attemptsError } = await supabase
       .from("attempts")
       .select("question_id, tag_id, is_correct, answered_at")
       .eq("user_id", user.id)
       .order("answered_at", { ascending: false })
       .limit(500);
+
+    if (profileError || vocabError || cardsError || cardReviewsError || attemptsError) {
+      return {
+        success: false,
+        error: "Không thể tải đầy đủ dữ liệu cá nhân để xuất.",
+      };
+    }
 
     const payload: UserExportPayload = {
       exportedAt: new Date().toISOString(),
@@ -163,10 +178,11 @@ export async function exportUserDataAction(): Promise<ExportDataResult> {
         totalVocab: vocabList?.length || 0,
         totalAttempts: attempts?.length || 0,
         totalCards: reviewCards?.length || 0,
+        totalCardReviews: cardReviews?.length || 0,
       },
       vocabList: (vocabList || []).map((v) => ({
         word: v.word,
-        pos: v.pos || undefined,
+        pos: v.part_of_speech || undefined,
         meaning: v.meaning,
         contextSentence: v.context_sentence || undefined,
         savedAt: v.created_at,
@@ -179,6 +195,15 @@ export async function exportUserDataAction(): Promise<ExportDataResult> {
         due: c.due,
         reps: c.reps,
         lapses: c.lapses,
+      })),
+      cardReviews: (cardReviews || []).map((r) => ({
+        id: r.id,
+        cardId: r.card_id,
+        rating: r.rating,
+        stateBefore: r.state_before,
+        stabilityBefore: r.stability_before,
+        difficultyBefore: r.difficulty_before,
+        reviewedAt: r.reviewed_at,
       })),
       recentAttempts: (attempts || []).map((a) => ({
         questionId: a.question_id,

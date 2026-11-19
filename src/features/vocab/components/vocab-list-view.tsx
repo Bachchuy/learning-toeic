@@ -20,13 +20,19 @@ import {
 import { VocabDetailModal } from "./vocab-detail-modal";
 import { VocabCreateModal } from "./vocab-create-modal";
 import { NotebookManagerModal } from "./notebook-manager-modal";
+import { VocabCuratedDecksTab } from "./vocab-curated-decks-tab";
+import { VocabTopicsGrid } from "./vocab-topics-grid";
+import {
+  getPageNumbers,
+  getTopicVisuals,
+  type TopicVisual,
+} from "../lib/topic-visuals";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { AudioSpeakerButton } from "@/components/ui/audio-speaker-button";
 import {
   Search,
   BookOpen,
-  Sparkles,
   Edit2,
   Trash2,
   Check,
@@ -39,593 +45,21 @@ import {
   ArrowRight,
   ArrowLeft,
   Target,
-  Loader2,
-  Play,
   CheckCircle2,
   Flame,
   Library,
   LayoutGrid,
   BookOpenText,
-  Truck,
-  Factory,
-  Building2,
-  ShoppingBag,
-  TrendingUp,
-  Globe,
-  Server,
   Code2,
-  Database,
-  CloudCog,
-  Network,
-  ShieldAlert,
-  BrainCircuit,
-  FileText,
-  Megaphone,
-  Users,
-  Plane,
-  Briefcase,
-  HeartPulse,
-  Headphones,
   Eye,
   EyeOff,
   TextQuote,
   Quote,
-  GraduationCap,
-  HelpCircle,
-  Calculator,
-  Landmark,
-  Utensils,
-  Mail,
-  Receipt,
-  FileCheck,
-  Tags,
-  Link2,
-  Award,
-  Lightbulb,
+  Loader2,
+  Sparkles,
 } from "lucide-react";
 
-export interface TopicVisual {
-  icon: React.ComponentType<{ className?: string }>;
-  titleVi: string;
-  badgeColor: string;
-}
-
-const TOPIC_EXACT_MAP: Record<string, TopicVisual> = {
-  // 1. AI, Dữ liệu & Công nghệ
-  "ai & machine learning": {
-    icon: BrainCircuit,
-    titleVi: "Trí tuệ nhân tạo & ML",
-    badgeColor: "bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100",
-  },
-  "training & development": {
-    icon: GraduationCap,
-    titleVi: "Đào tạo & Phát triển",
-    badgeColor: "bg-indigo-50 text-indigo-600 border-indigo-100",
-  },
-  "hiring and training": {
-    icon: Users,
-    titleVi: "Tuyển dụng & Đào tạo",
-    badgeColor: "bg-purple-50 text-purple-600 border-purple-100",
-  },
-  "retail & products": {
-    icon: ShoppingBag,
-    titleVi: "Bán lẻ & Sản phẩm",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "confusing pairs": {
-    icon: HelpCircle,
-    titleVi: "Cặp từ dễ gây nhầm lẫn",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "airlines": {
-    icon: Plane,
-    titleVi: "Hàng không & Chuyến bay",
-    badgeColor: "bg-sky-50 text-sky-600 border-sky-100",
-  },
-  "trains": {
-    icon: Plane,
-    titleVi: "Đường sắt & Tàu hỏa",
-    badgeColor: "bg-sky-50 text-sky-600 border-sky-100",
-  },
-  "accounting": {
-    icon: Calculator,
-    titleVi: "Kế toán doanh nghiệp",
-    badgeColor: "bg-teal-50 text-teal-600 border-teal-100",
-  },
-  "agile & scrum": {
-    icon: Code2,
-    titleVi: "Quy trình Agile & Scrum",
-    badgeColor: "bg-sky-50 text-sky-600 border-sky-100",
-  },
-  "apply and interviewing": {
-    icon: Users,
-    titleVi: "Ứng tuyển & Phỏng vấn",
-    badgeColor: "bg-violet-50 text-violet-600 border-violet-100",
-  },
-  "backend & architecture": {
-    icon: Server,
-    titleVi: "Hệ thống & Kiến trúc",
-    badgeColor: "bg-violet-50 text-violet-600 border-violet-100",
-  },
-  "banking": {
-    icon: Landmark,
-    titleVi: "Ngân hàng & Tín dụng",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "banking & investment": {
-    icon: Landmark,
-    titleVi: "Ngân hàng & Đầu tư",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "board meeting & committees": {
-    icon: Briefcase,
-    titleVi: "Họp HĐQT & Ban điều hành",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "business phrasal verbs & idioms": {
-    icon: BookOpenText,
-    titleVi: "Cụm từ & Thành ngữ KD",
-    badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-  },
-  "business planning": {
-    icon: TrendingUp,
-    titleVi: "Kế hoạch kinh doanh",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "car rentals": {
-    icon: Plane,
-    titleVi: "Thuê xe & Đi lại",
-    badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-  },
-  "career & interviews": {
-    icon: Users,
-    titleVi: "Nghề nghiệp & Phỏng vấn",
-    badgeColor: "bg-purple-50 text-purple-600 border-purple-100",
-  },
-  "clients & stakeholders": {
-    icon: Users,
-    titleVi: "Khách hàng & Cổ đông",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "cloud & devops": {
-    icon: CloudCog,
-    titleVi: "Điện toán đám mây & DevOps",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "code review & prs": {
-    icon: Code2,
-    titleVi: "Rà soát mã & Pull Request",
-    badgeColor: "bg-indigo-50 text-indigo-600 border-indigo-100",
-  },
-  "community & environment": {
-    icon: Globe,
-    titleVi: "Cộng đồng & Môi trường",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "computers and the internet": {
-    icon: Globe,
-    titleVi: "Máy tính & Internet",
-    badgeColor: "bg-cyan-50 text-cyan-600 border-cyan-100",
-  },
-  "conference": {
-    icon: Users,
-    titleVi: "Hội nghị & Diễn đàn",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "construction, real estate & facilities": {
-    icon: Building2,
-    titleVi: "Xây dựng & Bất động sản",
-    badgeColor: "bg-orange-50 text-orange-600 border-orange-100",
-  },
-  "contracts": {
-    icon: FileText,
-    titleVi: "Hợp đồng thương mại",
-    badgeColor: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  "cooking as a career": {
-    icon: Utensils,
-    titleVi: "Nghề bếp & Ẩm thực",
-    badgeColor: "bg-orange-50 text-orange-600 border-orange-100",
-  },
-  "correspondence": {
-    icon: Mail,
-    titleVi: "Thư tín thương mại",
-    badgeColor: "bg-sky-50 text-sky-600 border-sky-100",
-  },
-  "customer service": {
-    icon: Headphones,
-    titleVi: "Chăm sóc khách hàng",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "databases & data": {
-    icon: Database,
-    titleVi: "Cơ sở dữ liệu & Dữ liệu",
-    badgeColor: "bg-cyan-50 text-cyan-600 border-cyan-100",
-  },
-  "dentist's office": {
-    icon: HeartPulse,
-    titleVi: "Nha khoa & Răng hàm mặt",
-    badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-  },
-  "doctor's office": {
-    icon: HeartPulse,
-    titleVi: "Phòng khám & Bác sĩ",
-    badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-  },
-  "documentation & writing": {
-    icon: FileText,
-    titleVi: "Soạn thảo & Tài liệu kỹ thuật",
-    badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-  },
-  "eating out": {
-    icon: Utensils,
-    titleVi: "Ẩm thực & Đi ăn ngoài",
-    badgeColor: "bg-orange-50 text-orange-600 border-orange-100",
-  },
-  "economy & strategy": {
-    icon: TrendingUp,
-    titleVi: "Kinh tế & Chiến lược",
-    badgeColor: "bg-teal-50 text-teal-600 border-teal-100",
-  },
-  "electronics": {
-    icon: Globe,
-    titleVi: "Thiết bị điện tử",
-    badgeColor: "bg-cyan-50 text-cyan-600 border-cyan-100",
-  },
-  "events": {
-    icon: Users,
-    titleVi: "Sự kiện & Hội thảo",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "events & conferences": {
-    icon: Users,
-    titleVi: "Sự kiện & Hội nghị",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "finance & accounting": {
-    icon: Calculator,
-    titleVi: "Tài chính & Kế toán",
-    badgeColor: "bg-teal-50 text-teal-600 border-teal-100",
-  },
-  "financial statements": {
-    icon: Calculator,
-    titleVi: "Báo cáo tài chính",
-    badgeColor: "bg-teal-50 text-teal-600 border-teal-100",
-  },
-  "general travel": {
-    icon: Plane,
-    titleVi: "Du lịch tổng quan",
-    badgeColor: "bg-sky-50 text-sky-600 border-sky-100",
-  },
-  "hr & recruitment": {
-    icon: Users,
-    titleVi: "Nhân sự & Tuyển dụng",
-    badgeColor: "bg-purple-50 text-purple-600 border-purple-100",
-  },
-  "health": {
-    icon: HeartPulse,
-    titleVi: "Sức khỏe & Đời sống",
-    badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-  },
-  "health & medical": {
-    icon: HeartPulse,
-    titleVi: "Y tế & Chăm sóc sức khỏe",
-    badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-  },
-  "hospitals": {
-    icon: HeartPulse,
-    titleVi: "Bệnh viện & Điều trị",
-    badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-  },
-  "hotels": {
-    icon: Building2,
-    titleVi: "Khách sạn & Lưu trú",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "hotels & dining": {
-    icon: Utensils,
-    titleVi: "Khách sạn & Nhà hàng",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "incidents & on-call": {
-    icon: ShieldAlert,
-    titleVi: "Sự cố hệ thống & Trực nhật",
-    badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-  },
-  "inventory": {
-    icon: ShoppingBag,
-    titleVi: "Quản lý tồn kho & Kho bãi",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "investment": {
-    icon: TrendingUp,
-    titleVi: "Đầu tư tài chính",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "invoice": {
-    icon: Receipt,
-    titleVi: "Hóa đơn & Chứng từ",
-    badgeColor: "bg-teal-50 text-teal-600 border-teal-100",
-  },
-  "job ads & recruitment": {
-    icon: Users,
-    titleVi: "Tuyển dụng & Tuyển mộ",
-    badgeColor: "bg-purple-50 text-purple-600 border-purple-100",
-  },
-  "legal & contracts": {
-    icon: FileText,
-    titleVi: "Pháp lý & Hợp đồng",
-    badgeColor: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  "logistics & shipping": {
-    icon: Truck,
-    titleVi: "Vận tải & Giao nhận",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "management & corporate": {
-    icon: Briefcase,
-    titleVi: "Quản trị & Doanh nghiệp",
-    badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-  },
-  "manufacturing & quality": {
-    icon: Factory,
-    titleVi: "Sản xuất & Chất lượng",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "marketing": {
-    icon: Megaphone,
-    titleVi: "Tiếp thị & Thị trường",
-    badgeColor: "bg-pink-50 text-pink-600 border-pink-100",
-  },
-  "marketing & advertising": {
-    icon: Megaphone,
-    titleVi: "Tiếp thị & Quảng cáo",
-    badgeColor: "bg-pink-50 text-pink-600 border-pink-100",
-  },
-  "media": {
-    icon: Megaphone,
-    titleVi: "Truyền thông & Báo chí",
-    badgeColor: "bg-pink-50 text-pink-600 border-pink-100",
-  },
-  "meetings & stand-ups": {
-    icon: Users,
-    titleVi: "Họp nhóm & Stand-up",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "movies": {
-    icon: Sparkles,
-    titleVi: "Điện ảnh & Chiếu phim",
-    badgeColor: "bg-purple-50 text-purple-600 border-purple-100",
-  },
-  "museums": {
-    icon: Landmark,
-    titleVi: "Bảo tàng & Triển lãm",
-    badgeColor: "bg-purple-50 text-purple-600 border-purple-100",
-  },
-  "music": {
-    icon: Sparkles,
-    titleVi: "Âm nhạc & Nghệ thuật",
-    badgeColor: "bg-purple-50 text-purple-600 border-purple-100",
-  },
-  "networking & systems": {
-    icon: Network,
-    titleVi: "Mạng & Hạ tầng hệ thống",
-    badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-  },
-  "office & admin": {
-    icon: Briefcase,
-    titleVi: "Hành chính & Văn phòng",
-    badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-  },
-  "office procedures": {
-    icon: FileText,
-    titleVi: "Quy trình nội bộ văn phòng",
-    badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-  },
-  "office technology": {
-    icon: Globe,
-    titleVi: "Công nghệ văn phòng",
-    badgeColor: "bg-cyan-50 text-cyan-600 border-cyan-100",
-  },
-  "ordering lunch": {
-    icon: Utensils,
-    titleVi: "Đặt cơm trưa & Ăn uống",
-    badgeColor: "bg-orange-50 text-orange-600 border-orange-100",
-  },
-  "ordering supplies": {
-    icon: ShoppingBag,
-    titleVi: "Đặt mua văn phòng phẩm",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "part 5 adjectives": {
-    icon: Tags,
-    titleVi: "Tính từ TOEIC Part 5",
-    badgeColor: "bg-violet-50 text-violet-600 border-violet-100",
-  },
-  "part 5 adverbs": {
-    icon: Tags,
-    titleVi: "Trạng từ TOEIC Part 5",
-    badgeColor: "bg-indigo-50 text-indigo-600 border-indigo-100",
-  },
-  "part 5 verbs": {
-    icon: Tags,
-    titleVi: "Động từ TOEIC Part 5",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "pharmacy": {
-    icon: HeartPulse,
-    titleVi: "Hiệu thuốc & Dược phẩm",
-    badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-  },
-  "prepositions & connectors": {
-    icon: Link2,
-    titleVi: "Giới từ & Liên từ nối",
-    badgeColor: "bg-cyan-50 text-cyan-600 border-cyan-100",
-  },
-  "procurement & suppliers": {
-    icon: ShoppingBag,
-    titleVi: "Thu mua & Nhà cung cấp",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "product & ux": {
-    icon: Layers,
-    titleVi: "Sản phẩm & Trải nghiệm (UX)",
-    badgeColor: "bg-sky-50 text-sky-600 border-sky-100",
-  },
-  "product development": {
-    icon: Layers,
-    titleVi: "Nghiên cứu & Phát triển SP",
-    badgeColor: "bg-sky-50 text-sky-600 border-sky-100",
-  },
-  "programming & software design": {
-    icon: Code2,
-    titleVi: "Lập trình & Thiết kế PM",
-    badgeColor: "bg-sky-50 text-sky-600 border-sky-100",
-  },
-  "project management": {
-    icon: Briefcase,
-    titleVi: "Quản lý dự án",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "promotions, pensions & award": {
-    icon: Award,
-    titleVi: "Thăng chức & Khen thưởng",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "property & departments": {
-    icon: Building2,
-    titleVi: "Bất động sản & Phòng ban",
-    badgeColor: "bg-orange-50 text-orange-600 border-orange-100",
-  },
-  "quality control": {
-    icon: FileCheck,
-    titleVi: "Kiểm soát chất lượng",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "renting and leasing": {
-    icon: Building2,
-    titleVi: "Thuê & Cho thuê cơ sở",
-    badgeColor: "bg-orange-50 text-orange-600 border-orange-100",
-  },
-  "salaries & benefits": {
-    icon: Landmark,
-    titleVi: "Lương bổng & Phúc lợi",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "sales & negotiation": {
-    icon: TrendingUp,
-    titleVi: "Bán hàng & Đàm phán",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "security": {
-    icon: ShieldAlert,
-    titleVi: "An toàn & Bảo mật thông tin",
-    badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-  },
-  "selecting a restaurant": {
-    icon: Utensils,
-    titleVi: "Chọn lựa nhà hàng",
-    badgeColor: "bg-orange-50 text-orange-600 border-orange-100",
-  },
-  "shipping": {
-    icon: Truck,
-    titleVi: "Vận chuyển hàng hóa",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "shopping": {
-    icon: ShoppingBag,
-    titleVi: "Mua sắm thương mại",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "tax, insurance & payments": {
-    icon: Receipt,
-    titleVi: "Thuế, Bảo hiểm & Chi trả",
-    badgeColor: "bg-teal-50 text-teal-600 border-teal-100",
-  },
-  "taxes": {
-    icon: Receipt,
-    titleVi: "Thuế & Nghĩa vụ thuế",
-    badgeColor: "bg-teal-50 text-teal-600 border-teal-100",
-  },
-  "testing & qa": {
-    icon: FileCheck,
-    titleVi: "Kiểm thử phần mềm (QA)",
-    badgeColor: "bg-teal-50 text-teal-600 border-teal-100",
-  },
-  "theater": {
-    icon: Sparkles,
-    titleVi: "Sân khấu kịch nghệ",
-    badgeColor: "bg-purple-50 text-purple-600 border-purple-100",
-  },
-  "travel & transportation": {
-    icon: Plane,
-    titleVi: "Du lịch & Giao thông",
-    badgeColor: "bg-sky-50 text-sky-600 border-sky-100",
-  },
-  "unit 1: meetings & negotiations": {
-    icon: Briefcase,
-    titleVi: "Unit 1: Họp hành & Đàm phán",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "unit 2: work & progress": {
-    icon: Briefcase,
-    titleVi: "Unit 2: Công việc & Tiến độ",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "unit 3: office communication": {
-    icon: Mail,
-    titleVi: "Unit 3: Giao tiếp văn phòng",
-    badgeColor: "bg-sky-50 text-sky-600 border-sky-100",
-  },
-  "unit 4: commerce & finance": {
-    icon: Landmark,
-    titleVi: "Unit 4: Thương mại & Tài chính",
-    badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  },
-  "unit 5: problem solving & decisions": {
-    icon: Lightbulb,
-    titleVi: "Unit 5: Giải quyết vấn đề",
-    badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-  },
-  "unit 6: advanced workplace idioms": {
-    icon: BookOpenText,
-    titleVi: "Unit 6: Thành ngữ công sở",
-    badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-  },
-  "warranties": {
-    icon: Award,
-    titleVi: "Bảo hành & Cam kết",
-    badgeColor: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  "web, frontend & apis": {
-    icon: Globe,
-    titleVi: "Giao diện Web & API",
-    badgeColor: "bg-indigo-50 text-indigo-600 border-indigo-100",
-  },
-};
-
-/**
- * Hàm helper tự động gán Icon, Tên tiếng Việt phụ đề và Màu sắc Pastel cho từng Thẻ Chủ Điểm
- * TUÂN THỦ TASK 3 - QUY TẮC FALLBACK AN TOÀN:
- * 1. Tra cứu chính xác 1-1 trong TOPIC_EXACT_MAP.
- * 2. Nếu chủ điểm chưa có trong từ điển 1-1, hiển thị TRỰC TIẾP TÊN GỐC TIẾNG ANH làm tiêu đề chính.
- * 3. Tuyệt đối KHÔNG dùng regex phỏng đoán chuỗi con để tránh gán nhầm hoặc trùng lặp tên tiếng Việt.
- */
-export function getTopicVisuals(topicName: string): TopicVisual {
-  const norm = topicName.trim().toLowerCase().replace(/['’]/g, "'");
-
-  // 1. Kiểm tra bảng tra cứu tuyệt đối 1-1
-  if (TOPIC_EXACT_MAP[norm]) {
-    return TOPIC_EXACT_MAP[norm];
-  }
-
-  // 2. Fallback an toàn: Giữ nguyên tên gốc tiếng Anh làm tiêu đề chính
-  return {
-    icon: BookOpen,
-    titleVi: topicName.trim(),
-    badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-  };
-}
+export { getTopicVisuals, type TopicVisual };
 
 interface VocabListViewProps {
   initialEntries: VocabEntry[];
@@ -673,6 +107,7 @@ export function VocabListView({
   const [notebooks, setNotebooks] = useState<Notebook[]>(initialNotebooks);
   const [curatedDecks, setCuratedDecks] = useState<CuratedDeckStatus[]>(initialCuratedDecks);
   const [importingDeckId, setImportingDeckId] = useState<string | null>(null);
+  const [deckImportError, setDeckImportError] = useState<string | null>(null);
 
   const [selectedNotebookFilter, setSelectedNotebookFilter] = useState<string | null>(null);
   const [selectedTopicFilter, setSelectedTopicFilter] = useState<string | null>(null);
@@ -755,9 +190,14 @@ export function VocabListView({
 
         const wordsCount =
           deckEntries.length > 0 ? deckEntries.length : status.userCardsCount || meta.totalCards;
+        const importedCount = deckEntries.length > 0 ? deckEntries.length : status.userCardsCount || 0;
+        const reviewedCount = deckEntries.filter(
+          (e) => (e.card?.reps ?? 0) > 0 || (e.card?.state ?? 0) > 0
+        ).length;
         const deckDue = deckEntries.filter(
           (e) => e.card?.due && new Date(e.card.due).getTime() <= currentTime
         ).length;
+        const isImported = !!status.isImported || importedCount > 0;
 
         return {
           id,
@@ -769,12 +209,16 @@ export function VocabListView({
           color: meta.color,
           totalCards: meta.totalCards,
           wordsCount,
+          importedCount,
+          reviewedCount,
           topicsCount: topics.length,
           topics,
-          isImported: !!status.isImported,
+          isImported,
           notebookId: status.notebookId,
           deckDue,
-          reviewUrl: status.notebookId ? `/review?notebookId=${status.notebookId}` : `/review?limit=15`,
+          reviewUrl: status.notebookId
+            ? `/review?notebookId=${status.notebookId}&studyAll=true`
+            : `/review?studyAll=true&limit=15`,
         };
       })
       .filter((book): book is NonNullable<typeof book> => book !== null);
@@ -795,9 +239,15 @@ export function VocabListView({
     const totalCards = meta?.totalCards ?? 0;
     const wordsCount =
       deckEntries.length > 0 ? deckEntries.length : status?.userCardsCount || totalCards;
+    const importedCount =
+      deckEntries.length > 0 ? deckEntries.length : status?.userCardsCount || 0;
+    const reviewedCount = deckEntries.filter(
+      (e) => (e.card?.reps ?? 0) > 0 || (e.card?.state ?? 0) > 0
+    ).length;
     const deckDue = deckEntries.filter(
       (e) => e.card?.due && new Date(e.card.due).getTime() <= currentTime
     ).length;
+    const isImported = !!status?.isImported || importedCount > 0;
 
     return {
       id: "it-vocab",
@@ -810,12 +260,16 @@ export function VocabListView({
       color: meta?.color ?? "#4338CA",
       totalCards,
       wordsCount,
+      importedCount,
+      reviewedCount,
       topicsCount: topics.length,
       topics,
-      isImported: !!status?.isImported,
+      isImported,
       notebookId: status?.notebookId,
       deckDue,
-      reviewUrl: status?.notebookId ? `/review?notebookId=${status.notebookId}` : `/review?limit=15`,
+      reviewUrl: status?.notebookId
+        ? `/review?notebookId=${status.notebookId}&studyAll=true`
+        : `/review?studyAll=true&limit=15`,
     };
   }, [deckStatusById, entries, currentTime]);
 
@@ -840,6 +294,9 @@ export function VocabListView({
         if (t) topicsMap.set(t, (topicsMap.get(t) || 0) + 1);
       }
       const topics = Array.from(topicsMap.keys());
+      const reviewedCount = customEntries.filter(
+        (e) => (e.card?.reps ?? 0) > 0 || (e.card?.state ?? 0) > 0
+      ).length;
       const deckDue = customEntries.filter(
         (e) => e.card?.due && new Date(e.card.due).getTime() <= currentTime
       ).length;
@@ -853,12 +310,14 @@ export function VocabListView({
         color: custom.color || "#2563EB",
         totalCards: customEntries.length,
         wordsCount: customEntries.length,
+        importedCount: customEntries.length,
+        reviewedCount,
         topicsCount: topics.length,
         topics,
-        isImported: true,
+        isImported: customEntries.length > 0,
         notebookId: custom.id,
         deckDue,
-        reviewUrl: `/review?notebookId=${custom.id}`,
+        reviewUrl: `/review?notebookId=${custom.id}&studyAll=true`,
       };
     }
     return null;
@@ -872,6 +331,10 @@ export function VocabListView({
       const topicEntries = entries.filter((e) => e.metadata?.topic?.trim() === topicName);
       const deckItemCount = deckStatus?.deck.topicCounts[topicName] || 0;
       const count = topicEntries.length > 0 ? topicEntries.length : deckItemCount;
+      const importedCount = topicEntries.length;
+      const reviewedCount = topicEntries.filter(
+        (e) => (e.card?.reps ?? 0) > 0 || (e.card?.state ?? 0) > 0
+      ).length;
       const dueCount = topicEntries.filter(
         (e) => e.card?.due && new Date(e.card.due).getTime() <= currentTime
       ).length;
@@ -879,6 +342,8 @@ export function VocabListView({
       return {
         name: topicName,
         count,
+        importedCount,
+        reviewedCount,
         dueCount,
       };
     });
@@ -1103,10 +568,11 @@ export function VocabListView({
   // Xử lý Bắt đầu học trực tiếp một bộ thẻ chuẩn
   const handleStartDeck = (deckStatus: CuratedDeckStatus) => {
     if (deckStatus.isImported && deckStatus.notebookId) {
-      router.push(`/review?notebookId=${deckStatus.notebookId}`);
+      router.push(`/review?notebookId=${deckStatus.notebookId}&studyAll=true`);
       return;
     }
 
+    setDeckImportError(null);
     setImportingDeckId(deckStatus.deck.id);
     startTransition(async () => {
       try {
@@ -1124,13 +590,65 @@ export function VocabListView({
                 : d
             )
           );
-          router.push(`/review?notebookId=${res.notebook.id}`);
+          router.push(`/review?notebookId=${res.notebook.id}&studyAll=true`);
         } else {
-          alert(res.message);
+          setDeckImportError(res.message || "Không thể nạp bộ thẻ. Vui lòng thử lại.");
         }
       } catch (err) {
         console.error("Lỗi khi nạp bộ thẻ:", err);
-        alert("Có sự cố khi nạp bộ thẻ. Vui lòng thử lại.");
+        setDeckImportError("Có sự cố khi nạp bộ thẻ. Vui lòng thử lại.");
+      } finally {
+        setImportingDeckId(null);
+      }
+    });
+  };
+
+  // Xử lý 1-click Tự động nạp bộ thẻ (nếu chưa nạp) rồi chuyển thẳng sang màn hình Ôn tập
+  const handleStartBookOrTopicReview = (
+    bookId: string,
+    notebookId?: string,
+    isImported?: boolean,
+    topicName?: string
+  ) => {
+    const topicParam = topicName ? `&topic=${encodeURIComponent(topicName)}` : "";
+    if (isImported && notebookId) {
+      router.push(`/review?notebookId=${notebookId}${topicParam}&limit=15&studyAll=true`);
+      return;
+    }
+
+    const deckStatus = deckStatusById.get(bookId);
+    if (!deckStatus) {
+      router.push(`/review?limit=15&studyAll=true${topicParam}`);
+      return;
+    }
+
+    setDeckImportError(null);
+    setImportingDeckId(bookId);
+    startTransition(async () => {
+      try {
+        const res = await importCuratedDeckAction(bookId);
+        if (res.success && res.notebook?.id) {
+          setCuratedDecks((prev) =>
+            prev.map((d) =>
+              d.deck.id === bookId
+                ? {
+                    ...d,
+                    isImported: true,
+                    notebookId: res.notebook?.id,
+                    userCardsCount: (d.userCardsCount || 0) + (res.importedCount || 0),
+                  }
+                : d
+            )
+          );
+          router.push(
+            `/review?notebookId=${res.notebook.id}${topicParam}&limit=15&studyAll=true`
+          );
+        } else {
+          setDeckImportError(res.message || "Không thể nạp bộ thẻ. Vui lòng thử lại.");
+        }
+      } catch (err) {
+        console.error("Lỗi khi nạp bộ thẻ:", err);
+        setDeckImportError("Có sự cố khi nạp bộ thẻ. Vui lòng thử lại.");
       } finally {
         setImportingDeckId(null);
       }
@@ -1177,12 +695,14 @@ export function VocabListView({
         </div>
       </div>
 
-      {/* Thẻ FSRS: Nhắc nhở và mục tiêu ôn tập */}
+      {/* Thẻ FSRS: Nhắc nhở và mục tiêu ôn tập (3 trạng thái trung thực) */}
       <Card
         className={`p-4 sm:p-5 rounded-2xl border transition-all shadow-xs relative overflow-hidden ${
           dueCount > 0
-            ? "bg-gradient-to-br from-[#EFF6FF] via-[#EEF2FF] to-white border-[#C7D2FE]"
-            : "bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-white border-[#E2E8F0]"
+            ? "bg-[#EFF6FF] border-[#BFDBFE]"
+            : fsrsActiveEntries.length === 0
+              ? "bg-[#F8FAFC] border-[#E2E8F0]"
+              : "bg-[#ECFDF5] border-[#A7F3D0]"
         }`}
       >
         {dueCount > 0 ? (
@@ -1192,65 +712,113 @@ export function VocabListView({
                 <Flame className="w-5 h-5 fill-white" />
               </span>
               <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-[#4338CA]">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-[#2563EB]">
                   Mục tiêu hôm nay (FSRS Spaced Repetition)
                 </div>
-                <div className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                <div className="text-base sm:text-lg font-bold text-[#0F172A] mt-0.5">
                   <span className="font-mono text-[#2563EB] text-xl font-extrabold">
                     {dueCount}
                   </span>{" "}
-                  thẻ đến hạn ôn tập {!includeItVocab && <span className="text-xs text-slate-500 font-normal">(TOEIC cốt lõi)</span>}
+                  thẻ đến hạn ôn tập{" "}
+                  {!includeItVocab && (
+                    <span className="text-xs text-[#475569] font-normal">
+                      (TOEIC cốt lõi)
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* 1 Nút Primary CTA duy nhất theo chuẩn Bất biến */}
             <div className="flex items-center gap-3 shrink-0">
-              <Link href={`/review?limit=15${includeItVocab ? "" : "&excludeDeck=it-vocab"}`}>
-                <Button
-                  variant="primary"
-                  size="default"
-                  className="h-10 px-5 text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 shadow-sm"
-                >
-                  <span>Bắt đầu phiên 15 thẻ</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
+              <Link
+                href={`/review?limit=15${includeItVocab ? "" : "&excludeDeck=it-vocab"}`}
+                className={buttonVariants({
+                  variant: "primary",
+                  size: "default",
+                  className: "min-h-[44px] px-5 text-xs sm:text-sm font-semibold shadow-sm",
+                })}
+              >
+                <span>Bắt đầu phiên 15 thẻ</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
 
               <Link
-                href="/review"
-                className="text-xs font-semibold text-[#4338CA] hover:text-[#2563EB] underline shrink-0 transition-colors px-1"
+                href="/review?studyAll=true&limit=15"
+                className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] underline shrink-0 transition-colors px-1"
               >
                 Học theo chủ đề →
               </Link>
             </div>
           </div>
+        ) : fsrsActiveEntries.length === 0 ? (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="p-2.5 rounded-xl bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] shrink-0">
+                <Sparkles className="w-5 h-5" />
+              </span>
+              <div>
+                <div className="text-sm font-bold text-[#0F172A]">
+                  Chưa có thẻ từ vựng trong lịch ôn FSRS
+                </div>
+                <div className="text-xs text-[#475569] mt-0.5">
+                  Chọn một bộ thẻ chuẩn trên Kệ Sổ bên dưới và bấm{" "}
+                  <strong className="text-[#0F172A]">Nạp &amp; Ôn tập</strong> để kích hoạt lịch ôn ngắt quãng ngay.
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActiveMainTab("standard-decks")}
+              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer self-start sm:self-auto shadow-xs"
+            >
+              <span>Mở Thư Viện Bộ Thẻ</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         ) : (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded-xl bg-emerald-100 text-[#047857] shrink-0">
+              <span className="p-2 rounded-xl bg-white text-[#047857] border border-[#A7F3D0] shrink-0">
                 <CheckCircle2 className="w-5 h-5" />
               </span>
               <div>
-                <div className="text-sm font-bold text-slate-900">
-                  Tuyệt vời! Không có thẻ đến hạn
+                <div className="text-sm font-bold text-[#0F172A]">
+                  Tuyệt vời! Bạn đã hoàn thành toàn bộ thẻ đến hạn hôm nay
                 </div>
                 <div className="text-xs text-[#475569] mt-0.5">
-                  Bạn đã hoàn thành toàn bộ mục tiêu FSRS hôm nay.
+                  Đang quản lý <span className="font-mono font-bold text-[#0F172A]">{fsrsActiveEntries.length}</span> thẻ trong lịch FSRS. Bạn có thể ôn lại trước hạn bất cứ lúc nào.
                 </div>
               </div>
             </div>
 
             <Link
-              href="/review"
-              className="text-xs font-semibold text-[#2563EB] hover:underline flex items-center gap-1 shrink-0"
+              href={`/review?studyAll=true&limit=15${includeItVocab ? "" : "&excludeDeck=it-vocab"}`}
+              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white hover:bg-[#F8FAFC] border border-[#A7F3D0] text-xs font-bold text-[#047857] flex items-center gap-1.5 shrink-0 transition-colors self-start sm:self-auto shadow-xs"
             >
-              <span>Ôn tập tự do</span>
+              <span>Ôn tập tự do (Ôn trước hạn)</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         )}
       </Card>
+
+      {deckImportError && (
+        <div
+          role="alert"
+          className="p-3.5 rounded-xl bg-[#FFF1F2] border border-[#FECDD3] text-xs text-[#BE123C] flex items-center justify-between gap-3"
+        >
+          <span className="font-medium">{deckImportError}</span>
+          <button
+            type="button"
+            onClick={() => setDeckImportError(null)}
+            className="text-xs font-bold underline cursor-pointer shrink-0"
+          >
+            Đóng
+          </button>
+        </div>
+      )}
 
       {/* ========================================================= */}
       {/* TASK 2: Tab View Nội Tuyến (Inline Tabs: Sổ từ của tôi & Thư Viện Bộ Thẻ) */}
@@ -1311,138 +879,18 @@ export function VocabListView({
       {/* VIEW 1: KHO BỘ THẺ TOEIC CHUẨN (INLINE 3-COL GRID VIEW)  */}
       {/* ========================================================= */}
       {activeMainTab === "standard-decks" ? (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-[#F8FAFC] p-4 rounded-xl border border-[#E2E8F0]">
-            <div className="space-y-0.5">
-              <h2 className="text-base font-bold text-slate-900">
-                Kho Bộ Thẻ Biên Soạn Theo Chuẩn Đề Thi Thật
-              </h2>
-              <p className="text-xs text-[#475569]">
-                Chọn bộ thẻ để nạp trực tiếp vào sổ cá nhân và kích hoạt lịch ôn ngắt quãng FSRS ngay lập tức.
-              </p>
-            </div>
-            <div className="text-xs font-mono font-semibold text-slate-600 bg-white px-3 py-1.5 rounded-lg border border-[#E2E8F0] shrink-0 self-start sm:self-auto">
-              Tổng cộng 4 bộ thẻ · {totalCuratedCards} từ vựng
-            </div>
-          </div>
-
-          {/* Lưới Grid Bộ Thẻ 3 Cột Rộng Rãi Thoáng Mắt */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {curatedDecks.map((deckStatus) => {
-              const { deck, isImported } = deckStatus;
-              const isImporting = importingDeckId === deck.id;
-
-              return (
-                <Card
-                  key={deck.id}
-                  className="overflow-hidden border border-[#E2E8F0] bg-white rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
-                >
-                  {/* Phần Cover (Header màu của thẻ) */}
-                  <div
-                    className="p-5 text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]"
-                    style={{
-                      backgroundColor:
-                        deck.id === "essential-600"
-                          ? "#2563EB"
-                          : deck.id === "ets-vocab"
-                          ? "#0F172A"
-                          : deck.id === "common-idioms"
-                          ? "#047857"
-                          : "#4338CA",
-                    }}
-                  >
-                    {/* Hàng trên: Badge phân loại + Trạng thái đã nạp */}
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-xs text-white border border-white/20">
-                        {deck.badge}
-                      </span>
-                      {isImported && (
-                        <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500 text-white shadow-xs">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Đã nạp</span>
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Tiêu đề chính to rõ + số lượng thẻ thực tế */}
-                    <div className="mt-3">
-                      <h3 className="text-lg font-bold tracking-tight text-white leading-snug line-clamp-2">
-                        {deck.title}
-                      </h3>
-                      <div className="text-xs text-white/90 font-mono mt-1 flex items-center gap-1.5 font-medium">
-                        {isImported ? (
-                          <span>📚 Đã nạp {deckStatus.userCardsCount || deck.totalCards} / {deck.totalCards} thẻ</span>
-                        ) : (
-                          <span>📚 {deck.totalCards} thẻ từ vựng</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Phần Body của Deck Card */}
-                  <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
-                    <p className="text-xs text-[#475569] leading-relaxed line-clamp-3">
-                      {deck.description}
-                    </p>
-
-                    <div className="space-y-3 pt-3 border-t border-slate-100">
-                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100">
-                        <Sparkles className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
-                        <span className="truncate">Chia nhỏ ~50 từ / chủ đề chuyên biệt</span>
-                      </div>
-
-                      {/* Nút Hành Động */}
-                      {isImported ? (
-                        <div className="space-y-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleStartDeck(deckStatus)}
-                            className="w-full h-10 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
-                          >
-                            <BookOpen className="w-4 h-4" />
-                            <span>Học Flashcard ({deckStatus.userCardsCount || deck.totalCards} thẻ) →</span>
-                          </button>
-
-                          {deckStatus.notebookId && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedNotebookFilter(deckStatus.notebookId!);
-                                setActiveMainTab("my-vocab");
-                              }}
-                              className="w-full text-center text-xs text-[#475569] hover:text-[#2563EB] hover:underline font-medium py-1 transition-colors cursor-pointer"
-                            >
-                              Xem danh sách từ trong Sổ từ cá nhân
-                            </button>
-                          )}
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={isImporting}
-                          onClick={() => handleStartDeck(deckStatus)}
-                          className="w-full h-10 px-4 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
-                        >
-                          {isImporting ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>Đang nạp từ vựng...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-3.5 h-3.5 fill-white" />
-                              <span>BẮT ĐẦU HỌC BỘ THẺ</span>
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
+        <VocabCuratedDecksTab
+          curatedDecks={curatedDecks}
+          totalCuratedCards={totalCuratedCards}
+          deckImportError={deckImportError}
+          importingDeckId={importingDeckId}
+          onDismissError={() => setDeckImportError(null)}
+          onStartDeck={handleStartDeck}
+          onOpenNotebookInMyVocab={(notebookId) => {
+            setSelectedNotebookFilter(notebookId);
+            setActiveMainTab("my-vocab");
+          }}
+        />
       ) : (
         /* ========================================================= */
         /* VIEW 2: SỔ TỪ VỰNG CỦA TÔI (MÔ HÌNH KỆ SỔ 2 CẤP)          */
@@ -1559,16 +1007,28 @@ export function VocabListView({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {coreBooks.map((book) => {
+                    const isUnimported = !book.isImported;
+                    const isNotStarted = book.isImported && book.reviewedCount === 0;
+                    const isCompletedToday =
+                      book.isImported && book.reviewedCount > 0 && book.deckDue === 0;
+                    const isImportingThis = importingDeckId === book.id;
+
                     const completionRate =
-                      book.wordsCount > 0
-                        ? Math.min(
-                            100,
-                            Math.max(
-                              10,
-                              Math.round(((book.wordsCount - book.deckDue) / book.wordsCount) * 100)
-                            )
-                          )
-                        : 0;
+                      isUnimported || isNotStarted
+                        ? 0
+                        : isCompletedToday
+                          ? 100
+                          : book.wordsCount > 0
+                            ? Math.min(
+                                100,
+                                Math.max(
+                                  8,
+                                  Math.round(
+                                    ((book.wordsCount - book.deckDue) / book.wordsCount) * 100
+                                  )
+                                )
+                              )
+                            : 0;
 
                     return (
                       <Card
@@ -1589,11 +1049,11 @@ export function VocabListView({
                                 <BookOpen className="w-5 h-5" />
                               </div>
                               <div className="min-w-0">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 font-mono block">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[#2563EB] font-mono block">
                                   {book.badge}
                                 </span>
                                 <h3
-                                  className="text-sm sm:text-base font-bold text-slate-900 truncate"
+                                  className="text-sm sm:text-base font-bold text-[#0F172A] truncate"
                                   title={book.title}
                                 >
                                   {book.title}
@@ -1606,42 +1066,55 @@ export function VocabListView({
                             {book.description}
                           </p>
 
-                          <div className="flex items-center gap-2 text-[11px] font-medium text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-                            <span className="font-bold text-slate-900">{book.topicsCount} chủ điểm</span>
+                          <div className="flex items-center gap-2 text-[11px] font-medium text-[#475569] bg-[#F8FAFC] px-2.5 py-1 rounded-lg border border-[#E2E8F0]">
+                            <span className="font-bold text-[#0F172A]">
+                              {book.topicsCount} chủ điểm
+                            </span>
                             <span>•</span>
                             <span>{book.wordsCount} từ vựng</span>
                           </div>
 
-                          {/* Tiến độ FSRS & Trạng thái */}
+                          {/* Tiến độ FSRS & Trạng thái 3 cấp trung thực */}
                           <div className="space-y-1.5 pt-1">
                             <div className="flex items-center justify-between text-xs">
-                              <span className="text-slate-500 font-medium">Trạng thái ôn tập:</span>
-                              {book.deckDue > 0 ? (
+                              <span className="text-[#475569] font-medium">
+                                Trạng thái ôn tập:
+                              </span>
+                              {isUnimported ? (
+                                <span className="font-semibold text-[#475569] bg-[#F1F5F9] px-2 py-0.5 rounded-md border border-[#E2E8F0]">
+                                  Chưa nạp vào sổ
+                                </span>
+                              ) : isNotStarted ? (
+                                <span className="font-bold text-[#2563EB] flex items-center gap-1 font-mono">
+                                  <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+                                  Mới nạp · {book.deckDue || book.wordsCount} thẻ chờ học
+                                </span>
+                              ) : book.deckDue > 0 ? (
                                 <span className="font-bold text-[#4338CA] flex items-center gap-1 font-mono">
-                                  <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                                  <Flame className="w-3.5 h-3.5 text-[#B45309]" />
                                   {book.deckDue} thẻ cần ôn
                                 </span>
                               ) : (
                                 <span className="font-bold text-[#047857] flex items-center gap-1">
                                   <CheckCircle2 className="w-3.5 h-3.5" />
-                                  Đã ôn xong
+                                  Đã ôn xong hôm nay
                                 </span>
                               )}
                             </div>
-                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden">
                               <div
                                 className="h-full rounded-full transition-all duration-300"
                                 style={{
                                   width: `${completionRate}%`,
-                                  backgroundColor: book.deckDue > 0 ? "#2563EB" : "#047857",
+                                  backgroundColor: isCompletedToday ? "#047857" : "#2563EB",
                                 }}
                               />
                             </div>
                           </div>
                         </div>
 
-                        {/* Footer: Nút chính Mở xem các chủ điểm & Nút phụ Ôn tập */}
-                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                        {/* Footer: Nút Mở xem các chủ điểm & Nút 1-click Nạp / Ôn tập */}
+                        <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between gap-2">
                           <button
                             type="button"
                             onClick={() => {
@@ -1650,19 +1123,42 @@ export function VocabListView({
                               setSelectedTopicFilter(null);
                               setSelectedNotebookFilter(book.notebookId || null);
                             }}
-                            className="flex-1 h-9 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                            className="flex-1 min-h-[44px] px-3 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                           >
-                            <BookOpen className="w-3.5 h-3.5 text-slate-600" />
+                            <BookOpen className="w-3.5 h-3.5 text-[#475569]" />
                             <span>Mở xem các chủ điểm</span>
                           </button>
 
-                          <Link
-                            href={book.reviewUrl}
-                            className="h-9 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#2563EB] text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer shrink-0"
+                          <button
+                            type="button"
+                            disabled={isImportingThis}
+                            onClick={() =>
+                              handleStartBookOrTopicReview(
+                                book.id,
+                                book.notebookId,
+                                book.isImported
+                              )
+                            }
+                            className="min-h-[44px] px-3.5 rounded-xl bg-[#EFF6FF] hover:bg-[#DBEAFE] disabled:opacity-60 text-[#2563EB] text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer shrink-0 border border-[#BFDBFE]"
                           >
-                            <span>Ôn tập</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </Link>
+                            {isImportingThis ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>Đang nạp...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>
+                                  {isUnimported
+                                    ? "Nạp & Ôn tập"
+                                    : isCompletedToday
+                                      ? "Ôn lại"
+                                      : "Ôn tập"}
+                                </span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </>
+                            )}
+                          </button>
                         </div>
                       </Card>
                     );
@@ -1671,15 +1167,28 @@ export function VocabListView({
                   {/* Các Sổ cá nhân tự tạo (nếu có) */}
                   {customNotebooks.map((nb) => {
                     const nbDue = getNotebookDueCount(nb.id);
-                    const matchingCount = entries.filter((e) => e.notebook_id === nb.id).length;
+                    const nbEntries = entries.filter((e) => e.notebook_id === nb.id);
+                    const matchingCount = nbEntries.length;
                     const wordCount = matchingCount > 0 ? matchingCount : (nb.word_count ?? 0);
+                    const reviewedCount = nbEntries.filter(
+                      (e) => (e.card?.reps ?? 0) > 0 || (e.card?.state ?? 0) > 0
+                    ).length;
+                    const isEmptyNb = wordCount === 0;
+                    const isNotStartedNb = !isEmptyNb && reviewedCount === 0;
+                    const isCompletedTodayNb =
+                      !isEmptyNb && reviewedCount > 0 && nbDue === 0;
+
                     const completionRate =
-                      wordCount > 0
-                        ? Math.min(
-                            100,
-                            Math.max(10, Math.round(((wordCount - nbDue) / wordCount) * 100))
-                          )
-                        : 0;
+                      isEmptyNb || isNotStartedNb
+                        ? 0
+                        : isCompletedTodayNb
+                          ? 100
+                          : wordCount > 0
+                            ? Math.min(
+                                100,
+                                Math.max(8, Math.round(((wordCount - nbDue) / wordCount) * 100))
+                              )
+                            : 0;
 
                     return (
                       <Card
@@ -1700,11 +1209,11 @@ export function VocabListView({
                                 <Folder className="w-5 h-5" />
                               </div>
                               <div className="min-w-0">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[#475569] block">
                                   Sổ cá nhân
                                 </span>
                                 <h3
-                                  className="text-sm sm:text-base font-bold text-slate-900 truncate"
+                                  className="text-sm sm:text-base font-bold text-[#0F172A] truncate"
                                   title={nb.name}
                                 >
                                   {nb.name}
@@ -1717,38 +1226,49 @@ export function VocabListView({
                             {nb.description || "Sổ từ vựng cá nhân tự tạo"}
                           </p>
 
-                          <div className="flex items-center gap-2 text-[11px] font-medium text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-                            <span className="font-bold text-slate-900">{wordCount} từ vựng</span>
+                          <div className="flex items-center gap-2 text-[11px] font-medium text-[#475569] bg-[#F8FAFC] px-2.5 py-1 rounded-lg border border-[#E2E8F0]">
+                            <span className="font-bold text-[#0F172A]">{wordCount} từ vựng</span>
                           </div>
 
                           <div className="space-y-1.5 pt-1">
                             <div className="flex items-center justify-between text-xs">
-                              <span className="text-slate-500 font-medium">Trạng thái ôn tập:</span>
-                              {nbDue > 0 ? (
+                              <span className="text-[#475569] font-medium">
+                                Trạng thái ôn tập:
+                              </span>
+                              {isEmptyNb ? (
+                                <span className="font-semibold text-[#475569] bg-[#F1F5F9] px-2 py-0.5 rounded-md border border-[#E2E8F0]">
+                                  Chưa có từ vựng
+                                </span>
+                              ) : isNotStartedNb ? (
+                                <span className="font-bold text-[#2563EB] flex items-center gap-1 font-mono">
+                                  <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+                                  Mới tạo · {nbDue || wordCount} thẻ chờ học
+                                </span>
+                              ) : nbDue > 0 ? (
                                 <span className="font-bold text-[#4338CA] flex items-center gap-1 font-mono">
-                                  <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                                  <Flame className="w-3.5 h-3.5 text-[#B45309]" />
                                   {nbDue} thẻ cần ôn
                                 </span>
                               ) : (
                                 <span className="font-bold text-[#047857] flex items-center gap-1">
                                   <CheckCircle2 className="w-3.5 h-3.5" />
-                                  Đã ôn xong
+                                  Đã ôn xong hôm nay
                                 </span>
                               )}
                             </div>
-                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden">
                               <div
                                 className="h-full rounded-full transition-all duration-300"
                                 style={{
                                   width: `${completionRate}%`,
-                                  backgroundColor: nbDue > 0 ? "#4338CA" : "#047857",
+                                  backgroundColor: isCompletedTodayNb ? "#047857" : "#4338CA",
                                 }}
                               />
                             </div>
                           </div>
                         </div>
 
-                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between gap-2">
                           <button
                             type="button"
                             onClick={() => {
@@ -1757,16 +1277,16 @@ export function VocabListView({
                               setSelectedTopicFilter(null);
                               setNavigationStep("words");
                             }}
-                            className="flex-1 h-9 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                            className="flex-1 min-h-[44px] px-3 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                           >
-                            <BookOpen className="w-3.5 h-3.5 text-slate-600" />
+                            <BookOpen className="w-3.5 h-3.5 text-[#475569]" />
                             <span>Mở xem từ vựng</span>
                           </button>
                           <Link
-                            href={`/review?notebookId=${nb.id}`}
-                            className="h-9 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#2563EB] text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer shrink-0"
+                            href={`/review?notebookId=${nb.id}&studyAll=true`}
+                            className="min-h-[44px] px-3.5 rounded-xl bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#2563EB] text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer shrink-0 border border-[#BFDBFE]"
                           >
-                            <span>Ôn tập</span>
+                            <span>{isCompletedTodayNb ? "Ôn lại" : "Ôn tập"}</span>
                             <ArrowRight className="w-3.5 h-3.5" />
                           </Link>
                         </div>
@@ -1776,16 +1296,16 @@ export function VocabListView({
                 </div>
               </div>
 
-              {/* KHU VỰC PHỤ: 💻 Tiếng Anh Chuyên Ngành Mở Rộng (Dành cho IT & Tech) */}
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-[#F8FAFC] via-[#EEF2FF]/40 to-white border border-[#C7D2FE]/60 shadow-xs space-y-4">
+              {/* KHU VỰC PHỤ: Tiếng Anh Chuyên Ngành Mở Rộng (Dành cho IT & Tech) */}
+              <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-xs space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700 border border-indigo-200 font-mono">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#EEF2FF] text-[#4338CA] border border-[#C7D2FE] font-mono">
                         Chuyên ngành bổ trợ
                       </span>
-                      <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                        💻 Tiếng Anh Chuyên Ngành Mở Rộng (Dành cho IT & Tech)
+                      <h2 className="text-base sm:text-lg font-bold text-[#0F172A]">
+                        Tiếng Anh Chuyên Ngành Mở Rộng (Dành cho IT &amp; Tech)
                       </h2>
                     </div>
                     <p className="text-xs text-[#475569] leading-relaxed">
@@ -1794,10 +1314,10 @@ export function VocabListView({
                   </div>
 
                   {/* Toggle Switch persist vào localStorage */}
-                  <div className="flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-xl border border-indigo-200 shadow-xs shrink-0 self-start sm:self-auto">
+                  <div className="flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-xl border border-[#C7D2FE] shadow-xs shrink-0 self-start sm:self-auto">
                     <label
                       htmlFor="it-fsrs-toggle"
-                      className="text-xs font-semibold text-slate-700 cursor-pointer select-none"
+                      className="text-xs font-semibold text-[#0F172A] cursor-pointer select-none"
                     >
                       Gộp từ vựng IT vào lịch ôn FSRS hằng ngày
                     </label>
@@ -1807,8 +1327,8 @@ export function VocabListView({
                       role="switch"
                       aria-checked={includeItVocab}
                       onClick={() => handleToggleIncludeIt(!includeItVocab)}
-                      className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${
-                        includeItVocab ? "bg-indigo-600" : "bg-slate-300"
+                      className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 ${
+                        includeItVocab ? "bg-[#4338CA]" : "bg-slate-300"
                       }`}
                     >
                       <span
@@ -1822,19 +1342,19 @@ export function VocabListView({
 
                 {/* Thẻ Sổ IT */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  <Card className="p-5 bg-white border border-indigo-200/80 rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                  <Card className="p-5 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
                     <div className="space-y-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs border bg-indigo-50 border-indigo-200 text-indigo-700">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs border bg-[#EEF2FF] border-[#C7D2FE] text-[#4338CA]">
                             <Code2 className="w-5 h-5" />
                           </div>
                           <div className="min-w-0">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 font-mono block">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#4338CA] font-mono block">
                               CHUYÊN NGÀNH CNTT
                             </span>
                             <h3
-                              className="text-sm sm:text-base font-bold text-slate-900 truncate"
+                              className="text-sm sm:text-base font-bold text-[#0F172A] truncate"
                               title={itBook.title}
                             >
                               {itBook.title}
@@ -1847,54 +1367,76 @@ export function VocabListView({
                         {itBook.description}
                       </p>
 
-                      <div className="flex items-center gap-2 text-[11px] font-medium text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-                        <span className="font-bold text-slate-900">{itBook.topicsCount} chủ điểm</span>
+                      <div className="flex items-center gap-2 text-[11px] font-medium text-[#475569] bg-[#F8FAFC] px-2.5 py-1 rounded-lg border border-[#E2E8F0]">
+                        <span className="font-bold text-[#0F172A]">
+                          {itBook.topicsCount} chủ điểm
+                        </span>
                         <span>•</span>
                         <span>{itBook.wordsCount} từ vựng</span>
                       </div>
 
                       <div className="space-y-1.5 pt-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-500 font-medium">Trạng thái ôn tập:</span>
-                          {itBook.deckDue > 0 ? (
+                          <span className="text-[#475569] font-medium">
+                            Trạng thái ôn tập:
+                          </span>
+                          {!itBook.isImported ? (
+                            <span className="font-semibold text-[#475569] bg-[#F1F5F9] px-2 py-0.5 rounded-md border border-[#E2E8F0]">
+                              Chưa nạp vào sổ
+                            </span>
+                          ) : itBook.reviewedCount === 0 ? (
                             <span className="font-bold text-[#4338CA] flex items-center gap-1 font-mono">
-                              <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                              <Sparkles className="w-3.5 h-3.5 text-[#4338CA]" />
+                              Mới nạp · {itBook.deckDue || itBook.wordsCount} thẻ chờ học
+                            </span>
+                          ) : itBook.deckDue > 0 ? (
+                            <span className="font-bold text-[#4338CA] flex items-center gap-1 font-mono">
+                              <Flame className="w-3.5 h-3.5 text-[#B45309]" />
                               {itBook.deckDue} thẻ cần ôn
                             </span>
                           ) : (
                             <span className="font-bold text-[#047857] flex items-center gap-1">
                               <CheckCircle2 className="w-3.5 h-3.5" />
-                              Đã ôn xong
+                              Đã ôn xong hôm nay
                             </span>
                           )}
                         </div>
-                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="w-full h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-300"
                             style={{
                               width: `${
-                                itBook.wordsCount > 0
-                                  ? Math.min(
-                                      100,
-                                      Math.max(
-                                        10,
-                                        Math.round(
-                                          ((itBook.wordsCount - itBook.deckDue) /
-                                            itBook.wordsCount) *
-                                            100
+                                !itBook.isImported || itBook.reviewedCount === 0
+                                  ? 0
+                                  : itBook.deckDue === 0
+                                    ? 100
+                                    : itBook.wordsCount > 0
+                                      ? Math.min(
+                                          100,
+                                          Math.max(
+                                            8,
+                                            Math.round(
+                                              ((itBook.wordsCount - itBook.deckDue) /
+                                                itBook.wordsCount) *
+                                                100
+                                            )
+                                          )
                                         )
-                                      )
-                                    )
-                                  : 0
+                                      : 0
                               }%`,
-                              backgroundColor: itBook.deckDue > 0 ? "#4338CA" : "#047857",
+                              backgroundColor:
+                                itBook.isImported &&
+                                itBook.reviewedCount > 0 &&
+                                itBook.deckDue === 0
+                                  ? "#047857"
+                                  : "#4338CA",
                             }}
                           />
                         </div>
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between gap-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -1903,19 +1445,42 @@ export function VocabListView({
                           setSelectedTopicFilter(null);
                           setSelectedNotebookFilter(itBook.notebookId || null);
                         }}
-                        className="flex-1 h-9 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                        className="flex-1 min-h-[44px] px-3 rounded-xl bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                       >
-                        <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
+                        <BookOpen className="w-3.5 h-3.5 text-[#4338CA]" />
                         <span>Mở xem các chủ điểm ({itBook.topicsCount})</span>
                       </button>
 
-                      <Link
-                        href={itBook.reviewUrl}
-                        className="h-9 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer shrink-0"
+                      <button
+                        type="button"
+                        disabled={importingDeckId === "it-vocab"}
+                        onClick={() =>
+                          handleStartBookOrTopicReview(
+                            "it-vocab",
+                            itBook.notebookId,
+                            itBook.isImported
+                          )
+                        }
+                        className="min-h-[44px] px-3.5 rounded-xl bg-[#4338CA] hover:bg-[#3730A3] disabled:opacity-60 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer shrink-0"
                       >
-                        <span>Ôn tập</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
+                        {importingDeckId === "it-vocab" ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Đang nạp...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>
+                              {!itBook.isImported
+                                ? "Nạp & Ôn tập"
+                                : itBook.reviewedCount > 0 && itBook.deckDue === 0
+                                  ? "Ôn lại"
+                                  : "Ôn tập"}
+                            </span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
                     </div>
                   </Card>
                 </div>
@@ -1927,155 +1492,39 @@ export function VocabListView({
           {/* CẤP 2: CÁC CHỦ ĐIỂM CON THUỘC SỔ ĐANG CHỌN (navigationStep === 'topics') */}
           {/* ========================================================= */}
           {navigationStep === "topics" && selectedBook && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              {/* Thanh Breadcrumb Điều hướng phía trên */}
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNavigationStep("books");
-                      setSelectedBookId(null);
-                      setSelectedTopicFilter(null);
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-800 flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Quay lại Kệ Sổ</span>
-                  </button>
-                  <span className="text-slate-300">/</span>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm sm:text-base font-bold text-slate-900">
-                      {selectedBook.title}
-                    </span>
-                    <span className="text-xs text-slate-500 font-mono font-medium">
-                      ({selectedBook.wordsCount} từ • {selectedBookTopics.length} chủ điểm)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNavigationStep("words");
-                      setSelectedTopicFilter(null);
-                    }}
-                    className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-300 hover:border-blue-400 text-xs font-semibold text-slate-700 hover:text-blue-600 transition-colors cursor-pointer shadow-xs"
-                  >
-                    Xem toàn bộ từ trong sổ ({selectedBook.wordsCount})
-                  </button>
-                  <Link
-                    href={selectedBook.reviewUrl}
-                    className="px-3.5 py-1.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-xs font-bold text-white flex items-center gap-1.5 transition-colors shadow-xs"
-                  >
-                    <span>Ôn tập sổ này</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Lưới Grid Các Chủ Điểm Riêng Của Cuốn Sổ Này (3 Cột) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {selectedBookTopics.map((top) => {
-                  const visual = getTopicVisuals(top.name);
-                  const TopicIcon = visual.icon;
-                  const completionRate =
-                    top.count > 0
-                      ? Math.min(
-                          100,
-                          Math.max(10, Math.round(((top.count - top.dueCount) / top.count) * 100))
-                        )
-                      : 0;
-                  const isSameName = visual.titleVi.toLowerCase() === top.name.toLowerCase();
-
-                  return (
-                    <Card
-                      key={top.name}
-                      className="p-5 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs hover:shadow-md hover:border-[#2563EB]/40 transition-all flex flex-col justify-between space-y-4 group"
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div
-                              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-xs ${visual.badgeColor}`}
-                            >
-                              <TopicIcon className="w-5 h-5" />
-                            </div>
-                            <div className="min-w-0">
-                              <h3
-                                className="text-sm sm:text-base font-bold text-slate-900 truncate"
-                                title={top.name}
-                              >
-                                {visual.titleVi}
-                              </h3>
-                              {!isSameName && (
-                                <span className="text-xs text-slate-500 font-medium truncate block">
-                                  {top.name}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 shrink-0 border border-slate-200">
-                            {top.count} từ
-                          </span>
-                        </div>
-
-                        {/* Tiến độ FSRS & Trạng thái */}
-                        <div className="space-y-1.5 pt-1">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-slate-500 font-medium">Trạng thái ôn tập:</span>
-                            {top.dueCount > 0 ? (
-                              <span className="font-bold text-[#4338CA] flex items-center gap-1 font-mono">
-                                <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                                {top.dueCount} thẻ cần ôn
-                              </span>
-                            ) : (
-                              <span className="font-bold text-[#047857] flex items-center gap-1">
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                Đã ôn xong
-                              </span>
-                            )}
-                          </div>
-                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-300"
-                              style={{
-                                width: `${completionRate}%`,
-                                backgroundColor: top.dueCount > 0 ? "#2563EB" : "#047857",
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Footer: 2 Nút hành động */}
-                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedTopicFilter(top.name);
-                            setNavigationStep("words");
-                          }}
-                          className="flex-1 h-9 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                        >
-                          <BookOpen className="w-3.5 h-3.5 text-slate-600" />
-                          <span>Mở sổ xem từ</span>
-                        </button>
-
-                        <Link
-                          href={`/review?topic=${encodeURIComponent(top.name)}&limit=15`}
-                          className="h-9 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#2563EB] text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer shrink-0"
-                        >
-                          <span>Ôn tập</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
+            <VocabTopicsGrid
+              selectedBook={selectedBook}
+              topics={selectedBookTopics}
+              isImportingBook={importingDeckId === selectedBook.id}
+              onBackToBooks={() => {
+                setNavigationStep("books");
+                setSelectedBookId(null);
+                setSelectedTopicFilter(null);
+              }}
+              onViewAllBookWords={() => {
+                setNavigationStep("words");
+                setSelectedTopicFilter(null);
+              }}
+              onSelectTopic={(topicName) => {
+                setSelectedTopicFilter(topicName);
+                setNavigationStep("words");
+              }}
+              onReviewBook={() =>
+                handleStartBookOrTopicReview(
+                  selectedBook.id,
+                  selectedBook.notebookId,
+                  selectedBook.isImported
+                )
+              }
+              onReviewTopic={(topicName) =>
+                handleStartBookOrTopicReview(
+                  selectedBook.id,
+                  selectedBook.notebookId,
+                  selectedBook.isImported,
+                  topicName
+                )
+              }
+            />
           )}
 
           {/* ========================================================= */}
@@ -2084,7 +1533,7 @@ export function VocabListView({
           {navigationStep === "words" && (
             <div className="space-y-4 animate-in fade-in duration-150">
               {/* Header Breadcrumb Điều hướng 3 Cấp */}
-              <div className="p-3 sm:p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="p-3 sm:p-3.5 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <button
                     type="button"
@@ -2094,7 +1543,7 @@ export function VocabListView({
                       setSelectedTopicFilter(null);
                       setSelectedNotebookFilter(null);
                     }}
-                    className="px-3 py-1.5 rounded-lg bg-white border border-blue-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-1 shadow-xs shrink-0"
+                    className="min-h-[38px] px-3 py-1.5 rounded-lg bg-white border border-[#BFDBFE] text-xs font-bold text-[#0F172A] hover:bg-[#F8FAFC] transition-colors cursor-pointer flex items-center gap-1 shadow-xs shrink-0"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     <span>Quay lại Kệ Sổ</span>
@@ -2109,7 +1558,7 @@ export function VocabListView({
                           setNavigationStep("topics");
                           setSelectedTopicFilter(null);
                         }}
-                        className="text-xs font-bold text-blue-800 hover:underline cursor-pointer"
+                        className="text-xs font-bold text-[#1D4ED8] hover:underline cursor-pointer"
                       >
                         {selectedBook.title}
                       </button>
@@ -2119,7 +1568,7 @@ export function VocabListView({
                   {selectedTopicFilter && (
                     <>
                       <span className="text-slate-300">/</span>
-                      <span className="text-xs sm:text-sm font-bold text-blue-950 truncate bg-white px-2.5 py-0.5 rounded-md border border-blue-200">
+                      <span className="text-xs sm:text-sm font-bold text-[#0F172A] truncate bg-white px-2.5 py-0.5 rounded-md border border-[#BFDBFE]">
                         {getTopicVisuals(selectedTopicFilter).titleVi} ({selectedTopicFilter}) • {filteredEntries.length} từ
                       </span>
                     </>
@@ -2128,36 +1577,64 @@ export function VocabListView({
                   {!selectedTopicFilter && !selectedBook && (
                     <>
                       <span className="text-slate-300">/</span>
-                      <span className="text-xs sm:text-sm font-bold text-blue-950">
+                      <span className="text-xs sm:text-sm font-bold text-[#0F172A]">
                         Tất cả từ vựng ({filteredEntries.length} từ)
                       </span>
                     </>
                   )}
                 </div>
 
-                <Link
-                  href={activeFilteredReviewUrl}
-                  className="w-full sm:w-auto px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer"
-                >
-                  <span>Ôn danh sách này ({filteredEntries.length} từ)</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                {selectedBook && !selectedBook.isImported ? (
+                  <button
+                    type="button"
+                    disabled={importingDeckId === selectedBook.id}
+                    onClick={() =>
+                      handleStartBookOrTopicReview(
+                        selectedBook.id,
+                        selectedBook.notebookId,
+                        selectedBook.isImported,
+                        selectedTopicFilter || undefined
+                      )
+                    }
+                    className="w-full sm:w-auto min-h-[40px] px-4 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-60 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer"
+                  >
+                    {importingDeckId === selectedBook.id ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Đang nạp sổ từ...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Nạp &amp; Ôn tập danh sách này</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <Link
+                    href={activeFilteredReviewUrl}
+                    className="w-full sm:w-auto min-h-[40px] px-4 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer"
+                  >
+                    <span>Ôn danh sách này ({filteredEntries.length} từ)</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                )}
               </div>
 
-              {/* Hàng bộ lọc gọn gàng trên 1 dòng: Từ loại + Bộ lọc Trạng thái Đến hạn */}
+              {/* Hàng bộ lọc gọn gàng trên 1 dòng: Từ loại + Bộ lọc Trạng thái Đến hạn (Chuẩn Precision Swiss Tokens) */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E2E8F0]">
                 {/* Các pill lọc TỪ LOẠI */}
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mr-1 shrink-0">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#475569] mr-1 shrink-0">
                     Từ loại:
                   </span>
                   <button
                     type="button"
                     onClick={() => handlePosFilter("all")}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                    className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
                       selectedPosFilter === "all"
-                        ? "bg-slate-900 text-white shadow-xs"
-                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                        ? "bg-[#0F172A] text-white border-[#0F172A] shadow-xs"
+                        : "bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F1F5F9]"
                     }`}
                   >
                     Tất cả ({entries.length})
@@ -2165,10 +1642,10 @@ export function VocabListView({
                   <button
                     type="button"
                     onClick={() => handlePosFilter("noun")}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
+                    className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
                       selectedPosFilter === "noun"
-                        ? "bg-blue-600 text-white border-blue-600 shadow-xs"
-                        : "bg-white text-blue-700 border-blue-200 hover:bg-blue-50"
+                        ? "bg-[#2563EB] text-white border-[#2563EB] shadow-xs"
+                        : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-[#EFF6FF] hover:text-[#2563EB]"
                     }`}
                   >
                     Danh từ ({posCounts.noun})
@@ -2176,10 +1653,10 @@ export function VocabListView({
                   <button
                     type="button"
                     onClick={() => handlePosFilter("verb")}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
+                    className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
                       selectedPosFilter === "verb"
-                        ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
-                        : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                        ? "bg-[#2563EB] text-white border-[#2563EB] shadow-xs"
+                        : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-[#EFF6FF] hover:text-[#2563EB]"
                     }`}
                   >
                     Động từ ({posCounts.verb})
@@ -2187,10 +1664,10 @@ export function VocabListView({
                   <button
                     type="button"
                     onClick={() => handlePosFilter("adjective")}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
+                    className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
                       selectedPosFilter === "adjective"
-                        ? "bg-amber-600 text-white border-amber-600 shadow-xs"
-                        : "bg-white text-amber-800 border-amber-200 hover:bg-amber-50"
+                        ? "bg-[#2563EB] text-white border-[#2563EB] shadow-xs"
+                        : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-[#EFF6FF] hover:text-[#2563EB]"
                     }`}
                   >
                     Tính từ ({posCounts.adjective})
@@ -2198,10 +1675,10 @@ export function VocabListView({
                   <button
                     type="button"
                     onClick={() => handlePosFilter("adverb")}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
+                    className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
                       selectedPosFilter === "adverb"
-                        ? "bg-purple-600 text-white border-purple-600 shadow-xs"
-                        : "bg-white text-purple-700 border-purple-200 hover:bg-purple-50"
+                        ? "bg-[#2563EB] text-white border-[#2563EB] shadow-xs"
+                        : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-[#EFF6FF] hover:text-[#2563EB]"
                     }`}
                   >
                     Trạng từ ({posCounts.adverb})
@@ -2209,10 +1686,10 @@ export function VocabListView({
                   <button
                     type="button"
                     onClick={() => handlePosFilter("phrase")}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
+                    className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 border ${
                       selectedPosFilter === "phrase"
-                        ? "bg-slate-700 text-white border-slate-700 shadow-xs"
-                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+                        ? "bg-[#2563EB] text-white border-[#2563EB] shadow-xs"
+                        : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-[#EFF6FF] hover:text-[#2563EB]"
                     }`}
                   >
                     Cụm từ ({posCounts.phrase})
@@ -2548,15 +2025,15 @@ export function VocabListView({
                     {item.metadata?.usage_note && (
                       <div
                         onClick={() => setSelectedDetailEntry(item)}
-                        className="px-2.5 py-1.5 rounded-lg bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 cursor-pointer hover:bg-amber-100/70 transition-colors flex items-center justify-between gap-2"
+                        className="px-2.5 py-1.5 rounded-lg bg-[#FFFBEB] border border-[#FDE68A] text-[11px] text-[#B45309] cursor-pointer hover:bg-[#FEF3C7] transition-colors flex items-center justify-between gap-2"
                         title="Bấm để xem chi tiết bí kíp và gia đình từ"
                       >
                         <div className="flex items-center gap-1.5 truncate">
-                          <span className="shrink-0 text-amber-600 font-bold">💡 Mẹo:</span>
+                          <span className="shrink-0 text-[#B45309] font-bold">Mẹo TOEIC:</span>
                           <span className="truncate">{item.metadata.usage_note}</span>
                         </div>
                         {item.metadata.word_family && item.metadata.word_family.length > 0 && (
-                          <span className="shrink-0 text-[10px] font-mono font-medium text-amber-800/80 bg-amber-100/80 px-1.5 py-0.5 rounded border border-amber-300/40">
+                          <span className="shrink-0 text-[10px] font-mono font-medium text-[#B45309] bg-white px-1.5 py-0.5 rounded border border-[#FDE68A]">
                             {item.metadata.word_family.length} dạng từ
                           </span>
                         )}
@@ -2698,7 +2175,52 @@ export function VocabListView({
           )}
 
           {/* Trạng thái rỗng & không tìm thấy kết quả */}
-          {entries.length === 0 && (
+          {selectedBook && !selectedBook.isImported && filteredEntries.length === 0 ? (
+            <Card className="p-8 sm:p-10 text-center bg-white border border-[#E2E8F0] space-y-4">
+              <div className="w-14 h-14 mx-auto rounded-full bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center border border-[#BFDBFE]">
+                <Layers className="w-7 h-7" />
+              </div>
+              <div className="space-y-1.5 max-w-md mx-auto">
+                <h3 className="text-lg font-bold text-[#0F172A]">
+                  Bộ thẻ &ldquo;{selectedBook.title}&rdquo; chưa được nạp vào sổ cá nhân
+                </h3>
+                <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
+                  Nạp bộ thẻ này ({selectedBook.totalCards} từ • {selectedBook.topicsCount} chủ điểm) để lưu danh sách từ, tra cứu IPA, nghe phát âm và bắt đầu lịch ôn tập ngắt quãng FSRS.
+                </p>
+              </div>
+              <div className="pt-2 flex items-center justify-center gap-3 flex-wrap">
+                <button
+                  type="button"
+                  disabled={importingDeckId === selectedBook.id}
+                  onClick={() =>
+                    handleStartBookOrTopicReview(
+                      selectedBook.id,
+                      selectedBook.notebookId,
+                      selectedBook.isImported,
+                      selectedTopicFilter || undefined
+                    )
+                  }
+                  className={buttonVariants({
+                    variant: "primary",
+                    size: "default",
+                    className: "min-h-[44px] px-5 text-sm font-bold cursor-pointer",
+                  })}
+                >
+                  {importingDeckId === selectedBook.id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Đang nạp {selectedBook.totalCards} từ vựng...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Nạp bộ thẻ &amp; Bắt đầu ôn tập ngay</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </Card>
+          ) : entries.length === 0 ? (
             <Card className="p-8 sm:p-12 text-center bg-white border border-[#E2E8F0] space-y-4">
               <div className="w-14 h-14 mx-auto rounded-full bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center">
                 <BookOpen className="w-7 h-7" />
@@ -2708,36 +2230,58 @@ export function VocabListView({
                   Bạn chưa có từ vựng nào trong sổ
                 </h3>
                 <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
-                  Mỗi khi gặp từ mới trong lúc giải đề, hãy bấm nút Lưu từ. Hệ thống sẽ tự động xếp lịch ôn ngắt quãng giúp bạn ghi nhớ tự nhiên và lâu dài.
+                  Hãy quay lại Kệ Sổ để nạp một bộ thẻ TOEIC chuẩn (ETS, Barron&apos;s 600 Words) hoặc lưu từ mới trực tiếp trong lúc giải đề.
                 </p>
               </div>
-              <div className="pt-2">
-                <Link href="/practice/new">
-                  <Button variant="primary" size="default">
-                    Bắt đầu làm bài luyện tập →
-                  </Button>
+              <div className="pt-2 flex items-center justify-center gap-3 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNavigationStep("books");
+                    setSelectedBookId(null);
+                  }}
+                  className={buttonVariants({
+                    variant: "primary",
+                    size: "default",
+                    className: "min-h-[44px] cursor-pointer",
+                  })}
+                >
+                  Chọn &amp; Nạp bộ thẻ trên Kệ Sổ →
+                </button>
+                <Link
+                  href="/practice/new"
+                  className={buttonVariants({
+                    variant: "secondary",
+                    size: "default",
+                    className: "min-h-[44px]",
+                  })}
+                >
+                  Làm bài luyện tập
                 </Link>
               </div>
             </Card>
-          )}
-
-          {entries.length > 0 && filteredEntries.length === 0 && (
-            <div className="p-8 text-center bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] text-sm text-[#475569] space-y-2">
-              <div>Không tìm thấy từ vựng nào khớp với từ khóa &ldquo;{searchQuery}&rdquo;.</div>
-              <button
-                type="button"
-                onClick={() => {
-                  handleSearchChange("");
-                  handleTabChange("all");
-                  handleNotebookFilter(null);
-                  handleTopicFilter(null);
-                  handlePosFilter("all");
-                }}
-                className="text-xs font-semibold text-[#2563EB] underline cursor-pointer"
-              >
-                Xóa bộ lọc
-              </button>
-            </div>
+          ) : (
+            filteredEntries.length === 0 && (
+              <div className="p-8 text-center bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] text-sm text-[#475569] space-y-2">
+                <div>
+                  Không tìm thấy từ vựng nào khớp với bộ lọc hiện tại
+                  {searchQuery ? ` ("${searchQuery}")` : ""}.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSearchChange("");
+                    handleTabChange("all");
+                    handleNotebookFilter(null);
+                    handleTopicFilter(null);
+                    handlePosFilter("all");
+                  }}
+                  className="text-xs font-semibold text-[#2563EB] underline cursor-pointer"
+                >
+                  Xóa bộ lọc
+                </button>
+              </div>
+            )
           )}
             </div>
           )}
@@ -2785,20 +2329,4 @@ export function VocabListView({
       />
     </div>
   );
-}
-
-/**
- * Thuật toán sinh danh sách số trang hiển thị thông minh kèm dấu lược (...)
- */
-function getPageNumbers(current: number, total: number): (number | "...")[] {
-  if (total <= 7) {
-    return Array.from({ length: total }, (_, i) => i + 1);
-  }
-  if (current <= 4) {
-    return [1, 2, 3, 4, 5, "...", total];
-  }
-  if (current >= total - 3) {
-    return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
-  }
-  return [1, "...", current - 1, current, current + 1, "...", total];
 }

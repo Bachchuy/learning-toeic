@@ -46,6 +46,7 @@ export interface DailyActivityItem {
 export interface DashboardSummaryResult {
   streakDays: number;
   dueCardsCount: number;
+  totalReviewCardsCount?: number;
   recommendedTopic: TopicMasteryItem | null;
   topAttentionTopics: TopicMasteryItem[];
   totalQuestionsAnswered: number;
@@ -72,7 +73,8 @@ export async function getSkillMasteryStatsAction(): Promise<SkillMasteryStatsRes
           .from("attempts")
           .select("tag_id, is_correct, answered_at")
           .eq("user_id", user.id)
-          .order("answered_at", { ascending: true })
+          .not("tag_id", "is", null)
+          .order("answered_at", { ascending: false })
           .limit(2000)
       : Promise.resolve({ data: null, error: null }),
   ]);
@@ -115,7 +117,8 @@ export async function getSkillMasteryStatsAction(): Promise<SkillMasteryStatsRes
     };
   }
 
-  const attempts = attemptsRes.data;
+  // Đảo ngược về thứ tự thời gian tăng dần (cũ -> mới) để calculateAdaptiveMastery(.slice(-20)) lấy đúng 20 lượt gần nhất (MD-03)
+  const attempts = attemptsRes.data ? [...attemptsRes.data].reverse() : null;
 
   // Nhóm attempts theo từng tag_id để áp dụng chuẩn cửa sổ trượt (D-25)
   const attemptsByTag: Record<number, AttemptRecord[]> = {};
@@ -267,19 +270,25 @@ export async function getUserStreakAction(): Promise<number> {
   const { user, supabase } = await getOptionalUser();
   if (!user) return 0;
 
+  const oneYearAgoIso = new Date(
+    Date.now() - 365 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
   const [attemptsRes, reviewsRes] = await Promise.all([
     supabase
       .from("attempts")
       .select("answered_at")
       .eq("user_id", user.id)
+      .gte("answered_at", oneYearAgoIso)
       .order("answered_at", { ascending: false })
-      .limit(500),
+      .limit(5000),
     supabase
       .from("card_reviews")
       .select("reviewed_at")
       .eq("user_id", user.id)
+      .gte("reviewed_at", oneYearAgoIso)
       .order("reviewed_at", { ascending: false })
-      .limit(500),
+      .limit(5000),
   ]);
 
   const activeDates = new Set<string>();
@@ -369,22 +378,35 @@ export async function getDashboardSummaryAction(): Promise<DashboardSummaryResul
   const nowIso = new Date().toISOString();
 
   // Tối ưu hóa: Chạy song song các tác vụ độc lập
-  const [masteryStats, recentActivity, dueCardsRes, streakDays, targetScore] =
-    await Promise.all([
-      getSkillMasteryStatsAction(),
-      getDailyActivityStatsAction(),
-      user
-        ? supabase
-            .from("review_cards")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", user.id)
-            .lte("due", nowIso)
-        : Promise.resolve({ count: 0 }),
-      getUserStreakAction(),
-      fetchUserTargetScore(),
-    ]);
+  const [
+    masteryStats,
+    recentActivity,
+    dueCardsRes,
+    totalReviewCardsRes,
+    streakDays,
+    targetScore,
+  ] = await Promise.all([
+    getSkillMasteryStatsAction(),
+    getDailyActivityStatsAction(),
+    user
+      ? supabase
+          .from("review_cards")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .lte("due", nowIso)
+      : Promise.resolve({ count: 0 }),
+    user
+      ? supabase
+          .from("review_cards")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+      : Promise.resolve({ count: 0 }),
+    getUserStreakAction(),
+    fetchUserTargetScore(),
+  ]);
 
   const dueCardsCount = dueCardsRes.count || 0;
+  const totalReviewCardsCount = totalReviewCardsRes.count || 0;
 
   // Top 3 chủ điểm cần chú ý (PD-08: mobile chỉ hiện Top 3)
   const topAttentionTopics: TopicMasteryItem[] = [];
@@ -417,6 +439,7 @@ export async function getDashboardSummaryAction(): Promise<DashboardSummaryResul
   return {
     streakDays,
     dueCardsCount,
+    totalReviewCardsCount,
     recommendedTopic: masteryStats.weakestTopic,
     topAttentionTopics,
     totalQuestionsAnswered: masteryStats.totalAttempts,

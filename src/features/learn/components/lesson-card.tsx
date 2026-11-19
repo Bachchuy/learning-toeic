@@ -1,8 +1,5 @@
 import Link from "next/link";
-import {
-  getLessonMicroSummary,
-  type GrammarLessonSummary,
-} from "@/core/grammarLessons";
+import type { GrammarLessonSummary } from "@/core/grammarLessons";
 import {
   AlertTriangle,
   ArrowRight,
@@ -26,7 +23,7 @@ export function LessonCard({
   const titleMatch = lesson.titleVi.match(/^(.*?)\s*\((.*?)\)$/);
   const mainTitle = titleMatch ? titleMatch[1] : lesson.titleVi;
   const englishTitle = titleMatch ? titleMatch[2] : null;
-  const microSummary = getLessonMicroSummary(lesson.tagCode);
+  const { microSummary } = lesson;
   const allSelfDone =
     microSummary.exerciseCount > 0 &&
     selfPracticeDone >= microSummary.exerciseCount;

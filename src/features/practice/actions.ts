@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getOptionalUser } from "@/shared/auth";
 import { formatGrammarTagName } from "@/core/grammarTags";
-import { parseExplanation } from "./schemas";
+import { parseExplanation, parseSessionReviewResponse } from "./schemas";
 import type {
   PracticeQuestion,
   SubmitAnswerResponse,
@@ -120,7 +120,12 @@ export async function getSessionReviewAction(
     return { error: error.message };
   }
 
-  return { data: data as SessionReviewResponse };
+  const parsed = parseSessionReviewResponse(data);
+  if (!parsed) {
+    return { error: "Dữ liệu tổng kết phiên không hợp lệ." };
+  }
+
+  return { data: parsed };
 }
 
 export type ValidEventName =
@@ -251,7 +256,7 @@ export async function getPracticeTopicsAction(): Promise<{
   }
 
   // 2. Lấy danh sách ID các câu hỏi mà người dùng đã làm đúng trong 7 ngày qua
-  let excludedQuestionIds: string[] = [];
+  const excludedQuestionIds = new Set<string>();
   if (user) {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const { data: recentAttempts } = await supabase
@@ -259,26 +264,43 @@ export async function getPracticeTopicsAction(): Promise<{
       .select("question_id")
       .eq("user_id", user.id)
       .eq("is_correct", true)
-      .gte("answered_at", sevenDaysAgo);
+      .gte("answered_at", sevenDaysAgo)
+      .limit(5000);
 
     if (recentAttempts) {
-      excludedQuestionIds = recentAttempts.map((a) => a.question_id);
+      for (const a of recentAttempts) {
+        excludedQuestionIds.add(a.question_id);
+      }
     }
   }
 
-  // 3. Lấy tất cả câu hỏi published
-  const { data: questions, error: qError } = await supabase
-    .from("questions")
-    .select("id, tag_id")
-    .eq("status", "published");
+  // 3. Lấy toàn bộ câu hỏi Part 5 độc lập (phân trang vượt trần 1000 dòng PostgREST)
+  const PAGE_SIZE = 1000;
+  const questions: Array<{ id: string; tag_id: number | null }> = [];
+  let from = 0;
 
-  if (qError || !questions) {
-    return { topics: [], allAvailableCount: 0, error: qError?.message };
+  while (true) {
+    const { data: chunk, error: qError } = await supabase
+      .from("questions")
+      .select("id, tag_id")
+      .eq("status", "published")
+      .eq("part", 5)
+      .is("passage_id", null)
+      .order("id", { ascending: true })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (qError || !chunk) {
+      return { topics: [], allAvailableCount: 0, error: qError?.message };
+    }
+
+    questions.push(...chunk);
+    if (chunk.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
   }
 
   // Lọc các câu chưa làm đúng trong 7 ngày
   const availableQuestions = questions.filter(
-    (q) => !excludedQuestionIds.includes(q.id)
+    (q) => !excludedQuestionIds.has(q.id)
   );
 
   const allAvailableCount = availableQuestions.length;

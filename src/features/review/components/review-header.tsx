@@ -118,25 +118,25 @@ export function ReviewHeader({
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Badge tiến độ: Thẻ hiện tại / Tổng số thẻ & Số thẻ đã thuộc */}
           <div className="text-right">
-            <div className="text-[11px] sm:text-xs font-mono font-bold text-slate-900 tracking-tight">
-              THẺ {Math.min(currentIndex + 1, totalCards || 1)} / {totalCards}
+            <div className="text-[11px] sm:text-xs font-mono font-bold text-[#0F172A] tracking-tight">
+              THẺ {totalCards > 0 ? Math.min(currentIndex + 1, totalCards) : 0} / {totalCards}
             </div>
-            <div className="text-[10px] font-mono text-slate-500 font-medium">
+            <div className="text-[10px] font-mono text-[#475569] font-medium">
               Đã thuộc: {completedCards}/{totalCards}
             </div>
           </div>
 
-          <div className="h-4 w-px bg-slate-200 mx-0.5 hidden sm:block" />
+          <div className="h-4 w-px bg-[#E2E8F0] mx-0.5 hidden sm:block" />
 
           {/* Nút Tùy chỉnh phiên ôn (Sổ / Chủ đề / Số thẻ) */}
           {onOpenSetup && (
             <button
               type="button"
               onClick={onOpenSetup}
-              className="px-3 py-1.5 rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition-colors cursor-pointer border border-slate-200 flex items-center gap-1.5 text-xs sm:text-sm font-medium shadow-2xs"
+              className="min-h-[40px] px-3 py-1.5 rounded-lg text-[#0F172A] bg-white hover:bg-[#F8FAFC] transition-colors cursor-pointer border border-[#E2E8F0] flex items-center gap-1.5 text-xs sm:text-sm font-medium shadow-2xs"
               title="Chia nhỏ / Tùy chỉnh phiên ôn"
             >
-              <SlidersHorizontal className="w-4 h-4 text-slate-500" />
+              <SlidersHorizontal className="w-4 h-4 text-[#475569]" />
               <span className="hidden lg:inline">Tùy chỉnh</span>
             </button>
           )}
@@ -145,7 +145,7 @@ export function ReviewHeader({
           <button
             type="button"
             onClick={onOpenShortcuts}
-            className="p-1.5 sm:p-2 rounded-lg text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 transition-colors cursor-pointer border border-slate-200 shadow-2xs"
+            className="min-h-[40px] min-w-[40px] p-2 rounded-lg text-[#475569] hover:text-[#0F172A] bg-white hover:bg-[#F8FAFC] transition-colors cursor-pointer border border-[#E2E8F0] shadow-2xs flex items-center justify-center"
             title="Phím tắt bàn phím"
           >
             <Keyboard className="w-4 h-4" />
@@ -155,7 +155,7 @@ export function ReviewHeader({
           <button
             type="button"
             onClick={onOpenSettings}
-            className="p-1.5 sm:p-2 rounded-lg text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 transition-colors cursor-pointer border border-slate-200 shadow-2xs"
+            className="min-h-[40px] min-w-[40px] p-2 rounded-lg text-[#475569] hover:text-[#0F172A] bg-white hover:bg-[#F8FAFC] transition-colors cursor-pointer border border-[#E2E8F0] shadow-2xs flex items-center justify-center"
             title="Cài đặt ôn tập"
           >
             <Settings className="w-4 h-4" />

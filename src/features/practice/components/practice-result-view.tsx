@@ -9,7 +9,7 @@ import { AdaptiveExplanation } from "./adaptive-explanation";
 import { AnswerOption } from "./answer-option";
 import { VocabSaveModal } from "@/features/vocab/components/vocab-save-modal";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   RotateCcw,
   Clock,
@@ -113,15 +113,25 @@ export function PracticeResultView({ review }: PracticeResultViewProps) {
         {/* Nút hành động chính khi hoàn hảo 10/10 (Ẩn Drill) */}
         {isPerfect && (
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <Link href="/practice/new" className="w-full sm:w-auto">
-              <Button variant="primary" size="cta" className="w-full sm:w-48">
-                Luyện phiên mới →
-              </Button>
+            <Link
+              href="/practice/new"
+              className={buttonVariants({
+                variant: "primary",
+                size: "cta",
+                className: "w-full sm:w-48",
+              })}
+            >
+              Luyện phiên mới →
             </Link>
-            <Link href="/" className="w-full sm:w-auto">
-              <Button variant="secondary" size="default" className="w-full sm:w-40">
-                Về Trang chủ
-              </Button>
+            <Link
+              href="/"
+              className={buttonVariants({
+                variant: "secondary",
+                size: "default",
+                className: "w-full sm:w-40",
+              })}
+            >
+              Về Trang chủ
             </Link>
           </div>
         )}
@@ -162,15 +172,17 @@ export function PracticeResultView({ review }: PracticeResultViewProps) {
       {/* Nút hành động phụ khi có câu sai */}
       {!isPerfect && (
         <div className="flex items-center justify-end gap-3 text-sm">
-          <Link href="/practice/new">
-            <Button variant="secondary" size="default">
-              Luyện thêm phiên mới
-            </Button>
+          <Link
+            href="/practice/new"
+            className={buttonVariants({ variant: "secondary", size: "default" })}
+          >
+            Luyện thêm phiên mới
           </Link>
-          <Link href="/">
-            <Button variant="ghost" size="default">
-              Về Trang chủ
-            </Button>
+          <Link
+            href="/"
+            className={buttonVariants({ variant: "ghost", size: "default" })}
+          >
+            Về Trang chủ
           </Link>
         </div>
       )}

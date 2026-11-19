@@ -20,6 +20,7 @@ import {
   Send,
   ArrowLeft,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 interface ReadingExamSimulatorProps {
@@ -36,6 +37,7 @@ export function ReadingExamSimulator({ examData }: ReadingExamSimulatorProps) {
   const [userAnswers, setUserAnswers] = useState<Record<string, number>>({});
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(() => new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [evaluation, setEvaluation] = useState<ExamReadingEvaluation | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
@@ -49,15 +51,27 @@ export function ReadingExamSimulator({ examData }: ReadingExamSimulatorProps) {
 
   // Tự động nộp khi hết 75 phút
   const handleAutoSubmit = useCallback(async () => {
+    setSubmitError(null);
     setIsSubmitting(true);
-    const res = await submitReadingExamAction({
-      examSetId,
-      userAnswers: latestAnswersRef.current,
-      timeSpentSeconds: durationMinutes * 60,
-    });
-    setIsSubmitting(false);
-    if (res.success && res.evaluation) {
-      setEvaluation(res.evaluation);
+    try {
+      const res = await submitReadingExamAction({
+        examSetId,
+        userAnswers: latestAnswersRef.current,
+        timeSpentSeconds: durationMinutes * 60,
+      });
+      if (res.success && res.evaluation) {
+        setEvaluation(res.evaluation);
+      } else {
+        setSubmitError(
+          res.error || "Không thể tự động nộp bài khi hết giờ. Vui lòng bấm Nộp bài để thử lại."
+        );
+      }
+    } catch {
+      setSubmitError(
+        "Lỗi kết nối máy chủ khi tự động nộp bài. Đáp án của bạn vẫn được giữ nguyên, vui lòng bấm Nộp bài."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   }, [examSetId, durationMinutes]);
 
@@ -93,24 +107,29 @@ export function ReadingExamSimulator({ examData }: ReadingExamSimulatorProps) {
 
   // Nộp bài thi
   const handleSubmitExam = async () => {
+    setSubmitError(null);
     setIsSubmitting(true);
     setShowSubmitModal(false);
 
     const timeSpent = durationMinutes * 60 - timeLeft;
 
-    const res = await submitReadingExamAction({
-      examSetId,
-      userAnswers,
-      timeSpentSeconds: timeSpent,
-    });
+    try {
+      const res = await submitReadingExamAction({
+        examSetId,
+        userAnswers,
+        timeSpentSeconds: timeSpent,
+      });
 
-    setIsSubmitting(false);
-
-    if (res.success && res.evaluation) {
-      setEvaluation(res.evaluation);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      alert(res.error || "Có lỗi xảy ra khi nộp bài thi. Vui lòng thử lại.");
+      if (res.success && res.evaluation) {
+        setEvaluation(res.evaluation);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        setSubmitError(res.error || "Có lỗi xảy ra khi nộp bài thi. Vui lòng thử lại.");
+      }
+    } catch {
+      setSubmitError("Lỗi kết nối máy chủ khi nộp bài thi. Đáp án của bạn vẫn được giữ nguyên.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -149,6 +168,7 @@ export function ReadingExamSimulator({ examData }: ReadingExamSimulatorProps) {
         examTitle={title}
         evaluation={evaluation}
         onRetake={() => {
+          setSubmitError(null);
           setEvaluation(null);
           setUserAnswers({});
           setFlaggedIds(new Set());
@@ -215,6 +235,19 @@ export function ReadingExamSimulator({ examData }: ReadingExamSimulatorProps) {
           </div>
         </div>
       </header>
+
+      {submitError && (
+        <div className="max-w-7xl mx-auto w-full px-4 pt-3">
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="p-3.5 rounded-xl bg-[#FFF1F2] border border-[#BE123C]/30 text-[#BE123C] text-sm flex items-start gap-2.5"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{submitError}</span>
+          </div>
+        </div>
+      )}
 
       {/* 2. MAIN EXAM BODY: Question Palette + Workspace */}
       <div className="max-w-7xl mx-auto w-full px-4 pt-4 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">

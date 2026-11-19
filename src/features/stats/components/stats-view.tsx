@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { SkillMasteryStatsResult, DailyActivityItem } from "../actions";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StreakFlame } from "@/components/ui/streak-flame";
 import {
@@ -53,16 +53,16 @@ export function StatsView({
           </h1>
         </div>
 
-        {/* Nút Primary duy nhất của màn hình: Luyện chủ điểm yếu nhất ngay */}
+        {/* Nút Primary duy nhất của màn hình */}
         {weakestTopic ? (
           <Link
-            href={`/practice/new?tagId=${weakestTopic.tagId}`}
-            className="shrink-0"
+            href={`/practice/new?topic=${encodeURIComponent(weakestTopic.tagCode)}&count=10`}
+            className={buttonVariants({ variant: "primary", size: "cta", className: "shrink-0 shadow-xs" })}
           >
-            <Button variant="primary" size="cta" className="shadow-xs">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Luyện chủ điểm yếu nhất ngay →
-            </Button>
+            <TrendingUp className="w-4 h-4" />
+            {isNewLearner
+              ? "Làm bài chẩn đoán đầu tiên (10 câu) →"
+              : "Luyện chủ điểm yếu nhất ngay →"}
           </Link>
         ) : (
           <div className="text-[13px] font-mono text-[#64748B]">
@@ -182,14 +182,12 @@ export function StatsView({
                   </p>
 
                   <div className="pt-2">
-                    <Link href={`/practice/new?tagId=${weakestTopic.tagId}`}>
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors cursor-pointer group"
-                      >
-                        <span>Luyện 10 câu cho chủ điểm này</span>
-                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                      </button>
+                    <Link
+                      href={`/practice/new?topic=${encodeURIComponent(weakestTopic.tagCode)}&count=10`}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors group"
+                    >
+                      <span>Luyện 10 câu cho chủ điểm này</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                   </div>
                 </div>
@@ -197,43 +195,43 @@ export function StatsView({
             </Card>
           ) : null}
 
-          {/* B. Biểu đồ 14 ngày (SVG thuần túy, WCAG AA, có bảng sr-only) */}
+          {/* B. Biểu đồ 14 ngày (SVG thuần túy, WCAG AA, có bảng sr-only, Chuẩn Precision Swiss Tokens) */}
           <Card className="p-5 sm:p-6 bg-white border border-[#E2E8F0] shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3 flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <StreakFlame
                   streak={streakDays}
                   size="sm"
                   isLitToday={dailyActivity.find((d) => d.isToday)?.count ? true : false}
-                  animate={true}
+                  animate={false}
                 />
                 <h3 className="text-sm font-bold text-[#0F172A]">
                   Tần suất luyện tập 14 ngày gần nhất
                 </h3>
                 {streakDays > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 text-orange-700 text-xs font-mono font-bold shadow-xs">
-                    <span className="text-xs leading-none" aria-hidden="true">🔥</span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] text-xs font-mono font-bold">
                     <span>Chuỗi {streakDays} ngày</span>
                   </span>
                 )}
               </div>
-              <span className="text-[11px] text-[#64748B] font-mono">
+              <span className="text-[11px] text-[#475569] font-mono">
                 Số câu / ngày
               </span>
             </div>
 
             {isNewLearner ? (
               <div className="py-8 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-[#F1F5F9] text-[#475569] mx-auto flex items-center justify-center">
                   <Calendar className="w-6 h-6" />
                 </div>
-                <p className="text-xs text-[#64748B] max-w-xs mx-auto leading-relaxed">
+                <p className="text-xs text-[#475569] max-w-xs mx-auto leading-relaxed">
                   Chưa ghi nhận hoạt động nào. Hãy hoàn thành phiên làm bài đầu tiên để xem biểu đồ tần suất học tập của bạn!
                 </p>
-                <Link href="/practice/new">
-                  <Button variant="secondary" size="sm">
-                    Khởi tạo phiên ngay
-                  </Button>
+                <Link
+                  href="/practice/new"
+                  className={buttonVariants({ variant: "secondary", size: "sm" })}
+                >
+                  Khởi tạo phiên ngay
                 </Link>
               </div>
             ) : (
@@ -244,20 +242,6 @@ export function StatsView({
                     viewBox="0 0 420 135"
                     className="w-full h-34 sm:h-38 overflow-hidden"
                   >
-                    <defs>
-                      {/* Gradient Lửa Duolingo cho các cột có bài làm */}
-                      <linearGradient id="barStreakFlame" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#FF4500" />
-                        <stop offset="40%" stopColor="#FF7A00" />
-                        <stop offset="100%" stopColor="#FFA000" />
-                      </linearGradient>
-
-                      {/* Đổ bóng ấm áp cho cột streak */}
-                      <filter id="barFlameGlow" x="-20%" y="-15%" width="140%" height="130%">
-                        <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#FF5722" floodOpacity="0.35" />
-                      </filter>
-                    </defs>
-
                     {/* Đường lưới nền mờ */}
                     <line
                       x1="0"
@@ -283,7 +267,7 @@ export function StatsView({
                       stroke="#E2E8F0"
                     />
 
-                    {/* Các cột dữ liệu 14 ngày */}
+                    {/* Các cột dữ liệu 14 ngày (Precision Swiss #2563EB) */}
                     {dailyActivity.map((day, idx) => {
                       const colWidth = 18;
                       const gap = 12;
@@ -307,9 +291,8 @@ export function StatsView({
                               width={colWidth}
                               height={barHeight}
                               rx="4"
-                              fill="url(#barStreakFlame)"
-                              filter="url(#barFlameGlow)"
-                              className="transition-all duration-300 group-hover:brightness-110"
+                              fill={isCurrentDay ? "#1D4ED8" : "#2563EB"}
+                              className="transition-all duration-300 group-hover:opacity-90"
                             />
                           ) : (
                             <rect
@@ -318,30 +301,20 @@ export function StatsView({
                               width={colWidth}
                               height={2}
                               rx="1"
-                              className={isCurrentDay ? "fill-blue-400" : "fill-slate-200"}
+                              fill={isCurrentDay ? "#2563EB" : "#E2E8F0"}
                             />
                           )}
 
-                          {/* Ngọn lửa mini Duolingo và số câu trên đỉnh cột */}
+                          {/* Số câu trên đỉnh cột */}
                           {hasActivity && (
-                            <>
-                              <text
-                                x={x + colWidth / 2}
-                                y={Math.max(13, y - 13)}
-                                textAnchor="middle"
-                                className="text-[11px] select-none"
-                              >
-                                🔥
-                              </text>
-                              <text
-                                x={x + colWidth / 2}
-                                y={Math.max(23, y - 3)}
-                                textAnchor="middle"
-                                className="text-[10px] font-mono font-black fill-[#C2410C]"
-                              >
-                                {day.count}
-                              </text>
-                            </>
+                            <text
+                              x={x + colWidth / 2}
+                              y={Math.max(16, y - 5)}
+                              textAnchor="middle"
+                              className="text-[10px] font-mono font-bold fill-[#2563EB]"
+                            >
+                              {day.count}
+                            </text>
                           )}
 
                           {/* Nhãn ngày bên dưới */}
@@ -353,8 +326,8 @@ export function StatsView({
                               isCurrentDay
                                 ? "font-bold fill-[#2563EB]"
                                 : hasActivity
-                                ? "font-bold fill-orange-700"
-                                : "fill-[#64748B]"
+                                  ? "font-bold fill-[#0F172A]"
+                                  : "fill-[#475569]"
                             }`}
                           >
                             {day.dayLabel === "Hôm nay" ? "Nay" : day.dayLabel}
@@ -495,16 +468,11 @@ export function StatsView({
 
                         {/* Nút Luyện sang /practice/new */}
                         <Link
-                          href={`/practice/new?tagId=${topic.tagId}`}
-                          className="shrink-0"
+                          href={`/practice/new?topic=${encodeURIComponent(topic.tagCode)}`}
+                          className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-[#EFF6FF] text-[#0F172A] hover:text-[#2563EB] transition-colors"
                         >
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-[#EFF6FF] text-[#0F172A] hover:text-[#2563EB] transition-colors cursor-pointer"
-                          >
-                            <span>Luyện</span>
-                            <ArrowRight className="w-3 h-3" />
-                          </button>
+                          <span>Luyện</span>
+                          <ArrowRight className="w-3 h-3" />
                         </Link>
                       </div>
 
@@ -574,15 +542,10 @@ export function StatsView({
                       </div>
 
                       <Link
-                        href={`/practice/new?tagId=${topic.tagId}`}
-                        className="shrink-0"
+                        href={`/practice/new?topic=${encodeURIComponent(topic.tagCode)}`}
+                        className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-700 bg-white border border-[#8190A6]/40 hover:border-[#2563EB] hover:text-[#2563EB] transition-colors"
                       >
-                        <button
-                          type="button"
-                          className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-700 bg-white border border-[#8190A6]/40 hover:border-[#2563EB] hover:text-[#2563EB] transition-colors cursor-pointer"
-                        >
-                          Luyện +
-                        </button>
+                        Luyện +
                       </Link>
                     </div>
                   );

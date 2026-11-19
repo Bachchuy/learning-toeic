@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { logoutAction } from "@/features/auth/actions";
 import { updateProfileAction, exportUserDataAction, deleteAccountAction } from "../actions";
 import type { UserProfileData } from "../types";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -43,6 +43,17 @@ export function ProfileView({ initialProfile }: ProfileViewProps) {
   const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
   const [isDeleting, startDeleteTransition] = useTransition();
   const [deleteErrorMsg, setDeleteErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isDeleteModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isDeleting) {
+        setIsDeleteModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isDeleteModalOpen, isDeleting]);
 
   // Kiểm tra điểm mục tiêu hợp lệ tại client
   const targetScoreNum = parseInt(targetScore.trim(), 10);
@@ -253,15 +264,15 @@ export function ProfileView({ initialProfile }: ProfileViewProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/admin/review">
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full border-[#2563EB] text-[#2563EB] hover:bg-[#EFF6FF] flex items-center justify-center gap-2"
-              >
-                <Shield className="w-4 h-4" />
-                Mở Hàng đợi duyệt đề (/admin/review)
-              </Button>
+            <Link
+              href="/admin/review"
+              className={buttonVariants({
+                variant: "secondary",
+                className: "w-full border-[#2563EB] text-[#2563EB] hover:bg-[#EFF6FF] gap-2",
+              })}
+            >
+              <Shield className="w-4 h-4" />
+              Mở Hàng đợi duyệt đề (/admin/review)
             </Link>
           </CardContent>
         </Card>
@@ -381,8 +392,9 @@ export function ProfileView({ initialProfile }: ProfileViewProps) {
               </div>
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="text-[#475569] hover:text-[#0F172A] p-1 rounded-md"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-[#475569] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-lg transition-colors cursor-pointer"
                 aria-label="Đóng"
               >
                 <X className="w-5 h-5" />
@@ -404,7 +416,7 @@ export function ProfileView({ initialProfile }: ProfileViewProps) {
               </li>
               <li className="flex items-center gap-1.5">
                 <span className="text-[#BE123C] font-bold">•</span>
-                Lịch sử làm bài và thống kê độ vững Wilson
+                Lịch sử làm bài và thống kê độ vững kỹ năng
               </li>
             </ul>
 

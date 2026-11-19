@@ -48,5 +48,35 @@ describe("Milestone A1: Reading Passages Grading & RLS Compliance Audit", () => 
       const actionContent = fs.readFileSync(readingActionsPath, "utf-8");
       expect(actionContent).not.toContain(".then(() => {})");
     });
+
+    it("fail-closed khi parse RPC submit_passage_answers (không fallback success ?? true)", () => {
+      const actionContent = fs.readFileSync(readingActionsPath, "utf-8");
+      expect(actionContent).toContain("parsePassageSubmitResult");
+      expect(actionContent).not.toContain("?? true");
+    });
+
+    it("migration Batch 1 xóa overload 2 tham số cũ submit_passage_answers(UUID, JSONB)", () => {
+      const batch1Sql = fs.readFileSync(
+        path.join(migrationsDir, "20261119000001_p0_rpc_and_rls_hardening.sql"),
+        "utf-8"
+      );
+      expect(batch1Sql).toMatch(
+        /DROP\s+FUNCTION\s+IF\s+EXISTS\s+public\.submit_passage_answers\s*\(\s*UUID\s*,\s*JSONB\s*\)/i
+      );
+    });
+  });
+
+  describe("3. Reading UI Part 6 & Part 7 Error Handling", () => {
+    it("part6-view và part7-view kiểm tra res.success trước khi lưu kết quả và hiển thị role=alert khi lỗi", () => {
+      for (const relPath of [
+        "src/features/reading/components/part6-view.tsx",
+        "src/features/reading/components/part7-view.tsx",
+      ]) {
+        const uiContent = fs.readFileSync(path.resolve(process.cwd(), relPath), "utf-8");
+        expect(uiContent).toContain("if (!res.success)");
+        expect(uiContent).toContain('role="alert"');
+        expect(uiContent).toContain("submitResult.total > 0 && submitResult.score === submitResult.total");
+      }
+    });
   });
 });

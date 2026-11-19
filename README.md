@@ -136,6 +136,9 @@ Mở trình duyệt tại [http://localhost:3000](http://localhost:3000).
 
 ## 🛡️ Hệ Thống Kiểm Thử & Chất Lượng (Quality Gates)
 
+> **Cảnh báo an toàn DB (trước khi hoàn tất Batch 0 trong [docs/RECOVERY_PLAN.md](docs/RECOVERY_PLAN.md)):** Nếu `.env.local` đang trỏ tới Supabase production, **không chạy `npm run test` hoặc `npm run test:e2e` trực tiếp** vì `tests/remediation-integration.test.ts` và E2E có thao tác ghi DB. Dùng bộ test offline an toàn bên dưới cho đến khi Batch 0 hoàn tất.  
+> **Ngữ cảnh cho AI/Dev mới:** Đọc [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) → [docs/RECOVERY_PLAN.md](docs/RECOVERY_PLAN.md) → [docs/INDEX.md](docs/INDEX.md).
+
 Dự án áp dụng quy chuẩn kiểm thử nghiêm ngặt trước khi triển khai:
 
 ```bash
@@ -145,11 +148,12 @@ npm run lint
 # 2. Kiểm tra kiểu tĩnh nghiêm ngặt (TypeScript Strict Mode)
 npm run typecheck
 
-# 3. Chạy 146 unit & integration tests (Vitest)
-npm run test
+# 3. Chạy bộ unit & static tests offline an toàn (trước khi hoàn tất Batch 0)
+npx vitest run --exclude tests/remediation-integration.test.ts
 
-# 4. Kiểm thử giao diện và luồng người dùng E2E (Playwright)
-npm run test:e2e
+# 4. Chạy toàn bộ Vitest / E2E Playwright (CHỈ chạy trên Supabase staging/local tách biệt)
+# npm run test
+# npm run test:e2e
 
 # 5. Kiểm tra build sản phẩm (Turbopack Production Build)
 npm run build
@@ -163,8 +167,10 @@ npm run build
 learning-toeic/
 ├── .github/workflows/
 │   └── ci.yml                  # Tự động hóa kiểm thử Typecheck & Vitest
-├── docs/                       # Master Blueprint, ADR và tài liệu thiết kế kỹ thuật
-│   ├── INDEX.md                # Bản đồ điều hướng tài liệu (đọc đầu tiên)
+├── PROJECT_CONTEXT.md          # Layer 1: Điểm vào ngữ cảnh ngắn cho AI & Developer
+├── docs/                       # Master Blueprint, ADR, Recovery Plan và đặc tả kỹ thuật
+│   ├── RECOVERY_PLAN.md        # Layer 2: Kế hoạch phục hồi đã duyệt (Batch 0 → Batch 8)
+│   ├── INDEX.md                # Layer 3: Bản đồ điều hướng tài liệu chi tiết
 │   ├── 01-vision-users-scope.md# Tầm nhìn sản phẩm, User Stories & Ràng buộc
 │   ├── 04-business-rules.md    # Đặc tả nghiệp vụ toán học FSRS & Wilson Score
 │   ├── 05-design/              # Design tokens, components & responsive specs
@@ -188,7 +194,7 @@ learning-toeic/
 │   ├── core/                   # Pure Domain Logic (ts-fsrs, Wilson, Practice Reducer)
 │   ├── features/               # Module hóa theo tính năng (Practice, Vocab, Review, Exam, Admin)
 │   └── lib/                    # Supabase client/server helper & utility functions
-├── supabase/migrations/        # 17 migrations Postgres, RLS policies & RPC functions
+├── supabase/migrations/        # 24 migrations Postgres, RLS policies & RPC functions
 └── tests/                      # Bộ kiểm thử tích hợp, bảo mật RLS và khả năng tiếp cận WCAG
 ```
 

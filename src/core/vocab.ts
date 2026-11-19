@@ -1253,3 +1253,18 @@ export function generateNaturalExplanation(
       return `Từ vựng mang nghĩa "${cleanMeaning}", phổ biến trong môi trường làm việc chuyên nghiệp.`;
   }
 }
+
+/**
+ * Làm sạch chuỗi tìm kiếm trước khi đưa vào bộ lọc PostgREST `.or()` / `.ilike()`.
+ * Loại bỏ các ký tự điều khiển biểu thức PostgREST (`,`, `(`, `)`, `"`, `'`, `\`, `*`)
+ * và ký tự đại diện LIKE (`%`, `_`) để tránh chèn điều kiện lọc ngoài ý muốn.
+ */
+export function sanitizePostgrestSearch(raw: string): string {
+  if (!raw || typeof raw !== "string") return "";
+  return raw
+    .trim()
+    .slice(0, 100)
+    .replace(/[(),.*"'\\%_]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}

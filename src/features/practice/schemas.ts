@@ -1,5 +1,11 @@
 import { z } from "zod";
-import type { QuestionExplanation } from "./types";
+import { formatGrammarTagName } from "@/core/grammarTags";
+import type {
+  OptionExplanation,
+  QuestionExplanation,
+  SessionReviewItem,
+  SessionReviewResponse,
+} from "./types";
 
 /**
  * Zod Schema cho dữ liệu giải thích câu hỏi (Question Explanation)
@@ -93,6 +99,33 @@ export function parseExplanation(raw: unknown): QuestionExplanation {
     whyCorrect = "Phương án này tạo nên cấu trúc ngữ pháp chuẩn xác và truyền đạt đúng ý nghĩa trong ngữ cảnh câu.";
   }
 
+  // Chuẩn hóa why_wrong_vi (hỗ trợ cả mảng OptionExplanation[] lẫn object Record<"A".."D", string> legacy)
+  let normalizedWhyWrong: OptionExplanation[] | undefined = undefined;
+  const rawWhyWrong = (raw as Record<string, unknown>).why_wrong_vi;
+  if (Array.isArray(rawWhyWrong)) {
+    const validItems: OptionExplanation[] = [];
+    for (const item of rawWhyWrong) {
+      const parsedItem = OptionExplanationSchema.safeParse(item);
+      if (parsedItem.success && parsedItem.data.reason_vi.trim().length > 0) {
+        validItems.push(parsedItem.data);
+      }
+    }
+    if (validItems.length > 0) {
+      normalizedWhyWrong = validItems;
+    }
+  } else if (rawWhyWrong && typeof rawWhyWrong === "object") {
+    const validItems: OptionExplanation[] = [];
+    for (const key of ["A", "B", "C", "D"] as const) {
+      const val = (rawWhyWrong as Record<string, unknown>)[key];
+      if (typeof val === "string" && val.trim().length > 0) {
+        validItems.push({ option: key, reason_vi: val });
+      }
+    }
+    if (validItems.length > 0) {
+      normalizedWhyWrong = validItems;
+    }
+  }
+
   return {
     rule_vi:
       typeof data.rule_vi === "string" && data.rule_vi.trim().length > 0
@@ -105,10 +138,79 @@ export function parseExplanation(raw: unknown): QuestionExplanation {
     full_translation_vi:
       typeof data.full_translation_vi === "string" ? data.full_translation_vi : undefined,
     options_analysis: cleanedOptionsAnalysis,
+    why_wrong_vi: normalizedWhyWrong,
     tip_vi: typeof data.tip_vi === "string" ? data.tip_vi : undefined,
     example_en: typeof data.example_en === "string" ? data.example_en : undefined,
     vocab_hints: Array.isArray(data.vocab_hints)
       ? (data.vocab_hints as Array<{ word: string; meaning_vi: string }>)
       : undefined,
+  };
+}
+
+export const SessionReviewItemSchema = z.object({
+  question_id: z.string().min(1),
+  order_index: z.number().int(),
+  stem: z.string(),
+  option_a: z.string(),
+  option_b: z.string(),
+  option_c: z.string(),
+  option_d: z.string(),
+  tag_name_vi: z.string().optional().nullable(),
+  selected_index: z.number().int().nullable(),
+  correct_index: z.number().int(),
+  is_correct: z.boolean().nullable(),
+  explanation: z.unknown().optional(),
+});
+
+export const SessionReviewResponseSchema = z.object({
+  session_id: z.string().min(1),
+  total_questions: z.number().int().nonnegative(),
+  completed_at: z.string().nullable(),
+  created_at: z.string().min(1),
+  correct_count: z.number().int().nonnegative(),
+  attempts: z.array(SessionReviewItemSchema),
+});
+
+/**
+ * Runtime contract guard for get_session_review RPC.
+ * Rejects malformed/legacy array payloads instead of casting blindly.
+ */
+export function parseSessionReviewResponse(
+  raw: unknown
+): SessionReviewResponse | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return null;
+  }
+
+  const parsed = SessionReviewResponseSchema.safeParse(raw);
+  if (!parsed.success) {
+    return null;
+  }
+
+  const attempts: SessionReviewItem[] = parsed.data.attempts.map((item) => ({
+    question_id: item.question_id,
+    order_index: item.order_index,
+    stem: item.stem,
+    option_a: item.option_a,
+    option_b: item.option_b,
+    option_c: item.option_c,
+    option_d: item.option_d,
+    tag_name_vi: formatGrammarTagName(
+      "",
+      item.tag_name_vi || "Ngữ pháp tổng hợp"
+    ),
+    selected_index: item.selected_index,
+    correct_index: item.correct_index,
+    is_correct: item.is_correct,
+    explanation: parseExplanation(item.explanation),
+  }));
+
+  return {
+    session_id: parsed.data.session_id,
+    total_questions: parsed.data.total_questions,
+    completed_at: parsed.data.completed_at,
+    created_at: parsed.data.created_at,
+    correct_count: parsed.data.correct_count,
+    attempts,
   };
 }

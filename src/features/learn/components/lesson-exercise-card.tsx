@@ -7,7 +7,7 @@ import {
   type LessonFillBlankExercise,
   type LessonMcqExercise,
   type LessonPracticeExercise,
-} from "@/core/lessonExercises";
+} from "@/core/lessonExerciseUtils";
 import type { StoredExerciseAttempt } from "@/features/learn/lib/learn-progress-storage";
 import {
   CheckCircle2,

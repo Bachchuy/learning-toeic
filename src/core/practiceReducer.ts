@@ -47,13 +47,17 @@ export function practiceReducer(
       }
       return {
         ...state,
+        status: "answering",
         selectedIndex: action.payload.index,
         errorMessage: null,
       };
     }
 
     case "START_SUBMIT": {
-      if (state.selectedIndex === null || state.status !== "answering") {
+      if (
+        state.selectedIndex === null ||
+        (state.status !== "answering" && state.status !== "error")
+      ) {
         return state;
       }
       return {

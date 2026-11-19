@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   normalizeWord,
+  normalizeTtsWord,
   selectBestUsAudioUrl,
   selectBestAudioForPos,
   validateSafeAudioUrl,
@@ -8,6 +9,7 @@ import {
   parseFreeDictEntries,
   CURATED_TOEIC_TERMS,
 } from "./dictionary";
+import { CURATED_DECKS } from "@/data/curated-decks";
 
 describe("Smart Dictionary Core Service", () => {
   describe("1. Chuẩn hóa từ khóa (normalizeWord)", () => {
@@ -121,6 +123,33 @@ describe("Smart Dictionary Core Service", () => {
       expect(validateSafeAudioUrl("data:text/html,<script>alert(1)</script>")).toBe("");
       expect(validateSafeAudioUrl(null)).toBe("");
       expect(validateSafeAudioUrl("")).toBe("");
+      expect(validateSafeAudioUrl("https://evil.example/payload.mp3")).toBe("");
+    });
+
+    it("chấp nhận audio.tflat.vn và bảo toàn 100% URL âm thanh hợp lệ trong curated decks (MD-04)", () => {
+      expect(
+        validateSafeAudioUrl("https://audio.tflat.vn/audio/example.mp3")
+      ).toBe("https://audio.tflat.vn/audio/example.mp3");
+
+      let checkedUrls = 0;
+      for (const deck of CURATED_DECKS) {
+        for (const item of deck.items) {
+          if (item.audio_url) {
+            checkedUrls++;
+            expect(validateSafeAudioUrl(item.audio_url)).toBe(item.audio_url.trim());
+          }
+        }
+      }
+      expect(checkedUrls).toBeGreaterThan(0);
+    });
+
+    it("normalizeTtsWord giữ nguyên tiền tố 't'/'o' hợp lệ và chỉ bỏ 'to ' (RC-07)", () => {
+      expect(normalizeTtsWord("office")).toBe("office");
+      expect(normalizeTtsWord("order")).toBe("order");
+      expect(normalizeTtsWord("total")).toBe("total");
+      expect(normalizeTtsWord("toeic")).toBe("toeic");
+      expect(normalizeTtsWord("to offer")).toBe("offer");
+      expect(normalizeTtsWord("TO   contract")).toBe("contract");
     });
   });
 

@@ -88,11 +88,11 @@ export function BrandLogo({
     <div
       className={`inline-flex items-center justify-center select-none ${className}`}
       role="img"
-      aria-label="Tôi Em Íc — Học TOEIC Dễ Dàng"
+      aria-label="Tôi Yêu Em Íc — Học TOEIC Dễ Dàng"
     >
       <Image
         src={src}
-        alt="Tôi Em Íc — Học TOEIC Dễ Dàng"
+        alt="Tôi Yêu Em Íc — Học TOEIC Dễ Dàng"
         width={width}
         height={height}
         priority={priority}
@@ -107,7 +107,7 @@ export function BrandLogo({
       <Link
         href={href}
         className="inline-flex items-center focus-visible:outline-2 focus-visible:outline-[var(--color-primary-default)] rounded-md transition-opacity hover:opacity-90"
-        aria-label="Về trang chủ Tôi Em Íc"
+        aria-label="Về trang chủ Tôi Yêu Em Íc"
       >
         {content}
       </Link>

@@ -18,6 +18,7 @@ export function Part6View({ passage }: Part6ViewProps) {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
   const [submitResult, setSubmitResult] = useState<PassageSubmitResult | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const questions = passage.questions;
@@ -44,15 +45,29 @@ export function Part6View({ passage }: Part6ViewProps) {
       selectedIndex: selectedAnswers[q.id] ?? -1,
     }));
 
+    setSubmitError(null);
     startTransition(async () => {
-      const res = await submitPassageAnswersAction(passage.id, payload);
-      setSubmitResult(res);
+      try {
+        const res = await submitPassageAnswersAction(passage.id, payload);
+        if (!res.success) {
+          setSubmitError(
+            res.message || "Không thể chấm điểm bài đọc lúc này. Vui lòng thử lại."
+          );
+          return;
+        }
+        setSubmitResult(res);
+      } catch {
+        setSubmitError(
+          "Lỗi kết nối máy chủ khi nộp bài. Đáp án của bạn vẫn được giữ nguyên, vui lòng thử lại."
+        );
+      }
     });
   };
 
   const handleReset = () => {
     setSelectedAnswers({});
     setSubmitResult(null);
+    setSubmitError(null);
     setActiveQuestionIndex(0);
   };
 
@@ -94,12 +109,23 @@ export function Part6View({ passage }: Part6ViewProps) {
         </div>
       </div>
 
+      {submitError && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="p-4 rounded-xl bg-[#FFF1F2] border border-[#BE123C]/30 text-[#BE123C] flex items-start gap-2.5 text-sm"
+        >
+          <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>{submitError}</span>
+        </div>
+      )}
+
       {/* Kết quả sau khi nộp bài */}
-      {submitResult && (
+      {submitResult && submitResult.success && (
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between gap-4 animate-in zoom-in-95">
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg ${
-              submitResult.score === submitResult.total
+              submitResult.total > 0 && submitResult.score === submitResult.total
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                 : "bg-blue-50 text-blue-700 border border-blue-200"
             }`}>
@@ -107,7 +133,7 @@ export function Part6View({ passage }: Part6ViewProps) {
             </div>
             <div>
               <div className="text-sm font-bold text-slate-900">
-                {submitResult.score === submitResult.total
+                {submitResult.total > 0 && submitResult.score === submitResult.total
                   ? "Xuất sắc! Bạn làm đúng toàn bộ 4 câu đục lỗ"
                   : `Kết quả: ${submitResult.score} / ${submitResult.total} câu chính xác`}
               </div>

@@ -96,6 +96,7 @@ export interface UserExportPayload {
     totalVocab: number;
     totalAttempts: number;
     totalCards: number;
+    totalCardReviews?: number;
   };
   vocabList: Array<{
     word: string;
@@ -112,6 +113,15 @@ export interface UserExportPayload {
     due: string;
     reps: number;
     lapses: number;
+  }>;
+  cardReviews?: Array<{
+    id: string;
+    cardId: string;
+    rating: number;
+    stateBefore: number;
+    stabilityBefore: number;
+    difficultyBefore: number;
+    reviewedAt: string;
   }>;
   recentAttempts: Array<{
     questionId: string;

@@ -7,7 +7,7 @@ import type { FeedbackStatus } from "@/features/feedback/schemas";
 import type { AdminInsightsData, UserFeedbackItem } from "@/features/feedback/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   ArrowLeft,
   BarChart3,
@@ -104,11 +104,9 @@ export function AdminInsightsView({ initialData }: AdminInsightsViewProps) {
           </h1>
         </div>
 
-        <Link href="/admin/review">
-          <Button variant="secondary" className="gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#2563EB]" aria-hidden="true" />
-            <span>Hàng đợi duyệt đề ({initialData.content.needsReviewCount})</span>
-          </Button>
+        <Link href="/admin/review" className={buttonVariants({ variant: "secondary", className: "gap-2" })}>
+          <ShieldCheck className="w-4 h-4 text-[#2563EB]" aria-hidden="true" />
+          <span>Hàng đợi duyệt đề ({initialData.content.needsReviewCount})</span>
         </Link>
       </div>
 

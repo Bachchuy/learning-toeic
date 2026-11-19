@@ -146,12 +146,15 @@ export function AppNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
-  // Ẩn Navigation hoàn toàn ở màn hình Focus làm bài: /practice/[id] (trừ /practice/new), /exam/[slug] (trừ /exam), /review, và màn hình Auth (/login)
+  // Ẩn Navigation hoàn toàn ở màn hình Focus làm bài: /practice/[id] (trừ /practice/new), /exam/[slug] (trừ /exam), /review, /login, /reset-password và trang pháp lý công khai
   const isFocusScreen =
     (pathname.startsWith("/practice/") && pathname !== "/practice/new") ||
     (pathname.startsWith("/exam/") && pathname !== "/exam") ||
     pathname === "/review" ||
-    pathname === "/login";
+    pathname === "/login" ||
+    pathname === "/reset-password" ||
+    pathname === "/terms" ||
+    pathname === "/privacy";
 
   if (isFocusScreen) {
     return (
@@ -212,8 +215,21 @@ export function AppNav({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
 
-        {/* Bottom App Info + Feedback Trigger */}
-        <div className="space-y-3 shrink-0">
+        {/* Bottom App Info + Feedback Trigger (pb-11 tránh đè lên floating badge góc trái dưới) */}
+        <div className="space-y-3 shrink-0 pb-11">
+          <div className="pb-3 border-b border-[#E2E8F0] px-2 text-xs text-[#475569] flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Link href="/terms" className="hover:text-[#0F172A] hover:underline">
+                Điều khoản
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link href="/privacy" className="hover:text-[#0F172A] hover:underline">
+                Bảo mật
+              </Link>
+            </div>
+            <span className="text-[11px] font-mono text-[#475569]">ETS 2026</span>
+          </div>
+
           <button
             type="button"
             onClick={() => setIsFeedbackOpen(true)}
@@ -222,16 +238,11 @@ export function AppNav({ children }: { children: React.ReactNode }) {
             <MessageSquarePlus className="w-4 h-4 text-[#475569]" aria-hidden="true" />
             <span>Góp ý &amp; Báo lỗi</span>
           </button>
-
-          <div className="pt-4 border-t border-[#E2E8F0] px-2 text-xs text-[#475569] flex items-center justify-between">
-            <span className="font-medium text-slate-500">Học tập thông minh</span>
-            <span className="text-[11px] text-slate-400">ETS 2026</span>
-          </div>
         </div>
       </aside>
 
       {/* Mobile Top Header (h-13 / 52px) - chỉ hiện trên mobile (<768px) */}
-      <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] px-4 h-13 flex items-center justify-between shrink-0">
+      <header className="md:hidden sticky top-0 z-30 bg-white border-b border-[#E2E8F0] px-4 h-13 flex items-center justify-between shrink-0">
         <BrandLogo variant="horizontal" size="xs" href="/" priority />
         <button
           type="button"
@@ -257,7 +268,7 @@ export function AppNav({ children }: { children: React.ReactNode }) {
           ======================================================== */}
       <nav
         aria-label="Điều hướng di động"
-        className="md:hidden fixed bottom-0 left-0 right-0 h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] bg-white border-t border-[#E2E8F0] flex items-center justify-around z-40 px-2 shadow-sm"
+        className="md:hidden fixed bottom-0 left-0 right-0 h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] bg-white border-t border-[#E2E8F0] grid grid-cols-6 items-center z-40 px-1 shadow-sm"
       >
         {NAV_ITEMS.map((item) => {
           const active =
@@ -271,14 +282,14 @@ export function AppNav({ children }: { children: React.ReactNode }) {
               href={item.href}
               prefetch={true}
               aria-current={active ? "page" : undefined}
-              className={`flex flex-col items-center justify-center min-w-[64px] h-full py-1 text-[11px] font-medium transition-colors ${
+              className={`flex flex-col items-center justify-center min-w-0 w-full h-full py-1 text-[11px] font-medium transition-colors ${
                 active ? "text-[#2563EB] font-semibold" : "text-[#475569]"
               }`}
             >
               <div className="flex items-center justify-center h-6">
                 {item.icon(active)}
               </div>
-              <span className="mt-0.5">{item.name}</span>
+              <span className="mt-0.5 truncate max-w-full px-0.5">{item.name}</span>
             </Link>
           );
         })}

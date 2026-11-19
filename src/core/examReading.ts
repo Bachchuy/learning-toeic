@@ -41,9 +41,10 @@ export interface QuestionGradingResult {
   stem: string;
   options: [string, string, string, string];
   userSelectedIndex: number | null; // null nếu chưa trả lời
-  correctIndex: number;
-  correctAnswer: "A" | "B" | "C" | "D";
+  correctIndex: number | null;
+  correctAnswer: "A" | "B" | "C" | "D" | null;
   isCorrect: boolean;
+  isAnswerHidden?: boolean;
   evidence?: string | null;
   explanation: string;
   explanationVi?: string | null;
@@ -104,7 +105,14 @@ export function evaluateReadingExam(params: {
     const key = keyMap.get(q.id);
     const correctIndex = key ? key.correctIndex : (() => { throw new Error(`Thiếu đáp án chấm bài cho câu hỏi ${q.id} (#${q.questionNumber})`); })();
     const correctAnswer = key.correctAnswer;
-    const userIndex = userAnswers[q.id] !== undefined ? userAnswers[q.id] : null;
+    const rawIndex = userAnswers[q.id];
+    const userIndex =
+      typeof rawIndex === "number" &&
+      Number.isInteger(rawIndex) &&
+      rawIndex >= 0 &&
+      rawIndex <= 3
+        ? rawIndex
+        : null;
 
     const isCorrect = userIndex !== null && userIndex === correctIndex;
 
@@ -114,20 +122,39 @@ export function evaluateReadingExam(params: {
       else if (q.part === 7) part7Correct++;
     }
 
-    results.push({
-      id: q.id,
-      questionNumber: q.questionNumber,
-      part: q.part,
-      stem: q.stem,
-      options: q.options,
-      userSelectedIndex: userIndex,
-      correctIndex,
-      correctAnswer,
-      isCorrect,
-      evidence: key?.evidence || null,
-      explanation: key?.explanation || "",
-      explanationVi: key?.explanationVi || null,
-    });
+    if (userIndex === null) {
+      results.push({
+        id: q.id,
+        questionNumber: q.questionNumber,
+        part: q.part,
+        stem: q.stem,
+        options: q.options,
+        userSelectedIndex: null,
+        correctIndex: null,
+        correctAnswer: null,
+        isCorrect: false,
+        isAnswerHidden: true,
+        evidence: null,
+        explanation: "",
+        explanationVi: null,
+      });
+    } else {
+      results.push({
+        id: q.id,
+        questionNumber: q.questionNumber,
+        part: q.part,
+        stem: q.stem,
+        options: q.options,
+        userSelectedIndex: userIndex,
+        correctIndex,
+        correctAnswer,
+        isCorrect,
+        isAnswerHidden: false,
+        evidence: key?.evidence || null,
+        explanation: key?.explanation || "",
+        explanationVi: key?.explanationVi || null,
+      });
+    }
   }
 
   const rawScore = part5Correct + part6Correct + part7Correct;

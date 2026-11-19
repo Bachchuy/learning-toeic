@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseExplanation } from "./schemas";
+import { parseExplanation, parseSessionReviewResponse } from "./schemas";
 
 describe("QuestionExplanationSchema & parseExplanation", () => {
   it("trả về đầy đủ dữ liệu khi payload hợp lệ", () => {
@@ -53,5 +53,76 @@ describe("QuestionExplanationSchema & parseExplanation", () => {
     expect(parsed.why_correct_vi).toBe("Đáp án A đúng.");
     expect(parsed.tip_vi).toBe("Mẹo nhỏ.");
     expect(parsed.rule_vi).toBe("Cấu trúc ngữ pháp trọng tâm theo chuẩn đề thi TOEIC Part 5.");
+  });
+
+  it("bảo toàn why_wrong_vi ở cả dạng mảng OptionExplanation[] và dạng object legacy", () => {
+    const withArray = parseExplanation({
+      why_wrong_vi: [
+        { option: "A", reason_vi: "Sai thì quá khứ." },
+        { option: "C", reason_vi: "Sai từ loại." },
+      ],
+    });
+    expect(withArray.why_wrong_vi).toEqual([
+      { option: "A", reason_vi: "Sai thì quá khứ." },
+      { option: "C", reason_vi: "Sai từ loại." },
+    ]);
+
+    const withRecord = parseExplanation({
+      why_wrong_vi: {
+        B: "Không hợp ngữ nghĩa.",
+        D: "Thiếu tân ngữ.",
+      },
+    });
+    expect(withRecord.why_wrong_vi).toEqual([
+      { option: "B", reason_vi: "Không hợp ngữ nghĩa." },
+      { option: "D", reason_vi: "Thiếu tân ngữ." },
+    ]);
+  });
+});
+
+describe("parseSessionReviewResponse", () => {
+  it("từ chối (trả null) khi RPC trả về mảng legacy hoặc object thiếu trường bắt buộc", () => {
+    expect(parseSessionReviewResponse([])).toBeNull();
+    expect(parseSessionReviewResponse([{ question_id: "q-1" }])).toBeNull();
+    expect(parseSessionReviewResponse(null)).toBeNull();
+    expect(parseSessionReviewResponse({})).toBeNull();
+  });
+
+  it("parse hợp lệ object review và chuẩn hóa explanation + tag_name_vi", () => {
+    const parsed = parseSessionReviewResponse({
+      session_id: "sess-1",
+      total_questions: 2,
+      completed_at: "2026-11-19T12:00:00Z",
+      created_at: "2026-11-19T11:55:00Z",
+      correct_count: 1,
+      attempts: [
+        {
+          question_id: "q-1",
+          order_index: 1,
+          stem: "She ______ the report yesterday.",
+          option_a: "finish",
+          option_b: "finished",
+          option_c: "finishing",
+          option_d: "finishes",
+          tag_name_vi: "Thì động từ",
+          selected_index: 0,
+          correct_index: 1,
+          is_correct: false,
+          explanation: {
+            why_correct_vi: "Dấu hiệu yesterday dùng thì quá khứ đơn.",
+          },
+        },
+      ],
+    });
+
+    expect(parsed).not.toBeNull();
+    expect(parsed!.session_id).toBe("sess-1");
+    expect(parsed!.total_questions).toBe(2);
+    expect(parsed!.correct_count).toBe(1);
+    expect(parsed!.attempts).toHaveLength(1);
+    expect(parsed!.attempts[0].explanation.rule_vi).toBeTruthy();
+    expect(parsed!.attempts[0].explanation.why_correct_vi).toBe(
+      "Dấu hiệu yesterday dùng thì quá khứ đơn."
+    );
   });
 });

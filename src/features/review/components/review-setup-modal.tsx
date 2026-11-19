@@ -40,6 +40,7 @@ export function ReviewSetupModal({
   );
   const [selectedTopic, setSelectedTopic] = useState<string | undefined>(currentTopic);
   const [selectedLimit, setSelectedLimit] = useState<number>(currentLimit);
+  const [studyAll, setStudyAll] = useState<boolean>(true);
   const [searchTopicQuery, setSearchTopicQuery] = useState("");
 
   const filteredTopics = useMemo(() => {
@@ -54,17 +55,18 @@ export function ReviewSetupModal({
     const params = new URLSearchParams();
     if (selectedNotebookId) params.set("notebookId", selectedNotebookId);
     if (selectedTopic) params.set("topic", selectedTopic);
-    if (selectedLimit > 0) params.set("limit", selectedLimit.toString());
+    params.set("limit", (selectedLimit > 0 ? selectedLimit : 100).toString());
+    if (studyAll) params.set("studyAll", "true");
 
     onClose();
     router.push(`/review?${params.toString()}`);
   };
 
   const limitOptions = [
-    { value: 10, label: "10 từ", sub: "⚡ ~3 phút (Ôn nhanh)" },
-    { value: 15, label: "15 từ", sub: "🎯 ~5 phút (Khuyên dùng)" },
-    { value: 25, label: "25 từ", sub: "🚀 ~8 phút (Chuyên sâu)" },
-    { value: 0, label: "Tất cả", sub: "📚 Toàn bộ thẻ đến hạn" },
+    { value: 10, label: "10 từ", sub: "~3 phút (Ôn nhanh)" },
+    { value: 15, label: "15 từ", sub: "~5 phút (Khuyên dùng)" },
+    { value: 25, label: "25 từ", sub: "~8 phút (Chuyên sâu)" },
+    { value: 100, label: "Tối đa (100)", sub: "Ôn toàn bộ đợt lớn" },
   ];
 
   return (
@@ -117,6 +119,39 @@ export function ReviewSetupModal({
                   <span className="text-[10px] text-slate-500">{opt.sub}</span>
                 </button>
               ))}
+            </div>
+
+            {/* Công tắc Ôn tập tự do (Study All / Cram Mode) */}
+            <div className="pt-1">
+              <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <div className="space-y-0.5">
+                  <label
+                    htmlFor="review-study-all-toggle"
+                    className="text-xs font-bold text-[#0F172A] cursor-pointer block"
+                  >
+                    Ôn tập tự do (Gộp cả thẻ chưa đến hạn FSRS)
+                  </label>
+                  <p className="text-[11px] text-[#475569]">
+                    Cho phép ôn lại toàn bộ thẻ đã thuộc mà không cần chờ đến ngày hẹn FSRS kế tiếp
+                  </p>
+                </div>
+                <button
+                  id="review-study-all-toggle"
+                  type="button"
+                  role="switch"
+                  aria-checked={studyAll}
+                  onClick={() => setStudyAll((prev) => !prev)}
+                  className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 ${
+                    studyAll ? "bg-[#2563EB]" : "bg-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`block w-4 h-4 rounded-full bg-white transition-transform shadow-xs absolute top-1 left-1 ${
+                      studyAll ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 

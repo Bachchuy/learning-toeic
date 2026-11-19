@@ -1,7 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createClient } from "@supabase/supabase-js";
-import * as fs from "fs";
-import * as path from "path";
+import { resolveLiveDbTestConfig } from "./db-safety-guard";
 import {
   calculateWilsonLower,
   calculateMasteryPercentage,
@@ -20,30 +19,14 @@ import {
   validateSafeAudioUrl,
 } from "@/core/dictionary";
 
-// Đọc biến môi trường từ .env.local
-const envPath = path.resolve(process.cwd(), ".env.local");
-if (fs.existsSync(envPath)) {
-  const envConfig = fs.readFileSync(envPath, "utf-8");
-  for (const line of envConfig.split("\n")) {
-    const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith("#") && trimmed.includes("=")) {
-      const [key, ...values] = trimmed.split("=");
-      process.env[key.trim()] = values.join("=").trim();
-    }
-  }
-}
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-
-const hasLiveDb = Boolean(supabaseUrl && anonKey && serviceRoleKey);
+const liveDb = resolveLiveDbTestConfig();
+const hasLiveDb = liveDb.enabled;
 
 const anonClient = hasLiveDb
-  ? createClient(supabaseUrl, anonKey)
+  ? createClient(liveDb.supabaseUrl, liveDb.anonKey)
   : (null as unknown as ReturnType<typeof createClient>);
 const adminClient = hasLiveDb
-  ? createClient(supabaseUrl, serviceRoleKey, {
+  ? createClient(liveDb.supabaseUrl, liveDb.serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     })
   : (null as unknown as ReturnType<typeof createClient>);
@@ -55,6 +38,25 @@ describe("Remediation Verification & Regression Test Suite", () => {
   describe.skipIf(!hasLiveDb)("P0.1: Kiểm tra bảo mật RPC submit_passage_answers trên PostgreSQL thực tế", () => {
     let testPassageId: string;
     let testQuestions: { id: string; correct_index: number }[] = [];
+    let syntheticUserId = "";
+
+    beforeAll(async () => {
+      const { data: created, error } = await adminClient.auth.admin.createUser({
+        email: `remediation-p01-${Date.now()}@test.local`,
+        password: "TestPassword123!",
+        email_confirm: true,
+      });
+      if (error || !created.user) {
+        throw new Error(`Không thể tạo synthetic user cho P0.1: ${error?.message}`);
+      }
+      syntheticUserId = created.user.id;
+    });
+
+    afterAll(async () => {
+      if (!syntheticUserId) return;
+      await adminClient.from("attempts").delete().eq("user_id", syntheticUserId);
+      await adminClient.auth.admin.deleteUser(syntheticUserId);
+    });
 
     it("chuẩn bị dữ liệu bài đọc và câu hỏi mẫu trên DB", async () => {
       const { data: passages, error } = await adminClient
@@ -108,14 +110,13 @@ describe("Remediation Verification & Regression Test Suite", () => {
     });
 
     it("2. Chống Oracle lộ đáp án: Payload gửi toàn bộ selected_index = -1 bị từ chối, không lộ đáp án", async () => {
-      const mockUserId = "b1d3d18c-c953-4ac3-998e-feb2bd5e9303";
       const { data, error } = await adminClient.rpc("submit_passage_answers", {
         p_passage_id: testPassageId,
         p_answers: [
           { questionId: testQuestions[0].id, selectedIndex: -1 },
           { questionId: testQuestions[1].id, selectedIndex: -1 },
         ],
-        p_user_id: mockUserId,
+        p_user_id: syntheticUserId,
       });
 
       expect(error).toBeNull();
@@ -128,7 +129,6 @@ describe("Remediation Verification & Regression Test Suite", () => {
     it("3. Mixed Payload: Chỉ trả về đáp án và ghi attempt cho câu đã thực sự chọn (0..3), KHÔNG ghi câu -1", async () => {
       const qAnswered = testQuestions[0];
       const qUnanswered = testQuestions[1];
-      const mockUserId = "b1d3d18c-c953-4ac3-998e-feb2bd5e9303";
 
       // Đếm số attempt trước khi nộp
       const { count: countBefore } = await adminClient
@@ -142,7 +142,7 @@ describe("Remediation Verification & Regression Test Suite", () => {
           { questionId: qAnswered.id, selectedIndex: qAnswered.correct_index },
           { questionId: qUnanswered.id, selectedIndex: -1 },
         ],
-        p_user_id: mockUserId,
+        p_user_id: syntheticUserId,
       });
 
       expect(error).toBeNull();
@@ -165,14 +165,13 @@ describe("Remediation Verification & Regression Test Suite", () => {
     });
 
     it("4. Chống lỗi ép kiểu: Payload chứa questionId không phải UUID hoặc malformed string được bỏ qua an toàn", async () => {
-      const mockUserId = "b1d3d18c-c953-4ac3-998e-feb2bd5e9303";
       const { data, error } = await adminClient.rpc("submit_passage_answers", {
         p_passage_id: testPassageId,
         p_answers: [
           { questionId: "not-a-valid-uuid", selectedIndex: 0 },
           { questionId: testQuestions[0].id, selectedIndex: testQuestions[0].correct_index },
         ],
-        p_user_id: mockUserId,
+        p_user_id: syntheticUserId,
       });
 
       expect(error).toBeNull();
@@ -183,7 +182,6 @@ describe("Remediation Verification & Regression Test Suite", () => {
 
     it("5. Deduplication: Payload gửi questionId trùng lặp chỉ được chấm và tính 1 lần duy nhất", async () => {
       const qAnswered = testQuestions[0];
-      const mockUserId = "b1d3d18c-c953-4ac3-998e-feb2bd5e9303";
       const { data, error } = await adminClient.rpc("submit_passage_answers", {
         p_passage_id: testPassageId,
         p_answers: [
@@ -191,7 +189,7 @@ describe("Remediation Verification & Regression Test Suite", () => {
           { questionId: qAnswered.id, selectedIndex: qAnswered.correct_index },
           { questionId: qAnswered.id, selectedIndex: qAnswered.correct_index },
         ],
-        p_user_id: mockUserId,
+        p_user_id: syntheticUserId,
       });
 
       expect(error).toBeNull();
@@ -203,14 +201,13 @@ describe("Remediation Verification & Regression Test Suite", () => {
 
     it("6. Payload chứa questionId không thuộc passage bị loại bỏ an toàn", async () => {
       const foreignQid = "ffffffff-ffff-ffff-ffff-ffffffffffff";
-      const mockUserId = "b1d3d18c-c953-4ac3-998e-feb2bd5e9303";
       const { data, error } = await adminClient.rpc("submit_passage_answers", {
         p_passage_id: testPassageId,
         p_answers: [
           { questionId: foreignQid, selectedIndex: 0 },
           { questionId: testQuestions[0].id, selectedIndex: testQuestions[0].correct_index },
         ],
-        p_user_id: mockUserId,
+        p_user_id: syntheticUserId,
       });
 
       expect(error).toBeNull();
@@ -233,20 +230,54 @@ describe("Remediation Verification & Regression Test Suite", () => {
       reps: number;
       lapses: number;
     };
-    let testUserId: string;
+    let testUserId = "";
 
-    it("chuẩn bị thẻ ôn tập mẫu trong review_cards", async () => {
-      const { data: cards, error } = await adminClient
+    beforeAll(async () => {
+      const { data: created, error: userErr } = await adminClient.auth.admin.createUser({
+        email: `remediation-p02-${Date.now()}@test.local`,
+        password: "TestPassword123!",
+        email_confirm: true,
+      });
+      if (userErr || !created.user) {
+        throw new Error(`Không thể tạo synthetic user cho P0.2: ${userErr?.message}`);
+      }
+      testUserId = created.user.id;
+
+      const syntheticWord = `synthetic_fsrs_${Date.now()}`;
+      const { error: vocabErr } = await adminClient.from("vocab_entries").insert({
+        user_id: testUserId,
+        word: syntheticWord,
+        lemma: syntheticWord,
+        meaning: "synthetic test meaning",
+        context_sentence: "synthetic test context sentence",
+      });
+      if (vocabErr) {
+        throw new Error(`Không thể tạo synthetic vocab_entry cho P0.2: ${vocabErr.message}`);
+      }
+
+      const { data: card, error: cardErr } = await adminClient
         .from("review_cards")
         .select("*")
-        .limit(1);
+        .eq("user_id", testUserId)
+        .single();
+      if (cardErr || !card) {
+        throw new Error(`Không thể tải synthetic review_card cho P0.2: ${cardErr?.message}`);
+      }
 
-      expect(error).toBeNull();
-      expect(cards).toBeDefined();
-      expect(cards!.length).toBeGreaterThan(0);
+      testCard = card;
+    });
 
-      testCard = cards![0];
-      testUserId = testCard.user_id;
+    afterAll(async () => {
+      if (!testUserId) return;
+      await adminClient.from("card_reviews").delete().eq("user_id", testUserId);
+      await adminClient.from("review_cards").delete().eq("user_id", testUserId);
+      await adminClient.from("vocab_entries").delete().eq("user_id", testUserId);
+      await adminClient.auth.admin.deleteUser(testUserId);
+    });
+
+    it("chuẩn bị thẻ ôn tập synthetic trong review_cards", () => {
+      expect(testCard).toBeDefined();
+      expect(testCard.user_id).toBe(testUserId);
     });
 
     it("1. Chặn REST API: Client authenticated KHÔNG THỂ UPDATE trực tiếp review_cards", async () => {

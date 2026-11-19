@@ -7,7 +7,7 @@ import {
 import { StatsView } from "@/features/stats/components/stats-view";
 
 export const metadata: Metadata = {
-  title: "Thống kê & Độ vững Kỹ năng | TOEIC",
+  title: "Thống kê & Độ vững Kỹ năng",
   description:
     "Chẩn đoán điểm yếu ngữ pháp TOEIC Part 5 theo thuật toán Adaptive Rolling Mastery (z=1.0).",
 };

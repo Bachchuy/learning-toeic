@@ -1,21 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getOptionalUser } from "@/shared/auth";
 import { cleanSpeechSegment } from "@/lib/audio";
-import { selectBestAudioForPos, type FreeDictApiResponseItem } from "@/core/dictionary";
+import { checkRateLimit } from "@/lib/rateLimit";
+import {
+  normalizeTtsWord,
+  selectBestAudioForPos,
+  type FreeDictApiResponseItem,
+} from "@/core/dictionary";
+
+const MAX_AUDIO_CACHE_SIZE = 1000;
+const MAX_TTS_INPUT_LENGTH = 200;
 
 /**
  * In-memory cache lưu URL phát âm người bản xứ từ Từ điển để tối ưu hiệu năng
  */
 const dictAudioUrlCache = new Map<string, string>();
 
+function setBoundedAudioCache(key: string, value: string) {
+  if (!dictAudioUrlCache.has(key) && dictAudioUrlCache.size >= MAX_AUDIO_CACHE_SIZE) {
+    const oldestKey = dictAudioUrlCache.keys().next().value;
+    if (oldestKey) {
+      dictAudioUrlCache.delete(oldestKey);
+    }
+  }
+  dictAudioUrlCache.set(key, value);
+}
+
 /**
  * API Route: /api/audio/tts
  * Proxy TTS âm thanh giọng bản xứ en-US chuẩn xác:
+ * - Yêu cầu người dùng đăng nhập (F4 & §6.3)
  * - Ưu tiên hàng đầu: Tự động kéo file MP3 giọng người bản xứ thật từ Từ điển (Free Dictionary API / Cambridge / Wiktionary)
  * - Tự động bóc tách đúng file âm thanh của Danh từ vs Động từ cho các từ đa loại (contract, present, produce...)
  * - Dự phòng tự động bằng Google US English TTS (Giọng Nữ chuẩn)
  * - Cache audio stream tại client và CDN để đạt độ trễ 0ms
  */
 export async function GET(request: NextRequest) {
+  const { user } = await getOptionalUser();
+  if (!user) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  const rl = checkRateLimit(`tts:${user.id}`, { limit: 60, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return new NextResponse("Too Many Requests", {
+      status: 429,
+      headers: { "Retry-After": String(rl.retryAfterSeconds) },
+    });
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const word = searchParams.get("word")?.trim();
   const text = searchParams.get("text")?.trim();
@@ -27,8 +60,12 @@ export async function GET(request: NextRequest) {
     return new NextResponse("Missing query text or word", { status: 400 });
   }
 
+  if (rawTarget.length > MAX_TTS_INPUT_LENGTH) {
+    return new NextResponse("Query text too long", { status: 400 });
+  }
+
   // 1. Nếu là từ đơn: Ưu tiên kéo Audio bản xứ người thật từ Từ điển
-  const cleanBase = rawTarget.replace(/^[to\s]+/i, "").trim().toLowerCase();
+  const cleanBase = normalizeTtsWord(rawTarget);
   const isSingleWord = !cleanBase.includes(" ") && !cleanBase.includes("-");
 
   if (isSingleWord && cleanBase.length >= 2) {
@@ -51,7 +88,7 @@ export async function GET(request: NextRequest) {
           if (Array.isArray(entries) && entries.length > 0) {
             nativeAudioUrl = selectBestAudioForPos(entries, pos);
             if (nativeAudioUrl) {
-              dictAudioUrlCache.set(cacheKey, nativeAudioUrl);
+              setBoundedAudioCache(cacheKey, nativeAudioUrl);
             }
           }
         }
@@ -61,9 +98,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Nếu tìm thấy audio người bản xứ trong từ điển -> Tải và stream trực tiếp
-    if (nativeAudioUrl) {
+    if (nativeAudioUrl && nativeAudioUrl.startsWith("https://")) {
       try {
         const audioRes = await fetch(nativeAudioUrl, {
+          redirect: "error",
           headers: {
             Accept: "audio/mpeg, audio/*;q=0.9",
           },

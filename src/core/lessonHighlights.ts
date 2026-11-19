@@ -6,10 +6,12 @@
  * và được kiểm chứng tự động bởi `src/core/grammarLessons.test.ts`.
  */
 
-export interface HighlightSegment {
-  text: string;
-  highlighted: boolean;
-}
+import type { GrammarLesson } from "./grammarLessons";
+
+export {
+  splitTextWithHighlights,
+  type HighlightSegment,
+} from "./lessonHighlightUtils";
 
 export const LESSON_EXAMPLE_HIGHLIGHTS: Record<string, string[]> = {
   // ================= 1. TENSES =================
@@ -1074,76 +1076,50 @@ export function getExampleHighlights(
 }
 
 /**
- * Tách câu văn bản thành các đoạn thường và đoạn được gạch chân / tô sáng
- * không chồng lấn, ưu tiên khớp cụm dài trước và khớp theo vị trí đầu tiên hợp lệ.
+ * Gom riêng bản đồ highlight cho các câu ví dụ xuất hiện trong một bài học,
+ * giúp Server Component chỉ truyền xuống client phần dữ liệu của chủ điểm đang xem.
  */
-export function splitTextWithHighlights(
-  text: string,
-  highlights: string[]
-): HighlightSegment[] {
-  if (!text || highlights.length === 0) {
-    return text ? [{ text, highlighted: false }] : [];
+export function collectLessonHighlightsMap(
+  lesson: GrammarLesson
+): Record<string, string[]> {
+  const map: Record<string, string[]> = {};
+  const addSentence = (sentence?: string) => {
+    if (!sentence || sentence in map) return;
+    const hits = LESSON_EXAMPLE_HIGHLIGHTS[sentence];
+    if (hits && hits.length > 0) {
+      map[sentence] = hits;
+    }
+  };
+
+  for (const item of lesson.cheatSheet) {
+    addSentence(item.example);
   }
-
-  // Sắp xếp cụm dài hơn trước để tránh cụm ngắn cắt ngang cụm dài
-  const sortedPhrases = Array.from(
-    new Set(highlights.map((h) => h.trim()).filter(Boolean))
-  ).sort((a, b) => b.length - a.length);
-
-  interface Span {
-    start: number;
-    end: number;
-  }
-
-  const spans: Span[] = [];
-
-  for (const phrase of sortedPhrases) {
-    let searchFrom = 0;
-    while (searchFrom < text.length) {
-      const idx = text.indexOf(phrase, searchFrom);
-      if (idx === -1) break;
-      const end = idx + phrase.length;
-
-      const overlaps = spans.some(
-        (existing) => idx < existing.end && end > existing.start
-      );
-      if (!overlaps) {
-        spans.push({ start: idx, end });
-        break; // Mỗi cụm mục tiêu đánh dấu một lần tiêu biểu nhất trong ví dụ
+  for (const sec of lesson.detailedSections ?? []) {
+    for (const rule of sec.rules) {
+      for (const ex of rule.examples) {
+        addSentence(ex.en);
       }
-      searchFrom = idx + 1;
+    }
+  }
+  if (lesson.tensesDetail) {
+    for (const tense of lesson.tensesDetail.tenses) {
+      for (const usage of tense.usages) {
+        addSentence(usage.exampleEn);
+      }
+    }
+    for (const seq of lesson.tensesDetail.sequenceRules) {
+      addSentence(seq.exampleEn);
+      for (const extra of seq.extraExamples ?? []) {
+        addSentence(extra.en);
+      }
+    }
+    for (const comp of lesson.tensesDetail.tenseComparisons ?? []) {
+      for (const pair of comp.examplePairs ?? []) {
+        addSentence(pair.exampleA.en);
+        addSentence(pair.exampleB.en);
+      }
     }
   }
 
-  if (spans.length === 0) {
-    return [{ text, highlighted: false }];
-  }
-
-  spans.sort((a, b) => a.start - b.start);
-
-  const segments: HighlightSegment[] = [];
-  let cursor = 0;
-
-  for (const span of spans) {
-    if (span.start > cursor) {
-      segments.push({
-        text: text.slice(cursor, span.start),
-        highlighted: false,
-      });
-    }
-    segments.push({
-      text: text.slice(span.start, span.end),
-      highlighted: true,
-    });
-    cursor = span.end;
-  }
-
-  if (cursor < text.length) {
-    segments.push({
-      text: text.slice(cursor),
-      highlighted: false,
-    });
-  }
-
-  return segments;
+  return map;
 }

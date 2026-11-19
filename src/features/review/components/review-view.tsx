@@ -61,9 +61,9 @@ export function ReviewView({
   notebooks = [],
   topics = [],
 }: ReviewViewProps) {
-  // Chủ đề đang hoạt động (Mặc định là chủ đề đầu tiên hoặc chủ đề từ URL)
+  // Chủ đề đang hoạt động (Mặc định giữ trống nếu không lọc theo chủ đề từ URL)
   const [activeTopic, setActiveTopic] = useState<string>(
-    currentTopic || (topics.length > 0 ? topics[0].name : topicName || "Tổng hợp")
+    currentTopic || topicName || ""
   );
   const [queue, setQueue] = useState<ReviewCardItem[]>(initialCards);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -115,8 +115,8 @@ export function ReviewView({
       try {
         const res = await getReviewCardsAction({
           notebookId,
-          topic: selectedName,
-          limit: 50,
+          topic: selectedName || undefined,
+          limit: selectedName ? 50 : currentLimit,
           studyAll: true,
         });
         setQueue(res.cards);
@@ -188,9 +188,13 @@ export function ReviewView({
           }
 
           // Xử lý hàng đợi OQ-2: Nếu chọn Again (1) hoặc đang ở bước học ngắn hạn,
-          // xếp lại thẻ vào cuối hàng đợi để người học củng cố trí nhớ ngay trong phiên
+          // xếp lại thẻ vào cuối hàng đợi kèm previews FSRS vừa cập nhật để hiển thị khoảng lặp chính xác
           if (rating === 1 || res.isShortTermLearningStep) {
-            setQueue((prevQueue) => [...prevQueue, currentCard]);
+            const refreshedCard: ReviewCardItem = {
+              ...currentCard,
+              previews: res.updatedPreviews ?? currentCard.previews,
+            };
+            setQueue((prevQueue) => [...prevQueue, refreshedCard]);
           }
 
           // Chuyển sang thẻ tiếp theo
@@ -254,7 +258,7 @@ export function ReviewView({
         totalTurns={totalTurns}
         progressPct={progressPct}
         notebookName={notebookName}
-        topicName={activeTopic}
+        topicName={activeTopic || undefined}
         onOpenShortcuts={() => setIsShortcutsOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenSetup={() => setIsSetupOpen(true)}
@@ -268,7 +272,7 @@ export function ReviewView({
           className="flex items-center gap-2 text-xs font-semibold text-[#0F172A] bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg cursor-pointer"
         >
           <Folder className="w-3.5 h-3.5 text-blue-600" />
-          <span className="line-clamp-1">Chủ đề: {activeTopic}</span>
+          <span className="line-clamp-1">Chủ đề: {activeTopic || "Tổng hợp"}</span>
           <span className="text-[10px] text-slate-500 font-mono">
             ({completedCardsCount}/{totalUniqueCards} thẻ)
           </span>
@@ -374,7 +378,7 @@ export function ReviewView({
             <div className="w-full max-w-2xl bg-white rounded-3xl border border-[#E2E8F0] shadow-xs p-12 text-center space-y-3">
               <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
               <div className="text-sm font-semibold text-[#0F172A]">
-                Đang nạp từ vựng chủ đề &ldquo;{activeTopic}&rdquo;...
+                {activeTopic ? `Đang nạp từ vựng chủ đề "${activeTopic}"...` : "Đang nạp từ vựng..."}
               </div>
             </div>
           ) : isSessionComplete ? (
@@ -386,7 +390,7 @@ export function ReviewView({
 
               <div className="space-y-1.5">
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#0F172A] tracking-tight">
-                  Hoàn thành chủ đề &ldquo;{activeTopic}&rdquo;!
+                  {activeTopic ? `Hoàn thành chủ đề "${activeTopic}"!` : "Hoàn thành phiên ôn tập!"}
                 </h1>
                 <p className="text-sm text-[#475569]">
                   Bạn vừa hoàn tất {sessionSummary.totalReviewed} lượt ôn luyện theo thuật toán ghi nhớ FSRS. Đợt ôn kế tiếp: <span className="font-semibold text-slate-800">{formatTimeDue()}</span>.
@@ -447,33 +451,91 @@ export function ReviewView({
                   className="w-full sm:w-auto px-6 h-11 rounded-xl text-xs font-semibold bg-white border border-[#8190A6] text-[#0F172A] hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4 text-slate-500" />
-                  <span>Ôn lại chủ đề này</span>
+                  <span>{activeTopic ? "Ôn lại chủ đề này" : "Ôn lại phiên này"}</span>
                 </button>
               </div>
             </div>
           ) : queue.length === 0 ? (
-            /* TRẠNG THÁI: Chủ đề không có thẻ */
-            <div className="w-full max-w-2xl bg-white rounded-3xl border border-[#E2E8F0] shadow-xs p-10 text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200/80 mx-auto flex items-center justify-center">
-                <CheckCircle2 className="w-7 h-7" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-[#0F172A]">
-                  Chủ đề &ldquo;{activeTopic}&rdquo; hiện không có thẻ nào cần ôn
-                </h3>
-                <p className="text-xs text-[#475569] max-w-md mx-auto">
-                  Toàn bộ từ vựng của chủ điểm này đã được học hoặc chưa đến hạn theo thuật toán FSRS. Hãy chọn chủ đề khác ở danh sách bên trái!
-                </p>
-              </div>
-              {nextTopic && (
-                <button
-                  type="button"
-                  onClick={() => handleSelectTopic(nextTopic.name)}
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 cursor-pointer shadow-xs inline-flex items-center gap-2"
-                >
-                  <span>Chuyển sang &ldquo;{nextTopic.name}&rdquo;</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+            /* TRẠNG THÁI: Phiên không có thẻ đến hạn (Phân biệt 2 trường hợp: Đã có thẻ trong sổ vs Chưa nạp sổ nào) */
+            <div className="w-full max-w-2xl bg-white rounded-3xl border border-[#E2E8F0] shadow-xs p-8 sm:p-10 text-center space-y-5">
+              {totalCardsCount > 0 ? (
+                <>
+                  <div className="w-14 h-14 rounded-2xl bg-[#ECFDF5] text-[#047857] border border-[#A7F3D0] mx-auto flex items-center justify-center">
+                    <CheckCircle2 className="w-7 h-7" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <h3 className="text-lg font-bold text-[#0F172A]">
+                      {activeTopic
+                        ? `Chủ đề "${activeTopic}" đã hoàn thành lịch ôn hôm nay`
+                        : "Bạn đã hoàn thành toàn bộ thẻ đến hạn hôm nay"}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-[#475569] max-w-md mx-auto leading-relaxed">
+                      Hiện có{" "}
+                      <span className="font-mono font-bold text-[#0F172A]">
+                        {totalCardsCount}
+                      </span>{" "}
+                      thẻ từ vựng trong phạm vi này
+                      {nextDueFormatted
+                        ? ` (lịch ôn kế tiếp: ${nextDueFormatted})`
+                        : ""}
+                      . Bạn có thể bấm <strong className="text-[#0F172A]">Ôn lại trước hạn</strong> để củng cố tự do bất cứ lúc nào!
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleSelectTopic(activeTopic)}
+                      className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-bold cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>
+                        Ôn lại trước hạn ({Math.min(currentLimit || 15, totalCardsCount)} thẻ)
+                      </span>
+                    </button>
+
+                    {nextTopic && (
+                      <button
+                        type="button"
+                        onClick={() => handleSelectTopic(nextTopic.name)}
+                        className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-white border border-[#8190A6] text-[#0F172A] hover:bg-[#F8FAFC] text-xs sm:text-sm font-semibold cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-colors"
+                      >
+                        <span>Chuyển sang &ldquo;{nextTopic.name}&rdquo;</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    <Link
+                      href="/vocab"
+                      className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <BookOpen className="w-4 h-4 text-[#475569]" />
+                      <span>Quay lại Sổ từ vựng</span>
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-14 h-14 rounded-2xl bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] mx-auto flex items-center justify-center">
+                    <BookOpen className="w-7 h-7" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <h3 className="text-lg font-bold text-[#0F172A]">
+                      Chưa có thẻ từ vựng nào để ôn tập
+                    </h3>
+                    <p className="text-xs sm:text-sm text-[#475569] max-w-md mx-auto leading-relaxed">
+                      Bạn chưa nạp bộ thẻ hoặc chưa lưu từ vựng nào vào sổ cá nhân. Hãy mở Sổ từ vựng và bấm <strong className="text-[#0F172A]">Nạp &amp; Ôn tập</strong> trên một bộ thẻ TOEIC chuẩn để bắt đầu ngay.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
+                    <Link
+                      href="/vocab"
+                      className="w-full sm:w-auto min-h-[44px] px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-bold shadow-xs inline-flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <span>Khám phá &amp; Nạp bộ thẻ từ vựng</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </>
               )}
             </div>
           ) : currentCard ? (
@@ -482,7 +544,7 @@ export function ReviewView({
               {/* Chế độ 1: 🧠 Đoán từ (Typing active recall) */}
               {currentMode === "typing" && (
                 <TypingModeCard
-                  key={currentCard.id}
+                  key={`${currentCard.id}-${currentIndex}`}
                   card={currentCard}
                   onCardCompleted={handleRate}
                   autoPlayAudio={settings.autoPlayAudio}
@@ -493,7 +555,7 @@ export function ReviewView({
               {/* Chế độ 2: 👁️ Flashcard (Lật thẻ truyền thống) */}
               {currentMode === "flashcard" && (
                 <FlashcardModeCard
-                  key={currentCard.id}
+                  key={`${currentCard.id}-${currentIndex}`}
                   card={currentCard}
                   onRateCard={handleRate}
                   isPending={isPending}
@@ -504,7 +566,7 @@ export function ReviewView({
               {/* Chế độ 3: ❓ Trắc nghiệm (EN -> VI) */}
               {currentMode === "quiz" && (
                 <QuizModeCard
-                  key={`${currentCard.id}-quiz`}
+                  key={`${currentCard.id}-quiz-${currentIndex}`}
                   card={currentCard}
                   allCards={queue}
                   mode="en_to_vi"
@@ -516,7 +578,7 @@ export function ReviewView({
               {/* Chế độ 4: ⇄ Trắc nghiệm đảo (VI -> EN) */}
               {currentMode === "reverse_quiz" && (
                 <QuizModeCard
-                  key={`${currentCard.id}-reverse-quiz`}
+                  key={`${currentCard.id}-reverse-quiz-${currentIndex}`}
                   card={currentCard}
                   allCards={queue}
                   mode="vi_to_en"
@@ -528,7 +590,7 @@ export function ReviewView({
               {/* Chế độ 5: 🎙️ Lặp lại (Phát âm & Shadowing) */}
               {currentMode === "listen_repeat" && (
                 <SpeakingModeCard
-                  key={currentCard.id}
+                  key={`${currentCard.id}-${currentIndex}`}
                   card={currentCard}
                   onCardCompleted={handleRate}
                   audioSpeed={settings.audioSpeed}
@@ -633,7 +695,7 @@ export function ReviewView({
         notebooks={notebooks}
         topics={topics}
         currentNotebookId={notebookId}
-        currentTopic={activeTopic}
+        currentTopic={activeTopic || undefined}
         currentLimit={currentLimit}
       />
     </div>

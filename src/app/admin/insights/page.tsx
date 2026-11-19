@@ -3,7 +3,7 @@ import { requireUser } from "@/shared/auth";
 import { checkIsAdmin } from "@/features/admin/actions";
 import { getAdminInsightsAction } from "@/features/feedback/actions";
 import { AdminInsightsView } from "@/features/admin/components/admin-insights-view";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -34,10 +34,11 @@ export default async function AdminInsightsPage() {
             </p>
           </div>
           <div className="pt-2">
-            <Link href="/">
-              <Button variant="secondary" className="w-full gap-2">
-                <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Quay lại Trang chủ
-              </Button>
+            <Link
+              href="/"
+              className={buttonVariants({ variant: "secondary", className: "w-full gap-2" })}
+            >
+              <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Quay lại Trang chủ
             </Link>
           </div>
         </div>
@@ -52,10 +53,8 @@ export default async function AdminInsightsPage() {
         <div className="p-4 bg-[#FFF1F2] border border-[#FECDD3] rounded-lg text-sm text-[#BE123C]">
           {error || "Không thể tải dữ liệu thống kê."}
         </div>
-        <Link href="/">
-          <Button variant="secondary" className="gap-2">
-            <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Quay lại Trang chủ
-          </Button>
+        <Link href="/" className={buttonVariants({ variant: "secondary", className: "gap-2" })}>
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Quay lại Trang chủ
         </Link>
       </div>
     );

@@ -3,6 +3,18 @@ import type {
   ExamReadingEvaluation,
   QuestionGradingResult,
 } from "@/core/examReading";
+import type {
+  ListeningPart,
+  ListeningDialogueLine,
+  ListeningQuestionItem,
+  ListeningGroupItem,
+  RawListeningContent,
+  ExamListeningData,
+  ListeningAnswerKey,
+  ListeningQuestionGradingResult,
+  ListeningPartScoreBreakdown,
+  ExamListeningEvaluation,
+} from "@/core/examListening";
 
 export interface ExamMetaSummary {
   id: string;
@@ -44,8 +56,41 @@ export interface SubmitExamResult {
   error?: string;
 }
 
+export interface SubmitListeningExamResult {
+  success: boolean;
+  attemptId?: string;
+  evaluation?: ExamListeningEvaluation;
+  error?: string;
+}
+
+export interface ExamAttemptHistoryItem {
+  id: string;
+  examSetId: string;
+  examSlug: string | null;
+  examTitle: string;
+  submittedAt: string;
+  timeSpentSeconds: number;
+  correctCountReading: number;
+  scoreReading: number;
+  correctCountListening: number;
+  scoreListening: number;
+  totalScore: number;
+  examMode: "reading" | "listening" | "full";
+  accuracyPercentage: number | null;
+}
+
 export type {
   ReadingQuestionItem,
   ExamReadingEvaluation,
   QuestionGradingResult,
+  ListeningPart,
+  ListeningDialogueLine,
+  ListeningQuestionItem,
+  ListeningGroupItem,
+  RawListeningContent,
+  ExamListeningData,
+  ListeningAnswerKey,
+  ListeningQuestionGradingResult,
+  ListeningPartScoreBreakdown,
+  ExamListeningEvaluation,
 };

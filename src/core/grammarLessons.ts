@@ -146,6 +146,7 @@ export interface GrammarLessonSummary {
   coreDefinition: string;
   cheatSheetCount: number;
   trapsCount: number;
+  microSummary: LessonMicroSummary;
 }
 
 const BASE_GRAMMAR_LESSONS: Record<string, GrammarLesson> = {
@@ -3724,6 +3725,7 @@ export function getGrammarLessonSummaries(): GrammarLessonSummary[] {
     coreDefinition: lesson.coreRule.definition,
     cheatSheetCount: lesson.cheatSheet.length,
     trapsCount: lesson.traps.length,
+    microSummary: summarizeLessonModules(lesson),
   }));
 }
 
@@ -3912,14 +3914,7 @@ export function buildLessonMicroModules(
   return sectionModules;
 }
 
-/**
- * Tóm tắt nhanh số học phần nhỏ & tổng số bài tập áp dụng của một chủ điểm.
- */
-export function getLessonMicroSummary(tagCode: string): LessonMicroSummary {
-  const lesson = getGrammarLessonByCode(tagCode);
-  if (!lesson) {
-    return { moduleCount: 0, exerciseCount: 0, moduleTitles: [] };
-  }
+function summarizeLessonModules(lesson: GrammarLesson): LessonMicroSummary {
   const modules = buildLessonMicroModules(lesson);
   const exerciseCount = modules.reduce(
     (sum, mod) => sum + mod.exercises.length,
@@ -3930,4 +3925,15 @@ export function getLessonMicroSummary(tagCode: string): LessonMicroSummary {
     exerciseCount,
     moduleTitles: modules.map((m) => m.shortTitleVi),
   };
+}
+
+/**
+ * Tóm tắt nhanh số học phần nhỏ & tổng số bài tập áp dụng của một chủ điểm.
+ */
+export function getLessonMicroSummary(tagCode: string): LessonMicroSummary {
+  const lesson = getGrammarLessonByCode(tagCode);
+  if (!lesson) {
+    return { moduleCount: 0, exerciseCount: 0, moduleTitles: [] };
+  }
+  return summarizeLessonModules(lesson);
 }

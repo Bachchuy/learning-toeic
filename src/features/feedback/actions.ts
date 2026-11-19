@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getOptionalUser } from "@/shared/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkIsAdmin } from "@/features/admin/actions";
+import { checkRateLimit } from "@/lib/rateLimit";
 import {
   SubmitFeedbackSchema,
   FeedbackStatusSchema,
@@ -20,6 +21,17 @@ export async function submitFeedbackAction(input: {
   const { user, supabase } = await getOptionalUser();
   if (!user) {
     return { success: false, message: "Vui lòng đăng nhập để gửi góp ý." };
+  }
+
+  const rl = checkRateLimit(`feedback:${user.id}`, {
+    limit: 5,
+    windowMs: 15 * 60_000,
+  });
+  if (!rl.allowed) {
+    return {
+      success: false,
+      message: "Bạn gửi góp ý hơi nhanh. Vui lòng thử lại sau ít phút.",
+    };
   }
 
   const parsed = SubmitFeedbackSchema.safeParse(input);

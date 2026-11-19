@@ -99,7 +99,7 @@ export interface QuestionForValidation {
   explanation?: {
     rule_vi?: string;
     why_correct_vi?: string;
-    why_wrong_vi?: Record<string, string>;
+    why_wrong_vi?: Record<string, string> | Array<{ option: string; reason_vi: string }>;
   } | null;
 }
 

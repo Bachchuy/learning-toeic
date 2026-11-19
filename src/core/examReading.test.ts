@@ -118,4 +118,54 @@ describe("Exam Reading Logic & Standard ETS Scoring", () => {
       })
     ).toThrow("Thiếu đáp án chấm bài cho câu hỏi");
   });
+
+  it("Chống Oracle (F2 Option A): chỉ nộp 1 câu thì 99 câu chưa chọn bị ẩn đáp án và giải thích", () => {
+    const firstQ = dummyQuestions[0];
+    const evaluation = evaluateReadingExam({
+      questions: dummyQuestions,
+      answerKeys: dummyKeys,
+      userAnswers: { [firstQ.id]: 1 },
+      timeSpentSeconds: 120,
+    });
+
+    expect(evaluation.rawScore).toBe(1);
+    const firstResult = evaluation.results[0];
+    expect(firstResult.isAnswerHidden).toBe(false);
+    expect(firstResult.correctIndex).toBe(1);
+    expect(firstResult.correctAnswer).toBe("B");
+    expect(firstResult.explanation).toBe(`Explanation for #${firstQ.questionNumber}`);
+
+    const hiddenResults = evaluation.results.slice(1);
+    expect(hiddenResults).toHaveLength(99);
+    for (const item of hiddenResults) {
+      expect(item.userSelectedIndex).toBeNull();
+      expect(item.isAnswerHidden).toBe(true);
+      expect(item.correctIndex).toBeNull();
+      expect(item.correctAnswer).toBeNull();
+      expect(item.evidence).toBeNull();
+      expect(item.explanation).toBe("");
+      expect(item.explanationVi).toBeNull();
+      expect(item.isCorrect).toBe(false);
+    }
+  });
+
+  it("Bỏ qua giá trị index không hợp lệ (-1, 4, NaN) và coi như chưa trả lời", () => {
+    const evaluation = evaluateReadingExam({
+      questions: dummyQuestions,
+      answerKeys: dummyKeys,
+      userAnswers: {
+        [dummyQuestions[0].id]: -1,
+        [dummyQuestions[1].id]: 4,
+        [dummyQuestions[2].id]: Number.NaN,
+      },
+      timeSpentSeconds: 60,
+    });
+
+    expect(evaluation.rawScore).toBe(0);
+    for (const idx of [0, 1, 2]) {
+      expect(evaluation.results[idx].userSelectedIndex).toBeNull();
+      expect(evaluation.results[idx].isAnswerHidden).toBe(true);
+      expect(evaluation.results[idx].correctIndex).toBeNull();
+    }
+  });
 });

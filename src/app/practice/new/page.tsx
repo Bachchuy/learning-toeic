@@ -19,9 +19,13 @@ function NewPracticeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const topicParam = searchParams.get("topic") || searchParams.get("tag_code");
+  const tagIdParam = searchParams.get("tagId");
+  const countParam = Number(searchParams.get("count"));
+  const initialCount =
+    countParam === 5 || countParam === 10 || countParam === 20 ? countParam : 5;
   const [isPending, startTransition] = useTransition();
   const [selectedPart, setSelectedPart] = useState<5 | 6 | 7>(5);
-  const [totalQuestions, setTotalQuestions] = useState<number>(5);
+  const [totalQuestions, setTotalQuestions] = useState<number>(initialCount);
   const [selectedTagId, setSelectedTagId] = useState<number | null>(null);
   const [topics, setTopics] = useState<PracticeTopicInfo[]>([]);
   const [passages, setPassages] = useState<ReadingPassage[]>([]);
@@ -38,9 +42,17 @@ function NewPracticeContent() {
         setTopics(res.topics);
         setAllAvailableCount(res.allAvailableCount);
 
-        // Tự động chọn chủ điểm nếu được truyền qua query params từ Góc Học Lý Thuyết
+        // Tự động chọn chủ điểm nếu được truyền qua query params từ Góc Học Lý Thuyết hoặc Thống kê
         if (topicParam) {
           const match = res.topics.find((t) => t.tag_code === topicParam);
+          if (match && match.available_count > 0) {
+            setSelectedTagId(match.tag_id);
+          }
+        } else if (tagIdParam) {
+          const parsedTagId = Number(tagIdParam);
+          const match = Number.isInteger(parsedTagId)
+            ? res.topics.find((t) => t.tag_id === parsedTagId)
+            : undefined;
           if (match && match.available_count > 0) {
             setSelectedTagId(match.tag_id);
           }
@@ -49,7 +61,7 @@ function NewPracticeContent() {
       setIsLoadingTopics(false);
     }
     loadTopics();
-  }, [topicParam]);
+  }, [topicParam, tagIdParam]);
 
   const handleSelectPart = (part: 5 | 6 | 7) => {
     setSelectedPart(part);

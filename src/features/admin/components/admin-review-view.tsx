@@ -6,7 +6,7 @@ import type { AdminReviewQuestion } from "../types";
 import { approveQuestionAction, rejectQuestionAction } from "../actions";
 import { runAutomatedValidator } from "@/core/adminReview";
 import { EditQuestionModal } from "./edit-question-modal";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -164,15 +164,14 @@ export function AdminReviewView({ initialQuestions }: AdminReviewViewProps) {
           </p>
         </div>
         <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/">
-            <Button variant="secondary" className="gap-2">
-              <ArrowLeft className="w-4 h-4" /> Quay lại Trang chủ
-            </Button>
+          <Link href="/" className={buttonVariants({ variant: "secondary", className: "gap-2" })}>
+            <ArrowLeft className="w-4 h-4" /> Quay lại Trang chủ
           </Link>
-          <Link href="/admin/insights">
-            <Button variant="secondary" className="gap-2">
-              Xem Admin Insights
-            </Button>
+          <Link
+            href="/admin/insights"
+            className={buttonVariants({ variant: "secondary", className: "gap-2" })}
+          >
+            Xem Admin Insights
           </Link>
         </div>
       </div>
@@ -198,7 +197,7 @@ export function AdminReviewView({ initialQuestions }: AdminReviewViewProps) {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6 pb-28 md:pb-8">
+    <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6 pb-36 md:pb-12">
       {/* ========================================================
           Header: Tiêu đề, Breadcrumb & Bộ đếm câu
           ======================================================== */}
@@ -587,7 +586,7 @@ export function AdminReviewView({ initialQuestions }: AdminReviewViewProps) {
           MOBILE STICKY ACTION BAR (360px - 767px)
           Ghim dưới đáy màn hình điện thoại (§5.6 M10)
           ======================================================== */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E2E8F0] p-3 shadow-lg flex items-center justify-between gap-2">
+      <div className="md:hidden fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#E2E8F0] p-3 shadow-lg flex items-center justify-between gap-2">
         <Button
           type="button"
           variant="secondary"
@@ -626,10 +625,32 @@ export function AdminReviewView({ initialQuestions }: AdminReviewViewProps) {
       {/* Edit Mode Modal */}
       {isEditModalOpen && (
         <EditQuestionModal
+          key={currentQ.id}
           question={currentQ}
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
-          onSaved={() => {
+          onSaved={(updated) => {
+            setQuestions((prev) =>
+              prev.map((q) =>
+                q.id === currentQ.id
+                  ? {
+                      ...q,
+                      stem: updated.stem,
+                      option_a: updated.option_a,
+                      option_b: updated.option_b,
+                      option_c: updated.option_c,
+                      option_d: updated.option_d,
+                      correct_index: updated.correct_index,
+                      explanation: {
+                        ...q.explanation,
+                        rule_vi: updated.rule_vi,
+                        why_correct_vi: updated.why_correct_vi,
+                      },
+                    }
+                  : q
+              )
+            );
+            setActionErrorMsg(null);
             setActionSuccessMsg("Đã cập nhật câu hỏi thành công.");
           }}
         />

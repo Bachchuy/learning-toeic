@@ -18,10 +18,13 @@ export async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isLoginPage = pathname === "/login";
+  const isResetPasswordPage = pathname === "/reset-password";
+  const isPublicPage = pathname === "/terms" || pathname === "/privacy";
+  const isAuthCallback = pathname === "/auth/callback";
   const isPublicApi = pathname.startsWith("/api/audio");
 
-  // Các route audio công khai (phục vụ phát âm thẻ bài học) không cần kiểm tra đăng nhập
-  if (isPublicApi) {
+  // Các route công khai (audio bài học, điều khoản/bảo mật, auth callback) không chặn đăng nhập
+  if (isPublicApi || isPublicPage || isAuthCallback) {
     return response;
   }
 
@@ -31,13 +34,15 @@ export async function proxy(request: NextRequest) {
     .getAll()
     .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
 
-  // 1. Chưa có cookie auth và đang ở /login -> Cho qua ngay lập tức không cần gọi Supabase (0ms)
-  if (!hasAuthCookie && isLoginPage) {
+  // 1. Chưa có cookie auth và đang ở /login hoặc /reset-password -> Cho qua ngay lập tức không gọi Supabase (0ms).
+  // Lưu ý bảo mật (MD-01): Route /login phải cho phép POST để phục vụ loginAction/signupAction,
+  // vì vậy mọi Server Action cần bảo vệ BẮT BUỘC tự kiểm tra phiên đăng nhập ở server.
+  if (!hasAuthCookie && (isLoginPage || isResetPasswordPage)) {
     return response;
   }
 
   // 2. Chưa có cookie auth mà truy cập route được bảo vệ -> Chuyển hướng sang /login ngay (0ms)
-  if (!hasAuthCookie && !isLoginPage) {
+  if (!hasAuthCookie && !isLoginPage && !isResetPasswordPage) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.search = `?next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`;
@@ -85,7 +90,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // 3. Cookie không hợp lệ hoặc đã thu hồi mà truy cập route được bảo vệ -> Chuyển hướng sang /login?next=...
-  if (!hasValidSession && !isLoginPage) {
+  if (!hasValidSession && !isLoginPage && !isResetPasswordPage) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.search = `?next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`;
@@ -108,6 +113,6 @@ export const config = {
     /*
      * Khớp tất cả các đường dẫn trừ static files, api audio và hình ảnh
      */
-    "/((?!_next/static|_next/image|favicon.ico|api/audio|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/audio|auth/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

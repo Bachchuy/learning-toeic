@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { DashboardSummaryResult } from "@/features/stats/actions";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StreakFlame } from "@/components/ui/streak-flame";
 import {
@@ -46,12 +46,12 @@ export function DashboardView({ summary }: DashboardViewProps) {
           </h1>
         </div>
 
-        {/* Huy hiệu Chuỗi ngày học (Duolingo Flame Streak) */}
+        {/* Huy hiệu Chuỗi ngày học — Precision Swiss phẳng, giữ token màu hiện hành */}
         <div
-          className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl border transition-all self-start sm:self-auto ${
+          className={`flex items-center gap-3.5 px-4 py-3 rounded-xl border transition-colors self-start sm:self-auto ${
             streakDays > 0
-              ? "bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white border-orange-200/90 shadow-[0_4px_16px_rgba(249,115,22,0.12)]"
-              : "bg-white border-[#E2E8F0] shadow-xs"
+              ? "bg-[#FFFBEB] border-[#FDE68A]"
+              : "bg-white border-[#E2E8F0]"
           }`}
         >
           <div className="relative">
@@ -64,31 +64,35 @@ export function DashboardView({ summary }: DashboardViewProps) {
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#64748B]">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#B45309]">
                 Chuỗi ngày học
               </span>
               {streakDays > 0 && hasStudiedToday && (
-                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.2 rounded-full">
+                <span className="text-[10px] font-semibold text-[#047857] bg-[#ECFDF5] border border-[#A7F3D0] px-1.5 py-0.5 rounded-full">
                   Đã giữ lửa
                 </span>
               )}
             </div>
-            <div className="text-xl sm:text-2xl font-mono font-black text-[#0F172A] leading-tight flex items-baseline gap-1 mt-0.5">
+            <div className="text-xl sm:text-2xl font-mono font-bold text-[#0F172A] leading-tight flex items-baseline gap-1.5 mt-0.5 tabular-nums">
               {streakDays > 0 ? (
                 <>
-                  <span className="text-orange-600 font-extrabold">{streakDays}</span>
-                  <span className="text-xs font-bold text-slate-700">NGÀY LIÊN TIẾP</span>
+                  <span>{streakDays}</span>
+                  <span className="text-xs font-bold text-[#475569]">NGÀY</span>
                 </>
               ) : (
-                <span className="text-sm font-bold text-[#2563EB]">Thắp lửa hôm nay!</span>
+                <span className="text-sm font-bold text-[#2563EB]">Thắp lửa hôm nay</span>
               )}
             </div>
-            <div className="text-[11px] text-[#64748B] mt-0.5">
+            <div className="text-[11px] text-[#475569] mt-0.5">
               {streakDays > 0 ? (
                 hasStudiedToday ? (
-                  <span className="text-amber-800 font-medium">🔥 Lửa đang rực cháy hôm nay!</span>
+                  <span className="text-[#047857] font-medium">
+                    Hôm nay bạn đã duy trì nhịp học
+                  </span>
                 ) : (
-                  <span className="text-orange-700 font-medium">⏳ Học 1 bài để duy trì chuỗi {streakDays + 1} ngày!</span>
+                  <span className="text-[#B45309] font-medium">
+                    Học 1 bài để giữ chuỗi {streakDays + 1} ngày
+                  </span>
                 )
               ) : (
                 <span>Làm 1 bài luyện hoặc ôn từ vựng</span>
@@ -162,13 +166,15 @@ export function DashboardView({ summary }: DashboardViewProps) {
             {/* NÚT PRIMARY DUY NHẤT CỦA MÀN HÌNH DASHBOARD (§5.5 & D-02) */}
             <div className="pt-1 space-y-3">
               <Link
-                href={`/practice/new?topic=${nextStep.tagCode}`}
-                className="block"
+                href={`/practice/new?topic=${encodeURIComponent(nextStep.tagCode)}&count=10`}
+                className={buttonVariants({
+                  variant: "primary",
+                  size: "cta",
+                  className: "w-full shadow-xs",
+                })}
               >
-                <Button variant="primary" size="cta" className="w-full shadow-xs">
-                  <span>Luyện bước {nextStep.order} (10 câu) ngay</span>
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                <span>Luyện bước {nextStep.order} (10 câu) ngay</span>
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
 
               <div className="text-center flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs font-medium">
@@ -216,7 +222,7 @@ export function DashboardView({ summary }: DashboardViewProps) {
                   <div className="space-y-0.5">
                     <div className="text-2xl font-mono font-bold text-[#2563EB]">
                       {dueCardsCount}{" "}
-                      <span className="text-xs font-normal text-[#64748B]">
+                      <span className="text-xs font-normal text-[#475569]">
                         thẻ đến hạn ôn
                       </span>
                     </div>
@@ -226,29 +232,60 @@ export function DashboardView({ summary }: DashboardViewProps) {
                   </div>
                 </div>
 
-                <Link href="/review" className="block">
-                  <Button variant="secondary" size="default" className="w-full">
-                    <Calendar className="w-3.5 h-3.5 mr-2" />
-                    Ôn {dueCardsCount} thẻ ngay →
-                  </Button>
+                <Link
+                  href="/review"
+                  className={buttonVariants({
+                    variant: "secondary",
+                    size: "default",
+                    className: "w-full",
+                  })}
+                >
+                  <Calendar className="w-3.5 h-3.5 mr-2" />
+                  Ôn {dueCardsCount} thẻ ngay →
                 </Link>
               </div>
-            ) : (
-              <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200/80 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Không có thẻ cần ôn hôm nay</span>
+            ) : (summary.totalReviewCardsCount ?? 0) === 0 ? (
+              <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#0F172A]">
+                  <Brain className="w-4 h-4 text-[#2563EB] shrink-0" />
+                  <span>Chưa có thẻ từ vựng trong lịch ôn</span>
                 </div>
-                <p className="text-[11px] text-emerald-700 leading-relaxed">
-                  Bạn đã hoàn thành toàn bộ thẻ ôn tập ngắt quãng. Hãy tiếp tục lưu từ mới khi giải đề.
+                <p className="text-[11px] text-[#475569] leading-relaxed">
+                  Hãy chọn một bộ thẻ TOEIC chuẩn (ETS, Barron&apos;s 600 Words) hoặc lưu từ mới khi giải đề để kích hoạt lịch ôn FSRS.
                 </p>
                 <div className="pt-1">
                   <Link
                     href="/vocab"
-                    className="text-xs font-semibold text-emerald-900 hover:underline inline-flex items-center gap-1"
+                    className="text-xs font-semibold text-[#2563EB] hover:underline inline-flex items-center gap-1"
+                  >
+                    <span>Nạp bộ thẻ tại Sổ từ vựng</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#047857]">
+                  <CheckCircle2 className="w-4 h-4 text-[#047857] shrink-0" />
+                  <span>Đã hoàn thành thẻ đến hạn hôm nay</span>
+                </div>
+                <p className="text-[11px] text-[#047857] leading-relaxed">
+                  Đang theo dõi <span className="font-mono font-bold">{summary.totalReviewCardsCount}</span> thẻ trong lịch FSRS. Bạn có thể ôn lại trước hạn hoặc khám phá thêm từ mới.
+                </p>
+                <div className="pt-1 flex items-center gap-3 flex-wrap">
+                  <Link
+                    href="/review?studyAll=true&limit=15"
+                    className="text-xs font-bold text-[#047857] hover:underline inline-flex items-center gap-1"
+                  >
+                    <span>Ôn tập tự do (15 thẻ)</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                  <span className="text-[#A7F3D0]" aria-hidden="true">·</span>
+                  <Link
+                    href="/vocab"
+                    className="text-xs font-semibold text-[#0F172A] hover:underline inline-flex items-center gap-1"
                   >
                     <span>Mở Sổ từ vựng</span>
-                    <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
               </div>
@@ -271,11 +308,24 @@ export function DashboardView({ summary }: DashboardViewProps) {
             <p className="text-xs text-[#475569] leading-relaxed">
               Trọn vẹn 100 câu Part 5, 6, 7 theo chuẩn khảo thí ETS 2024. Đếm ngược 75 phút và nhận bảng điểm chi tiết.
             </p>
-            <Link href="/exam" className="block pt-1">
-              <Button variant="secondary" size="default" className="w-full">
-                <span>Vào phòng thi thử →</span>
-              </Button>
+            <Link
+              href="/exam"
+              className={buttonVariants({
+                variant: "secondary",
+                size: "default",
+                className: "w-full mt-1",
+              })}
+            >
+              <span>Vào phòng thi thử →</span>
             </Link>
+            <div className="text-center">
+              <Link
+                href="/exam#history"
+                className="text-xs font-medium text-[#2563EB] hover:text-[#1D4ED8] hover:underline inline-flex items-center gap-1"
+              >
+                <span>Xem lịch sử điểm thi →</span>
+              </Link>
+            </div>
           </Card>
         </div>
 
@@ -289,7 +339,9 @@ export function DashboardView({ summary }: DashboardViewProps) {
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-[#2563EB]" />
                 <h3 className="text-sm font-bold text-[#0F172A] tracking-tight">
-                  Top 3 chủ điểm cần chú ý
+                  {isNewLearner
+                    ? "3 chủ điểm nền tảng gợi ý bắt đầu"
+                    : "Top 3 chủ điểm cần chú ý"}
                 </h3>
               </div>
 
@@ -334,14 +386,9 @@ export function DashboardView({ summary }: DashboardViewProps) {
 
                       <Link
                         href={`/practice/new?topic=${topic.tagCode}`}
-                        className="shrink-0"
+                        className="shrink-0 inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-[#EFF6FF] text-[#0F172A] hover:text-[#2563EB] transition-colors"
                       >
-                        <button
-                          type="button"
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-[#EFF6FF] text-[#0F172A] hover:text-[#2563EB] transition-colors cursor-pointer"
-                        >
-                          Luyện
-                        </button>
+                        Luyện
                       </Link>
                     </div>
 
@@ -364,17 +411,16 @@ export function DashboardView({ summary }: DashboardViewProps) {
             </div>
           </div>
 
-          {/* B. THẺ TÓM TẮT TIẾN ĐỘ & HOẠT ĐỘNG 14 NGÀY */}
+          {/* B. THẺ TÓM TẮT TIẾN ĐỘ & HOẠT ĐỘNG 14 NGÀY (Chuẩn Precision Swiss Tokens) */}
           <Card className="p-5 bg-white border border-[#E2E8F0] shadow-xs space-y-4 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <BarChart3 className="w-4 h-4 text-slate-600" />
+                <BarChart3 className="w-4 h-4 text-[#2563EB]" />
                 <h3 className="text-sm font-bold text-[#0F172A]">
                   Tần suất làm bài 14 ngày gần nhất
                 </h3>
                 {streakDays > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 text-orange-700 text-xs font-mono font-bold shadow-xs">
-                    <span className="text-xs leading-none" aria-hidden="true">🔥</span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] text-xs font-mono font-bold">
                     <span>Chuỗi {streakDays} ngày</span>
                   </span>
                 )}
@@ -394,28 +440,28 @@ export function DashboardView({ summary }: DashboardViewProps) {
                 return (
                   <div
                     key={day.date}
-                    className={`p-1.5 sm:p-2 rounded-xl text-center flex flex-col justify-between h-16 border transition-all relative group ${
+                    className={`p-1.5 sm:p-2 rounded-xl text-center flex flex-col justify-between h-16 border transition-colors relative ${
                       day.isToday
-                        ? "border-[#2563EB] bg-[#EFF6FF]/70 shadow-xs ring-2 ring-blue-500/20"
+                        ? "border-[#2563EB] bg-[#EFF6FF] shadow-xs ring-2 ring-[#2563EB]/20"
                         : hasActivity
-                        ? "border-orange-300 bg-gradient-to-b from-orange-50/90 to-amber-50/50 shadow-xs hover:border-orange-400 hover:scale-105"
-                        : "border-slate-100 bg-slate-50/40"
+                          ? "border-[#BFDBFE] bg-[#EFF6FF]/60 hover:border-[#2563EB]"
+                          : "border-[#E2E8F0] bg-[#F8FAFC]"
                     }`}
                     title={`${day.fullDateFormatted}: ${day.count} câu`}
                   >
-                    <div className="text-[10px] font-mono text-[#64748B] flex items-center justify-center gap-0.5">
+                    <div className="text-[10px] font-mono text-[#475569] flex items-center justify-center gap-0.5">
                       <span>{day.dayLabel === "Hôm nay" ? "Nay" : day.dayLabel}</span>
                     </div>
 
                     {hasActivity ? (
-                      <div className="my-auto flex flex-col items-center justify-center -space-y-0.5">
-                        <span className="text-xs leading-none animate-[flame-flicker_2.4s_ease-in-out_infinite]" aria-hidden="true">🔥</span>
-                        <span className="text-xs font-mono font-black text-orange-600">
+                      <div className="my-auto flex flex-col items-center justify-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] mb-0.5" aria-hidden="true" />
+                        <span className="text-xs font-mono font-bold text-[#2563EB] tabular-nums">
                           {day.count}
                         </span>
                       </div>
                     ) : (
-                      <div className="my-auto text-xs font-mono font-bold text-slate-300">
+                      <div className="my-auto text-xs font-mono font-semibold text-[#8190A6] tabular-nums">
                         {day.count}
                       </div>
                     )}
@@ -424,7 +470,7 @@ export function DashboardView({ summary }: DashboardViewProps) {
               })}
             </div>
 
-            <div className="flex items-center justify-between text-xs font-mono text-[#64748B] pt-1">
+            <div className="flex items-center justify-between text-xs font-mono text-[#475569] pt-1">
               <span>Đã hoàn thành: {totalQuestionsAnswered} câu</span>
               {averageMasteryScore > 0 && (
                 <span>Độ thành thạo TB: {averageMasteryScore}%</span>

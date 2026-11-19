@@ -9,7 +9,7 @@ import { VocabListView } from "@/features/vocab/components/vocab-list-view";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Sổ từ vựng cá nhân | TOEIC AI",
+  title: "Sổ từ vựng cá nhân",
   description: "Quản lý và ôn tập từ vựng Part 5 theo thuật toán ghi nhớ ngắt quãng FSRS",
 };
 

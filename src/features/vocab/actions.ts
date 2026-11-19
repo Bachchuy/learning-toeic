@@ -1,7 +1,7 @@
 "use server";
 
 import { getOptionalUser } from "@/shared/auth";
-import { normalizeLemma } from "@/core/vocab";
+import { normalizeLemma, sanitizePostgrestSearch } from "@/core/vocab";
 import { enrichVocabMetadata } from "@/core/vocabDictionary";
 import { trackEventAction } from "@/features/practice/actions";
 import {
@@ -307,6 +307,8 @@ export async function getVocabListAction(
     )
   `;
 
+  const qStr = sanitizePostgrestSearch(searchQuery).toLowerCase();
+
   let firstQuery = supabase
     .from("vocab_entries")
     .select(selectFields, { count: "exact" })
@@ -314,8 +316,7 @@ export async function getVocabListAction(
     .order("created_at", { ascending: false })
     .range(0, PAGE_CHUNK_SIZE - 1);
 
-  if (searchQuery.trim()) {
-    const qStr = searchQuery.trim().toLowerCase();
+  if (qStr) {
     firstQuery = firstQuery.or(`word.ilike.%${qStr}%,meaning.ilike.%${qStr}%`);
   }
 
@@ -373,8 +374,7 @@ export async function getVocabListAction(
         .order("created_at", { ascending: false })
         .range(from, to);
 
-      if (searchQuery.trim()) {
-        const qStr = searchQuery.trim().toLowerCase();
+      if (qStr) {
         q = q.or(`word.ilike.%${qStr}%,meaning.ilike.%${qStr}%`);
       }
       remainingPromises.push(q);
@@ -794,12 +794,44 @@ export async function importCuratedDeckAction(deckId: string): Promise<{
     itemsToInsert.push({ ...item });
   }
 
-  // 4. Batch insert theo từng chunk 200 từ (Tối ưu số lượt round-trip mạng tới Supabase)
+  // 3. Kiểm tra trước các lemma người dùng đã lưu để KHÔNG ghi đè sửa đổi / sổ cá nhân (F3)
+  const candidateLemmas = itemsToInsert.map((item) => normalizeLemma(item.word));
+  const existingLemmas = new Set<string>();
+  const LOOKUP_CHUNK_SIZE = 200;
+
+  for (let i = 0; i < candidateLemmas.length; i += LOOKUP_CHUNK_SIZE) {
+    const lemmaChunk = candidateLemmas.slice(i, i + LOOKUP_CHUNK_SIZE);
+    const { data: existingRows, error: existingErr } = await supabase
+      .from("vocab_entries")
+      .select("lemma")
+      .eq("user_id", user.id)
+      .in("lemma", lemmaChunk);
+
+    if (existingErr) {
+      console.error("Lỗi khi kiểm tra từ vựng đã tồn tại:", existingErr);
+      return {
+        success: false,
+        message: "Không thể kiểm tra danh sách từ hiện có. Vui lòng thử lại.",
+      };
+    }
+
+    for (const row of existingRows || []) {
+      if (row.lemma) {
+        existingLemmas.add(row.lemma);
+      }
+    }
+  }
+
+  const netNewItems = itemsToInsert.filter(
+    (item) => !existingLemmas.has(normalizeLemma(item.word))
+  );
+
+  // 4. Batch insert các từ thực sự mới theo chunk 200 từ (ignoreDuplicates làm hàng rào phụ tránh race-condition)
   const CHUNK_SIZE = 200;
   let totalInserted = 0;
 
-  for (let i = 0; i < itemsToInsert.length; i += CHUNK_SIZE) {
-    const chunk = itemsToInsert.slice(i, i + CHUNK_SIZE);
+  for (let i = 0; i < netNewItems.length; i += CHUNK_SIZE) {
+    const chunk = netNewItems.slice(i, i + CHUNK_SIZE);
     const rows = chunk.map((item) => ({
       user_id: user.id,
       word: item.word.trim(),
@@ -822,15 +854,23 @@ export async function importCuratedDeckAction(deckId: string): Promise<{
       notebook_id: notebook.id,
     }));
 
-    const { error: insertError } = await supabase
+    const { data: insertedRows, error: insertError } = await supabase
       .from("vocab_entries")
-      .upsert(rows, { onConflict: "user_id,lemma" });
+      .upsert(rows, { onConflict: "user_id,lemma", ignoreDuplicates: true })
+      .select("id");
 
     if (insertError) {
       console.error("Lỗi khi batch insert bộ thẻ:", insertError);
-    } else {
-      totalInserted += rows.length;
+      return {
+        success: false,
+        message: "Có lỗi xảy ra khi lưu một số thẻ vào sổ. Vui lòng thử lại.",
+        notebook,
+        importedCount: totalInserted,
+        existingCount: Math.max(0, itemsToInsert.length - totalInserted),
+      };
     }
+
+    totalInserted += insertedRows?.length ?? 0;
   }
 
   await trackEventAction("vocab_saved", {
@@ -846,7 +886,7 @@ export async function importCuratedDeckAction(deckId: string): Promise<{
         : `Tất cả các thẻ trong bộ "${deck.title}" đã có sẵn trong sổ từ của bạn.`,
     notebook,
     importedCount: totalInserted,
-    existingCount: deck.items.length - totalInserted,
+    existingCount: Math.max(0, itemsToInsert.length - totalInserted),
   };
 }
 

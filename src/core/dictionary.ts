@@ -64,6 +64,14 @@ export function normalizeWord(raw: string): string {
 }
 
 /**
+ * Chuẩn hóa đầu vào TTS: chỉ bỏ tiền tố động từ nguyên mẫu "to " khi đi kèm khoảng trắng,
+ * không cắt nhầm ký tự 't'/'o' đầu từ (như office, order, total).
+ */
+export function normalizeTtsWord(raw: string): string {
+  return raw.trim().replace(/^to\s+/i, "").trim().toLowerCase();
+}
+
+/**
  * Kiểm định an toàn URL phát âm từ API bên ngoài:
  * - Bắt buộc giao thức HTTPS
  * - Kiểm tra định dạng URL hợp lệ
@@ -89,6 +97,7 @@ export function validateSafeAudioUrl(rawUrl?: string | null): string {
       "cdn.jsdelivr.net",
       "raw.githubusercontent.com",
       "storage.googleapis.com",
+      "audio.tflat.vn",
     ];
 
     const isAllowedHost = ALLOWED_HOSTS.some(
@@ -97,7 +106,7 @@ export function validateSafeAudioUrl(rawUrl?: string | null): string {
 
     const hasAudioExtension = /\.(mp3|ogg|wav|m4a)$/i.test(parsed.pathname);
 
-    if (isAllowedHost || hasAudioExtension) {
+    if (isAllowedHost && hasAudioExtension) {
       return trimmed;
     }
     return "";

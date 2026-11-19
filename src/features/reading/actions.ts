@@ -1,10 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { parsePassageSubmitResult } from "./schemas";
 import type {
   ReadingPassage,
   PassageSubmitResult,
-  ReadingQuestionResult,
 } from "./types";
 
 interface RawPassageRow {
@@ -164,19 +164,5 @@ export async function submitPassageAnswersAction(
     };
   }
 
-  const response = data as {
-    success: boolean;
-    score: number;
-    total: number;
-    results: ReadingQuestionResult[];
-    message?: string;
-  };
-
-  return {
-    success: response.success ?? true,
-    score: response.score ?? 0,
-    total: response.total ?? response.results?.length ?? 0,
-    results: response.results || [],
-    message: response.message,
-  };
+  return parsePassageSubmitResult(data, userAnswers.length);
 }

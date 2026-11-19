@@ -44,7 +44,12 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
 
   // Xử lý nộp bài
   const handleSubmit = useCallback(async () => {
-    if (state.selectedIndex === null || state.status !== "answering") return;
+    if (
+      state.selectedIndex === null ||
+      (state.status !== "answering" && state.status !== "error")
+    ) {
+      return;
+    }
 
     dispatch({ type: "START_SUBMIT" });
 
@@ -119,7 +124,7 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
         return;
       }
 
-      if (state.status === "answering") {
+      if (state.status === "answering" || state.status === "error") {
         if (e.key === "a" || e.key === "A" || e.key === "1") {
           dispatch({ type: "SELECT_OPTION", payload: { index: 0 } });
         } else if (e.key === "b" || e.key === "B" || e.key === "2") {
@@ -194,6 +199,28 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
 
     return undefined;
   };
+
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-dvh bg-[#F8FAFC] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-[#E2E8F0] p-8 text-center space-y-4 shadow-xs">
+          <h2 className="text-lg font-bold text-[#0F172A]">
+            Không tìm thấy câu hỏi trong phiên luyện tập
+          </h2>
+          <p className="text-xs text-[#475569] leading-relaxed">
+            Phiên luyện tập này chưa có câu hỏi nào hoặc đã hết hạn. Vui lòng khởi tạo một phiên mới.
+          </p>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => router.push("/practice/new")}
+          >
+            Tạo phiên luyện tập mới
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const options = [
     { label: "A" as const, text: currentQuestion.option_a },
@@ -272,7 +299,7 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
                     setSelectedVocabHint(null);
                     setIsVocabOpen(true);
                   }}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-[#2563EB] hover:bg-[#EFF6FF] transition-colors cursor-pointer border border-[#BFDBFE]"
+                  className="min-h-[38px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#2563EB] hover:bg-[#EFF6FF] transition-colors cursor-pointer border border-[#BFDBFE]"
                   title="Lưu từ vựng vào Sổ cá nhân"
                 >
                   <BookmarkPlus className="w-3.5 h-3.5 text-[#2563EB]" />
@@ -288,10 +315,10 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
                       session_id: sessionId,
                     });
                   }}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-[#64748B] hover:text-[#BE123C] hover:bg-[#FFF1F2] transition-colors cursor-pointer border border-[#E2E8F0]"
+                  className="min-h-[38px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#475569] hover:text-[#BE123C] hover:bg-[#FFF1F2] transition-colors cursor-pointer border border-[#E2E8F0]"
                   title="Báo cáo lỗi câu hỏi này"
                 >
-                  <Flag className="w-3.5 h-3.5 text-[#64748B]" />
+                  <Flag className="w-3.5 h-3.5 text-[#475569]" />
                   <span>Báo lỗi</span>
                 </button>
               </div>
@@ -387,7 +414,7 @@ export function PracticeRunner({ sessionId, questions }: PracticeRunnerProps) {
                           setSelectedVocabHint(hint);
                           setIsVocabOpen(true);
                         }}
-                        className="h-8 px-2.5 rounded-md text-xs font-medium bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#E2E8F0] hover:border-[#BFDBFE] text-[#0F172A] hover:text-[#2563EB] transition-all cursor-pointer flex items-center gap-1.5"
+                        className="min-h-[38px] px-3 py-1.5 rounded-md text-xs font-medium bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#E2E8F0] hover:border-[#BFDBFE] text-[#0F172A] hover:text-[#2563EB] transition-all cursor-pointer flex items-center gap-1.5"
                       >
                         <BookmarkPlus className="w-3.5 h-3.5 text-[#2563EB]" />
                         <span className="font-semibold">{hint.word}</span>

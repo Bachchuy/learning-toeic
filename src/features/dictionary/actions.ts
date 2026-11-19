@@ -1,7 +1,8 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getOptionalUser } from "@/shared/auth";
+import { checkRateLimit } from "@/lib/rateLimit";
 import {
   normalizeWord,
   parseFreeDictEntries,
@@ -13,18 +14,31 @@ import {
 import { getDualPronunciation } from "@/core/vocab";
 import { resolvePhonetic } from "@/core/phonetic";
 
+function sanitizeAudioField(rawUrl?: string | null): string {
+  const trimmed = (rawUrl || "").trim();
+  if (trimmed.startsWith("/api/audio/tts?")) {
+    return trimmed;
+  }
+  return validateSafeAudioUrl(trimmed);
+}
+
 /**
  * Server Action: Tra cứu từ điển thông minh (Hybrid Smart Cache)
- * 1. Kiểm tra trong Supabase dictionary_cache (O(log N) B-Tree lookup < 1ms)
- * 2. Nếu chưa có -> Gọi Free Dictionary API lấy audio US và definitions
- * 3. Tự động lưu cache để phục vụ cho các học viên khác
+ * 1. Bắt buộc xác thực người dùng (chống ẩn danh lạm dụng service_role ghi DB)
+ * 2. Kiểm tra trong Supabase dictionary_cache (O(log N) B-Tree lookup < 1ms)
+ * 3. Nếu chưa có -> Gọi Free Dictionary API lấy audio US và definitions
+ * 4. Chỉ lưu cache khi có dữ liệu thực chất (không lưu dòng rỗng cho từ vô nghĩa)
  */
 export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry | null> {
   const word = normalizeWord(rawWord);
   if (!word || word.length < 2) return null;
 
   try {
-    const supabase = await createClient();
+    const { user, supabase } = await getOptionalUser();
+    if (!user) return null;
+
+    const rl = checkRateLimit(`dict:${user.id}`, { limit: 30, windowMs: 60_000 });
+    if (!rl.allowed) return null;
 
     // 1. Kiểm tra cache trong Database Supabase
     const { data: cached, error: cacheError } = await supabase
@@ -55,7 +69,7 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
         part_of_speech: cached.part_of_speech || "",
         meaning_vi: cached.meaning_vi || "",
         definition_en: cached.definition_en || "",
-        audio_url: validateSafeAudioUrl(cached.audio_url || ""),
+        audio_url: sanitizeAudioField(cached.audio_url || ""),
         examples: cached.examples || [],
         word_family: cached.word_family || [],
         collocations: cached.collocations || [],
@@ -118,8 +132,22 @@ export async function lookupWordAction(rawWord: string): Promise<DictionaryEntry
       lookup_count: 1,
     };
 
-    // 4. Kiểm định dữ liệu và lưu vào dictionary_cache qua Backend Admin Client (service_role)
-    newEntry.audio_url = validateSafeAudioUrl(newEntry.audio_url);
+    // 4. Kiểm định dữ liệu và chỉ lưu vào dictionary_cache nếu tra cứu có kết quả thực chất
+    newEntry.audio_url = sanitizeAudioField(newEntry.audio_url);
+
+    const hasMeaningfulData = Boolean(
+      curated ||
+        dual ||
+        apiEntry ||
+        newEntry.meaning_vi ||
+        newEntry.definition_en ||
+        newEntry.phonetic ||
+        newEntry.audio_url
+    );
+
+    if (!hasMeaningfulData) {
+      return null;
+    }
 
     try {
       const adminClient = createAdminClient();

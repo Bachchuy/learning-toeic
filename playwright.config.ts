@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import { assertSafePlaywrightSupabaseConfig } from "./tests/db-safety-guard";
+
+assertSafePlaywrightSupabaseConfig();
 
 /**
  * See https://playwright.dev/docs/test-configuration.

@@ -112,4 +112,63 @@ describe("Milestone M12: Security & RLS Compliance Audit", () => {
       expect(allSql).toContain("uq_dictionary_cache_word");
     });
   });
+
+  describe("5. Batch 1 P0 Hardening: RPC Contracts & Session RLS", () => {
+    const batch1MigrationPath = path.join(
+      migrationsDir,
+      "20261119000001_p0_rpc_and_rls_hardening.sql"
+    );
+
+    it("loại bỏ overload 2 tham số submit_passage_answers(UUID, JSONB) và siết RLS FOR SELECT trên phiên làm bài", () => {
+      const sql = fs.readFileSync(batch1MigrationPath, "utf-8");
+
+      expect(sql).toMatch(
+        /DROP\s+FUNCTION\s+IF\s+EXISTS\s+public\.submit_passage_answers\s*\(\s*UUID\s*,\s*JSONB\s*\)/i
+      );
+
+      expect(sql).toMatch(
+        /DROP\s+POLICY\s+IF\s+EXISTS\s+"sessions_own"\s+ON\s+public\.practice_sessions/i
+      );
+      expect(sql).toMatch(
+        /CREATE\s+POLICY\s+"sessions_select_own"\s+ON\s+public\.practice_sessions\s+FOR\s+SELECT/i
+      );
+      expect(sql).toMatch(
+        /DROP\s+POLICY\s+IF\s+EXISTS\s+"session_questions_own"\s+ON\s+public\.session_questions/i
+      );
+      expect(sql).toMatch(
+        /CREATE\s+POLICY\s+"session_questions_select_own"\s+ON\s+public\.session_questions\s+FOR\s+SELECT/i
+      );
+    });
+
+    it("get_session_review trả về object contract đầy đủ và chặn phiên chưa hoàn thành / câu chưa nộp", () => {
+      const sql = fs.readFileSync(batch1MigrationPath, "utf-8");
+
+      expect(sql).toMatch(
+        /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.get_session_review\([\s\S]*?SET\s+search_path\s*=\s*public/i
+      );
+      expect(sql).toMatch(/v_session\.completed_at\s+IS\s+NULL/i);
+      expect(sql).toMatch(/INNER\s+JOIN\s+public\.attempts\s+a/i);
+      expect(sql).toMatch(/LEFT\s+JOIN\s+public\.grammar_tags\s+gt/i);
+      for (const key of [
+        "'session_id'",
+        "'total_questions'",
+        "'correct_count'",
+        "'attempts'",
+        "'tag_name_vi'",
+      ]) {
+        expect(sql).toContain(key);
+      }
+      expect(sql).toMatch(
+        /REVOKE\s+ALL\s+ON\s+FUNCTION\s+public\.get_session_review\(UUID\)\s+FROM\s+PUBLIC,\s*anon/i
+      );
+    });
+
+    it("create_session chỉ lấy câu Part 5 độc lập và check_question_reports chỉ đếm báo cáo pending", () => {
+      const sql = fs.readFileSync(batch1MigrationPath, "utf-8");
+
+      expect(sql).toMatch(/q\.part\s*=\s*5/i);
+      expect(sql).toMatch(/q\.passage_id\s+IS\s+NULL/i);
+      expect(sql).toMatch(/status\s*=\s*'pending'/i);
+    });
+  });
 });

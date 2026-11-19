@@ -68,6 +68,7 @@ Thumbs.db
 # 8. AI Agent, Skills & Local Misc
 # ==========================================
 # AI IDE & Agent configurations
+/.ai/
 /.agent/
 /.agents/
 /.cursor/
@@ -79,6 +80,8 @@ Thumbs.db
 /prompts/
 /skills/
 /AGENTS.md
+/PROJECT_CONTEXT.md
+/assets/
 
 # Local scratch, drafts & non-runtime data
 /.repomix/
@@ -97,6 +100,7 @@ scripts/batch-questions-bank.ts
 scripts/qa-audit-questions.ts
 
 # Internal documentation & audit reports
+/docs/
 docs/13-crawler-guide.md
 docs/qa/
 docs/FEATURE_INVENTORY.md

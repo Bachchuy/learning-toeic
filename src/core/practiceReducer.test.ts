@@ -100,4 +100,33 @@ describe("practiceReducer", () => {
     expect(updated.selectedIndex).toBe(2);
     expect(updated.errorMessage).toBe("Mất kết nối mạng");
   });
+
+  it("cho phép Thử lại (START_SUBMIT) trực tiếp từ trạng thái error", () => {
+    const errorState = {
+      ...createInitialPracticeState(10),
+      status: "error" as const,
+      selectedIndex: 2,
+      errorMessage: "Mất kết nối mạng",
+    };
+    const retried = practiceReducer(errorState, { type: "START_SUBMIT" });
+    expect(retried.status).toBe("submitting");
+    expect(retried.selectedIndex).toBe(2);
+    expect(retried.errorMessage).toBeNull();
+  });
+
+  it("chuyển về answering và xóa lỗi khi chọn đáp án khác từ trạng thái error", () => {
+    const errorState = {
+      ...createInitialPracticeState(10),
+      status: "error" as const,
+      selectedIndex: 2,
+      errorMessage: "Mất kết nối mạng",
+    };
+    const reselected = practiceReducer(errorState, {
+      type: "SELECT_OPTION",
+      payload: { index: 0 },
+    });
+    expect(reselected.status).toBe("answering");
+    expect(reselected.selectedIndex).toBe(0);
+    expect(reselected.errorMessage).toBeNull();
+  });
 });

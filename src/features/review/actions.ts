@@ -6,6 +6,7 @@ import {
   previewFSRSRatings,
   calculateFSRSReview,
   type DBCardRow,
+  type RatingPreview,
 } from "@/core/fsrs";
 import { trackEventAction } from "@/features/practice/actions";
 import { enrichVocabMetadata } from "@/core/vocabDictionary";
@@ -46,6 +47,9 @@ export async function getReviewCardsAction(
       : optionsOrNotebookId || {};
 
   const { notebookId, topic, limit = 20, studyAll = false, excludeDeck } = options;
+  const safeLimit = Number.isFinite(limit)
+    ? Math.min(100, Math.max(1, Math.trunc(limit)))
+    : 20;
 
   const now = new Date();
 
@@ -134,13 +138,13 @@ export async function getReviewCardsAction(
     // Chế độ học tự do / củng cố toàn bộ
     cardsQuery = cardsQuery
       .order("last_review", { ascending: true, nullsFirst: true })
-      .limit(limit);
+      .limit(safeLimit);
   } else {
     // Mặc định: Lấy các thẻ đến hạn theo FSRS
     cardsQuery = cardsQuery
       .lte("due", now.toISOString())
       .order("due", { ascending: true })
-      .limit(limit);
+      .limit(safeLimit);
   }
 
   const { data: initialData, error } = await cardsQuery;
@@ -188,7 +192,7 @@ export async function getReviewCardsAction(
       `)
       .eq("user_id", user.id)
       .order("last_review", { ascending: true, nullsFirst: true })
-      .limit(limit);
+      .limit(safeLimit);
 
     if (notebookId) {
       cramQuery = cramQuery.eq("vocab_entries.notebook_id", notebookId);
@@ -331,6 +335,8 @@ export async function getReviewCardsAction(
     cards,
     nextDueFormatted,
     totalCardsCount: totalCardsCount ?? 0,
+    notebookName,
+    topicName: topic,
   };
 }
 
@@ -347,6 +353,7 @@ export async function submitCardRatingAction(
   success: boolean;
   nextDue?: string;
   isShortTermLearningStep?: boolean;
+  updatedPreviews?: RatingPreview[];
   error?: string;
 }> {
   // 0. Kiểm tra tham số rating hợp lệ (chỉ chấp nhận 1, 2, 3, 4)
@@ -438,10 +445,26 @@ export async function submitCardRatingAction(
   const isShortTermLearningStep =
     nextDue.getTime() - now.getTime() < 15 * 60 * 1000;
 
+  let updatedPreviews: RatingPreview[] | undefined;
+  if (rating === 1 || isShortTermLearningStep) {
+    const nextDbCard: DBCardRow = {
+      ...dbCard,
+      state: updatedCard.state,
+      stability: updatedCard.stability,
+      difficulty: updatedCard.difficulty,
+      due: updatedCard.due,
+      last_review: updatedCard.last_review,
+      reps: updatedCard.reps,
+      lapses: updatedCard.lapses,
+    };
+    updatedPreviews = previewFSRSRatings(nextDbCard, now);
+  }
+
   return {
     success: true,
     nextDue: nextDue.toISOString(),
     isShortTermLearningStep,
+    updatedPreviews,
   };
 }
 
@@ -461,33 +484,6 @@ export async function getReviewTopicsAction(notebookId?: string): Promise<{
 
   const now = new Date().toISOString();
 
-  let query = supabase
-    .from("vocab_entries")
-    .select(`
-      id,
-      metadata,
-      notebook_id,
-      review_cards (
-        id,
-        due,
-        state,
-        reps
-      )
-    `)
-    .eq("user_id", user.id);
-
-  if (notebookId) {
-    query = query.eq("notebook_id", notebookId);
-  }
-
-  const { data, error } = await query;
-
-  if (error || !data) {
-    return { topics: [] };
-  }
-
-  const map = new Map<string, { totalCount: number; dueCount: number; learnedCount: number }>();
-
   interface QueryEntry {
     metadata?: { topic?: string };
     review_cards?:
@@ -495,7 +491,50 @@ export async function getReviewTopicsAction(notebookId?: string): Promise<{
       | { id: string; due: string | null; state?: number; reps?: number };
   }
 
-  for (const item of data as unknown as QueryEntry[]) {
+  const PAGE_SIZE = 1000;
+  const allRows: QueryEntry[] = [];
+  let from = 0;
+
+  while (true) {
+    let query = supabase
+      .from("vocab_entries")
+      .select(`
+        id,
+        metadata,
+        notebook_id,
+        review_cards (
+          id,
+          due,
+          state,
+          reps
+        )
+      `)
+      .eq("user_id", user.id)
+      .order("id", { ascending: true })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (notebookId) {
+      query = query.eq("notebook_id", notebookId);
+    }
+
+    const { data, error } = await query;
+
+    if (error || !data) {
+      return { topics: [] };
+    }
+
+    const chunk = data as unknown as QueryEntry[];
+    allRows.push(...chunk);
+
+    if (chunk.length < PAGE_SIZE) {
+      break;
+    }
+    from += PAGE_SIZE;
+  }
+
+  const map = new Map<string, { totalCount: number; dueCount: number; learnedCount: number }>();
+
+  for (const item of allRows) {
     const topic = item.metadata?.topic?.trim() || "Chung";
     if (!map.has(topic)) {
       map.set(topic, { totalCount: 0, dueCount: 0, learnedCount: 0 });

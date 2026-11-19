@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 import {
+  buildLessonMicroModules,
   getGrammarLessonByCode,
   getAllGrammarLessons,
 } from "@/core/grammarLessons";
+import { collectLessonHighlightsMap } from "@/core/lessonHighlights";
+import { getRoadmapContextByTag } from "@/core/roadmap";
 import { LessonDetailView } from "@/features/learn/components/lesson-detail-view";
 import type { Metadata } from "next";
 
@@ -39,5 +42,16 @@ export default async function GrammarLessonDetailPage({
     notFound();
   }
 
-  return <LessonDetailView lesson={lesson} />;
+  const modules = buildLessonMicroModules(lesson);
+  const roadmapContext = getRoadmapContextByTag(lesson.tagCode);
+  const highlightsBySentence = collectLessonHighlightsMap(lesson);
+
+  return (
+    <LessonDetailView
+      lesson={lesson}
+      modules={modules}
+      roadmapContext={roadmapContext}
+      highlightsBySentence={highlightsBySentence}
+    />
+  );
 }

@@ -2,13 +2,13 @@ import Link from "next/link";
 import { requireUser } from "@/shared/auth";
 import { checkIsAdmin, getReviewQueueAction } from "@/features/admin/actions";
 import { AdminReviewView } from "@/features/admin/components/admin-review-view";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Hàng đợi duyệt đề (Admin Review) | TOEIC",
+  title: "Hàng đợi duyệt đề (Admin Review)",
   description: "Duyệt và kiểm định chất lượng câu hỏi TOEIC trước khi phát hành.",
 };
 
@@ -35,10 +35,11 @@ export default async function AdminReviewPage() {
             </p>
           </div>
           <div className="pt-2">
-            <Link href="/">
-              <Button variant="secondary" className="w-full gap-2">
-                <ArrowLeft className="w-4 h-4" /> Quay lại Trang chủ
-              </Button>
+            <Link
+              href="/"
+              className={buttonVariants({ variant: "secondary", className: "w-full gap-2" })}
+            >
+              <ArrowLeft className="w-4 h-4" /> Quay lại Trang chủ
             </Link>
           </div>
         </div>
@@ -55,10 +56,8 @@ export default async function AdminReviewPage() {
         <div className="p-4 bg-[#FFF1F2] border border-[#FECDD3] rounded-lg text-sm text-[#BE123C]">
           {error}
         </div>
-        <Link href="/">
-          <Button variant="secondary" className="gap-2">
-            <ArrowLeft className="w-4 h-4" /> Quay lại Trang chủ
-          </Button>
+        <Link href="/" className={buttonVariants({ variant: "secondary", className: "gap-2" })}>
+          <ArrowLeft className="w-4 h-4" /> Quay lại Trang chủ
         </Link>
       </div>
     );

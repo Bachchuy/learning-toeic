@@ -1,4 +1,12 @@
 import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+
+const PUBLIC_AUDIT_ROUTES = [
+  { name: "Login", path: "/login" },
+  { name: "Reset Password", path: "/reset-password" },
+  { name: "Terms of Service", path: "/terms" },
+  { name: "Privacy Policy", path: "/privacy" },
+] as const;
 
 test.describe("M12 E2E: Responsive Breakpoints & Accessibility (D-05, D-21, a11y)", () => {
   test("Desktop 1280px: Card đăng nhập hiển thị cân đối, không có thanh cuộn ngang", async ({
@@ -9,7 +17,10 @@ test.describe("M12 E2E: Responsive Breakpoints & Accessibility (D-05, D-21, a11y
 
     // Kiểm tra không bị tràn ngang màn hình
     const isHorizontalScrollable = await page.evaluate(() => {
-      return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+      return (
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth
+      );
     });
     expect(isHorizontalScrollable).toBe(false);
 
@@ -31,7 +42,10 @@ test.describe("M12 E2E: Responsive Breakpoints & Accessibility (D-05, D-21, a11y
 
     // 1. Kiểm tra không bị tràn ngang ở màn hình 360px
     const isHorizontalScrollable = await page.evaluate(() => {
-      return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+      return (
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth
+      );
     });
     expect(isHorizontalScrollable).toBe(false);
 
@@ -48,36 +62,81 @@ test.describe("M12 E2E: Responsive Breakpoints & Accessibility (D-05, D-21, a11y
     if (signupBox) expect(signupBox.height).toBeGreaterThanOrEqual(44);
 
     // 3. Kiểm tra nút Submit chính Primary button >= 44px (chuẩn thiết kế D-06)
-    const submitBtn = page.getByRole("button", { name: "Đăng nhập", exact: true });
+    const submitBtn = page.getByRole("button", {
+      name: "Đăng nhập",
+      exact: true,
+    });
     const submitBox = await submitBtn.boundingBox();
     expect(submitBox).not.toBeNull();
     if (submitBox) expect(submitBox.height).toBeGreaterThanOrEqual(44);
   });
 
-  test("Bàn phím (Keyboard Navigation): Di chuyển tuần tự qua Tab key", async ({ page }) => {
+  test("Bàn phím (Keyboard Navigation): Di chuyển tuần tự qua Tab key", async ({
+    page,
+  }) => {
     await page.goto("/login");
 
-    // 1. Focus vào đầu trang và nhấn phím Tab
-    await page.keyboard.press("Tab");
-
-    // 2. Chuyển focus qua các tab role và inputs
+    // 1. Focus vào ô email
     const emailInput = page.locator('input[type="email"]');
     await emailInput.focus();
     await expect(emailInput).toBeFocused();
 
-    // Nhấn Tab sang password
+    // 2. Nhấn Tab sang password
     await page.keyboard.press("Tab");
     const passwordInput = page.locator('input[name="password"]');
     await expect(passwordInput).toBeFocused();
 
-    // Nhấn Tab sang nút toggle mật khẩu
+    // 3. Nhấn Tab sang nút toggle mật khẩu
     await page.keyboard.press("Tab");
     const toggleEye = page.locator('button[aria-label="Hiện mật khẩu"]');
     await expect(toggleEye).toBeFocused();
 
-    // Nhấn Tab sang nút Submit
+    // 4. Nhấn Tab qua nút "Quên mật khẩu?"
     await page.keyboard.press("Tab");
-    const submitBtn = page.getByRole("button", { name: "Đăng nhập", exact: true });
+    const forgotBtn = page.getByRole("button", {
+      name: "Quên mật khẩu?",
+      exact: true,
+    });
+    await expect(forgotBtn).toBeFocused();
+
+    // 5. Nhấn Tab sang nút Submit Đăng nhập
+    await page.keyboard.press("Tab");
+    const submitBtn = page.getByRole("button", {
+      name: "Đăng nhập",
+      exact: true,
+    });
     await expect(submitBtn).toBeFocused();
   });
+
+  for (const viewport of [
+    { label: "Mobile 360px", width: 360, height: 740 },
+    { label: "Desktop 1280px", width: 1280, height: 800 },
+  ]) {
+    for (const route of PUBLIC_AUDIT_ROUTES) {
+      test(`WCAG 2.1 AA (${viewport.label}): ${route.name} (${route.path}) không có vi phạm axe và không tràn ngang`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({
+          width: viewport.width,
+          height: viewport.height,
+        });
+        await page.goto(route.path);
+        await page.waitForLoadState("networkidle");
+
+        const isHorizontalScrollable = await page.evaluate(() => {
+          return (
+            document.documentElement.scrollWidth >
+            document.documentElement.clientWidth
+          );
+        });
+        expect(isHorizontalScrollable).toBe(false);
+
+        const axeResults = await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+          .analyze();
+
+        expect(axeResults.violations).toEqual([]);
+      });
+    }
+  }
 });

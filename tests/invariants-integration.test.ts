@@ -1,5 +1,15 @@
 import { describe, it, expect } from "vitest";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { createInitialPracticeState } from "@/core/practiceReducer";
+import {
+  initDrillState,
+  selectDrillOption,
+  submitDrillAnswer,
+  nextDrillQuestion,
+  resetDrillState,
+} from "@/core/drill";
+import type { SessionReviewItem } from "@/features/practice/types";
 import { calculateMasteryPercentage, getMasteryLabel } from "@/core/wilson";
 import { previewFSRSRatings, type DBCardRow } from "@/core/fsrs";
 import { runAutomatedValidator } from "@/core/adminReview";
@@ -31,19 +41,106 @@ describe("Milestone M12: System Invariants & Integration Audit", () => {
   });
 
   describe("Invariant 2: Drill không ghi DB, không đổi mastery", () => {
-    it("thực hiện chu kỳ Drill chỉ cập nhật local memory và không phát sinh attempt DB record", () => {
-      // Giả lập 2 câu hỏi sai đưa vào Drill
-      const drillAnswers: Record<string, number> = {};
-      let attemptDbCallsCount = 0;
+    it("thực hiện đầy đủ vòng đời Drill qua @/core/drill chỉ trên bộ nhớ cục bộ", () => {
+      const sampleExplanation = {
+        rule_vi: "Sau động từ khiếm khuyết dùng động từ nguyên mẫu.",
+        why_correct_vi: "Cấu trúc modal + V-infinitive.",
+      };
 
-      // Người dùng làm câu 1 trong Drill
-      drillAnswers["q-1"] = 0; // Trả lời đúng
-      // Bất biến: Không được gọi RPC submit_answer hay ghi attempt vào DB
-      const recordToDb = false;
-      if (recordToDb) attemptDbCallsCount++;
+      const reviewItems: SessionReviewItem[] = [
+        {
+          question_id: "q-correct",
+          order_index: 1,
+          stem: "She can ______ English fluently.",
+          option_a: "speak",
+          option_b: "speaks",
+          option_c: "spoke",
+          option_d: "speaking",
+          tag_name_vi: "Động từ",
+          selected_index: 0,
+          correct_index: 0,
+          is_correct: true,
+          explanation: sampleExplanation,
+        },
+        {
+          question_id: "q-wrong-1",
+          order_index: 2,
+          stem: "They must ______ the contract today.",
+          option_a: "signed",
+          option_b: "sign",
+          option_c: "signing",
+          option_d: "signs",
+          tag_name_vi: "Động từ",
+          selected_index: 0,
+          correct_index: 1,
+          is_correct: false,
+          explanation: sampleExplanation,
+        },
+        {
+          question_id: "q-wrong-2",
+          order_index: 3,
+          stem: "We will ______ the meeting tomorrow.",
+          option_a: "attending",
+          option_b: "attends",
+          option_c: "attend",
+          option_d: "attended",
+          tag_name_vi: "Thì động từ",
+          selected_index: 1,
+          correct_index: 2,
+          is_correct: false,
+          explanation: sampleExplanation,
+        },
+      ];
 
-      expect(attemptDbCallsCount).toBe(0);
-      expect(drillAnswers["q-1"]).toBe(0);
+      let state = initDrillState(reviewItems);
+      expect(state.questions.map((q) => q.question_id)).toEqual(["q-wrong-1", "q-wrong-2"]);
+      expect(state.isFinished).toBe(false);
+
+      // Câu Drill 1: chọn đúng đáp án (index 1)
+      state = selectDrillOption(state, 1);
+      state = submitDrillAnswer(state);
+      expect(state.isSubmitted).toBe(true);
+      expect(state.score).toBe(1);
+      state = nextDrillQuestion(state);
+      expect(state.currentIndex).toBe(1);
+      expect(state.isFinished).toBe(false);
+
+      // Câu Drill 2: chọn sai đáp án (index 0 thay vì 2)
+      state = selectDrillOption(state, 0);
+      state = submitDrillAnswer(state);
+      expect(state.score).toBe(1);
+      expect(state.userAnswers).toHaveLength(2);
+      state = nextDrillQuestion(state);
+      expect(state.isFinished).toBe(true);
+
+      // Reset vòng Drill chỉ cập nhật state thuần túy
+      const resetState = resetDrillState(state);
+      expect(resetState.currentIndex).toBe(0);
+      expect(resetState.score).toBe(0);
+      expect(resetState.userAnswers).toEqual([]);
+      expect(resetState.isFinished).toBe(false);
+    });
+
+    it("kiểm tra ranh giới mã nguồn: Drill core và DrillRunner không import Supabase hay action ghi DB", () => {
+      const drillCore = fs.readFileSync(
+        path.resolve(process.cwd(), "src/core/drill.ts"),
+        "utf-8"
+      );
+      const drillRunner = fs.readFileSync(
+        path.resolve(process.cwd(), "src/features/practice/components/drill-runner.tsx"),
+        "utf-8"
+      );
+
+      for (const source of [drillCore, drillRunner]) {
+        expect(source).not.toContain("@/lib/supabase");
+        expect(source).not.toContain("@supabase/");
+        expect(source).not.toContain("submitAnswerAction");
+        expect(source).not.toContain("finishSessionAction");
+        expect(source).not.toContain("createSessionAction");
+        expect(source).not.toMatch(/\.rpc\s*\(/);
+        expect(source).not.toMatch(/\.from\(\s*["']attempts["']\s*\)/);
+        expect(source).not.toMatch(/\bfetch\s*\(/);
+      }
     });
   });
 

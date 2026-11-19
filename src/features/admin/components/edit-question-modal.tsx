@@ -8,11 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, AlertCircle, CheckCircle2, Sparkles } from "lucide-react";
 
+export interface EditedQuestionPayload {
+  stem: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_index: number;
+  rule_vi: string;
+  why_correct_vi: string;
+}
+
 interface EditQuestionModalProps {
   question: AdminReviewQuestion;
   isOpen: boolean;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (updated: EditedQuestionPayload) => void;
 }
 
 export function EditQuestionModal({
@@ -64,7 +75,16 @@ export function EditQuestionModal({
       });
 
       if (res.success) {
-        onSaved();
+        onSaved({
+          stem: stem.trim(),
+          option_a: optA.trim(),
+          option_b: optB.trim(),
+          option_c: optC.trim(),
+          option_d: optD.trim(),
+          correct_index: correctIndex,
+          rule_vi: ruleVi.trim(),
+          why_correct_vi: whyCorrectVi.trim(),
+        });
         onClose();
       } else {
         setErrorMsg(res.error || "Không thể lưu câu hỏi.");

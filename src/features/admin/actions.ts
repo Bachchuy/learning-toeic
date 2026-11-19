@@ -186,6 +186,18 @@ export async function approveQuestionAction(
 
   const supabase = await createClient();
 
+  const { data: existingQuestion, error: fetchError } = await supabase
+    .from("questions")
+    .select("status")
+    .eq("id", questionId)
+    .single();
+
+  if (fetchError || !existingQuestion) {
+    return { success: false, error: "Không tìm thấy câu hỏi cần duyệt." };
+  }
+
+  const previousStatus = existingQuestion.status;
+
   // 1. Cập nhật trạng thái câu hỏi
   const { error: updateError } = await supabase
     .from("questions")
@@ -204,14 +216,21 @@ export async function approveQuestionAction(
     .eq("status", "pending");
 
   // 3. Ghi vào review_log
-  await supabase.from("review_log").insert({
+  const { error: logError } = await supabase.from("review_log").insert({
     admin_id: userId,
     question_id: questionId,
     action: "approved",
-    previous_status: "needs_review",
+    previous_status: previousStatus,
     new_status: "published",
     notes: notes.trim(),
   });
+
+  if (logError) {
+    return {
+      success: false,
+      error: "Đã xuất bản câu hỏi nhưng lỗi ghi review_log: " + logError.message,
+    };
+  }
 
   revalidatePath("/admin/review");
   return { success: true, message: "Đã duyệt và xuất bản câu hỏi thành công." };
@@ -232,6 +251,18 @@ export async function rejectQuestionAction(
 
   const supabase = await createClient();
 
+  const { data: existingQuestion, error: fetchError } = await supabase
+    .from("questions")
+    .select("status")
+    .eq("id", questionId)
+    .single();
+
+  if (fetchError || !existingQuestion) {
+    return { success: false, error: "Không tìm thấy câu hỏi cần loại bỏ." };
+  }
+
+  const previousStatus = existingQuestion.status;
+
   // 1. Cập nhật trạng thái câu hỏi thành retired
   const { error: updateError } = await supabase
     .from("questions")
@@ -250,14 +281,21 @@ export async function rejectQuestionAction(
     .eq("status", "pending");
 
   // 3. Ghi vào review_log
-  await supabase.from("review_log").insert({
+  const { error: logError } = await supabase.from("review_log").insert({
     admin_id: userId,
     question_id: questionId,
     action: "rejected",
-    previous_status: "needs_review",
+    previous_status: previousStatus,
     new_status: "retired",
     notes: notes.trim(),
   });
+
+  if (logError) {
+    return {
+      success: false,
+      error: "Đã loại câu hỏi nhưng lỗi ghi review_log: " + logError.message,
+    };
+  }
 
   revalidatePath("/admin/review");
   return { success: true, message: "Đã loại câu hỏi khỏi ngân hàng đề thi." };
@@ -310,6 +348,18 @@ export async function editQuestionAction(
 
   const supabase = await createClient();
 
+  const { data: existingQuestion, error: fetchError } = await supabase
+    .from("questions")
+    .select("status")
+    .eq("id", questionId)
+    .single();
+
+  if (fetchError || !existingQuestion) {
+    return { success: false, error: "Không tìm thấy câu hỏi cần chỉnh sửa." };
+  }
+
+  const previousStatus = existingQuestion.status;
+
   // 4. Cập nhật questions
   const { error: qError } = await supabase
     .from("questions")
@@ -327,11 +377,15 @@ export async function editQuestionAction(
   }
 
   // 5. Cập nhật question_answers nếu có thay đổi
-  const { data: currentAns } = await supabase
+  const { data: currentAns, error: fetchAnsError } = await supabase
     .from("question_answers")
     .select("explanation")
     .eq("question_id", questionId)
     .single();
+
+  if (fetchAnsError) {
+    return { success: false, error: "Không đọc được đáp án hiện tại: " + fetchAnsError.message };
+  }
 
   const currentExpl = (currentAns?.explanation || {}) as Record<string, unknown>;
   const updatedExpl = {
@@ -340,7 +394,7 @@ export async function editQuestionAction(
     ...(data.why_correct_vi !== undefined ? { why_correct_vi: data.why_correct_vi.trim() } : {}),
   };
 
-  await supabase
+  const { error: ansError } = await supabase
     .from("question_answers")
     .update({
       correct_index: data.correct_index,
@@ -348,15 +402,23 @@ export async function editQuestionAction(
     })
     .eq("question_id", questionId);
 
+  if (ansError) {
+    return { success: false, error: "Lỗi cập nhật đáp án và giải thích: " + ansError.message };
+  }
+
   // 6. Ghi vào review_log
-  await supabase.from("review_log").insert({
+  const { error: logError } = await supabase.from("review_log").insert({
     admin_id: userId,
     question_id: questionId,
     action: "edited",
-    previous_status: "needs_review",
-    new_status: "needs_review",
+    previous_status: previousStatus,
+    new_status: previousStatus,
     notes: data.notes?.trim() || "Chỉnh sửa câu hỏi trong chế độ Edit Mode",
   });
+
+  if (logError) {
+    return { success: false, error: "Đã lưu câu hỏi nhưng lỗi ghi review_log: " + logError.message };
+  }
 
   revalidatePath("/admin/review");
   return { success: true, message: "Đã cập nhật câu hỏi thành công." };

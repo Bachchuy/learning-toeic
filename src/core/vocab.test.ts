@@ -8,6 +8,7 @@ import {
   generateNaturalExplanation,
   resolveDualDetails,
   detectWordRoleInSentence,
+  sanitizePostgrestSearch,
 } from "./vocab";
 import { resolvePhonetic } from "./vocabDictionary";
 
@@ -263,5 +264,18 @@ describe("resolveDualDetails", () => {
     expect(
       detectWordRoleInSentence("refund", "He demanded a full refund immediately.")
     ).toBe("noun");
+  });
+});
+
+describe("sanitizePostgrestSearch", () => {
+  it("loại bỏ ký tự điều khiển PostgREST và wildcard LIKE", () => {
+    expect(sanitizePostgrestSearch("budget,id.eq.admin,(test)")).toBe("budget id eq admin test");
+    expect(sanitizePostgrestSearch("100%_test*\\'\"")).toBe("100 test");
+    expect(sanitizePostgrestSearch("   ")).toBe("");
+  });
+
+  it("giữ nguyên từ khóa tiếng Việt, gạch nối và khoảng trắng bình thường", () => {
+    expect(sanitizePostgrestSearch("  up-to-date  ")).toBe("up-to-date");
+    expect(sanitizePostgrestSearch("tài chính doanh nghiệp")).toBe("tài chính doanh nghiệp");
   });
 });
