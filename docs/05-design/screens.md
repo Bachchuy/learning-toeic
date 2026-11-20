@@ -21,6 +21,18 @@
 - Cấu trúc: tiêu đề, Segmented Pill 5/10/20, lựa chọn "Tất cả chủ điểm (ngẫu nhiên)" + danh sách 16 chủ điểm (nhãn độ vững, số câu còn), CTA chính \[Bắt đầu phiên luyện\]. **Không có công tắc bấm giờ.**
 - Trạng thái (D-10): đủ câu; ít hơn số chọn (nhắc "Chỉ còn 4 câu mới" và tạo phiên 4 câu); hết câu (vô hiệu hóa hàng và giải thích lý do). Layout max-w-2xl.
 
+**Nghiệm thu luồng từ Dashboard vào Part 5 (PD-10).** Giữ tên chủ điểm được đề xuất cho tới khi người học chọn chủ điểm khác. Ví dụ với đề xuất luyện 10 câu Dạng từ:
+
+| Số câu sau khi tải | Nội dung và hành động |
+| --- | --- |
+| Còn ít nhất 10 câu Dạng từ | Nút chính **Bắt đầu luyện 10 câu** tạo phiên Dạng từ. |
+| Còn 4 câu Dạng từ | Hiện “Chỉ còn 4 câu mới”. Nút chính **Bắt đầu luyện 4 câu** tạo phiên Dạng từ. |
+| Dạng từ hết câu, chủ điểm khác còn câu | Hiện “Hiện chưa có câu mới để luyện.” Nút chính **Chọn chủ điểm khác** mở danh sách chủ điểm còn câu và chuyển focus tới tiêu đề **Chọn chủ điểm**. Mỗi lựa chọn ghi tên và số câu còn lại. **Ôn lý thuyết Dạng từ** là liên kết phụ. |
+| Tất cả chủ điểm đều hết câu | Nút chính **Ôn lý thuyết Dạng từ** dẫn tới bài học của chủ điểm được đề xuất. |
+| Tải số câu thất bại | Hiện “Chưa tải được số câu của chủ điểm này.” Nút chính **Thử lại** tải lại số câu cho cùng chủ điểm. |
+
+Mở danh sách hoặc chọn chủ điểm chỉ cập nhật màn thiết lập. Chỉ tạo phiên khi người học bấm **Bắt đầu luyện**.
+
 **M4. Làm bài và phản hồi — `/practice/[sessionId]`.** Mục tiêu: làm bài tập trung, học từ lỗi sai.
 
 - Cấu trúc: Focused Header 52px (\[X Thoát\], "Câu 3/10", thanh tiến độ, ẩn Navigation); chủ điểm; stem; 4 Answer Option Row; Sticky Action Bar 72px chứa nút chính \[Nộp đáp án\] rồi \[Tiếp tục\] (câu cuối: \[Xem kết quả\]); sau khi nộp: Adaptive Explanation, nút phụ \[+ Lưu từ vựng\] và \[! Báo lỗi\].

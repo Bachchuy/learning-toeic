@@ -63,7 +63,7 @@ Ràng buộc pháp lý / ETS / dữ liệu cá nhân
 12 nguyên tắc dẫn đường / philosophy / "Hiểu vì sao sai"
   └─► 02-principles.md
 
-Product Decisions đã chốt / PD-01 → PD-09
+Product Decisions đã chốt / PD-01 → PD-10
   └─► 03-decisions/PD-log.md
 
   Tra nhanh PD:
@@ -76,6 +76,7 @@ Product Decisions đã chốt / PD-01 → PD-09
   PD-07  Drill chỉ một lượt, chấm tại client
   PD-08  Dashboard mobile: chỉ Top 3 chủ điểm có ≥5 câu
   PD-09  Word Chip lấy từ vocab_hints đi kèm giải thích; không gọi LLM khi làm bài
+  PD-10  Từ Dashboard vào Part 5: giữ chủ điểm đã chọn, đổi chủ điểm hoặc ôn lý thuyết khi hết câu
 
 Conflict resolutions / D-01 → D-32
   └─► 03-decisions/D-log.md

@@ -16,4 +16,5 @@
 | PD-07 | Drill chỉ một lượt (kèm "Luyện lại lần nữa" ở màn tổng kết Drill), chấm tại client | \[ĐÃ CHỐT\] |
 | PD-08 | Dashboard mobile chỉ hiện Top 3 chủ điểm đủ từ 5 câu; chủ điểm dưới 5 câu gắn nhãn Chưa đủ dữ liệu | \[ĐÃ CHỐT\] |
 | PD-09 | Word Chip lấy từ `vocab_hints` đi kèm giải thích; không gọi LLM lúc làm bài | \[ĐÃ CHỐT\] |
+| PD-10 | Giữ chủ điểm Part 5 đã chọn từ Dashboard. Khi chủ điểm đó hết câu, ưu tiên **Chọn chủ điểm khác** nếu còn câu ở nơi khác. Khi tất cả đều hết câu, ưu tiên **Ôn lý thuyết** của chủ điểm ban đầu. Xem [đặc tả M3](../05-design/screens.md). | \[ĐÃ CHỐT\] |
 
