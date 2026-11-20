@@ -48,11 +48,14 @@ export const QuestionExplanationSchema = z.object({
  */
 function sanitizeAnalysisString(text?: string): string | undefined {
   if (!text) return undefined;
+  const trimmed = text.trim();
+  if (!trimmed) return undefined;
   if (
-    text.includes("không phù hợp về ngữ nghĩa hoặc không tạo thành cụm từ tự nhiên") ||
-    text.includes("Đáp án đúng. Mang nghĩa và cấu trúc chuẩn xác nhất cho câu.")
+    trimmed.includes("không phù hợp về ngữ nghĩa hoặc không tạo thành cụm từ tự nhiên") ||
+    trimmed.includes("Đáp án đúng. Mang nghĩa và cấu trúc chuẩn xác nhất cho câu.") ||
+    trimmed === "Phương án này không phù hợp với cấu trúc ngữ pháp của câu."
   ) {
-    return undefined; // Ẩn chuỗi rập khuôn máy móc
+    return undefined; // Ẩn chuỗi rập khuôn máy móc / dự phòng chung chung
   }
   return text;
 }
@@ -100,14 +103,25 @@ export function parseExplanation(raw: unknown): QuestionExplanation {
   }
 
   // Chuẩn hóa why_wrong_vi (hỗ trợ cả mảng OptionExplanation[] lẫn object Record<"A".."D", string> legacy)
+  // Giữ nguyên thông tin thiếu reason_vi ở dữ liệu gốc: không tự điền chuỗi chung chung khi raw thiếu/rỗng
   let normalizedWhyWrong: OptionExplanation[] | undefined = undefined;
   const rawWhyWrong = (raw as Record<string, unknown>).why_wrong_vi;
   if (Array.isArray(rawWhyWrong)) {
     const validItems: OptionExplanation[] = [];
     for (const item of rawWhyWrong) {
+      if (!item || typeof item !== "object") {
+        continue;
+      }
+      const rawReason = (item as Record<string, unknown>).reason_vi;
+      if (typeof rawReason !== "string" || !sanitizeAnalysisString(rawReason)) {
+        continue;
+      }
       const parsedItem = OptionExplanationSchema.safeParse(item);
       if (parsedItem.success && parsedItem.data.reason_vi.trim().length > 0) {
-        validItems.push(parsedItem.data);
+        validItems.push({
+          option: parsedItem.data.option,
+          reason_vi: parsedItem.data.reason_vi.trim(),
+        });
       }
     }
     if (validItems.length > 0) {
@@ -117,8 +131,8 @@ export function parseExplanation(raw: unknown): QuestionExplanation {
     const validItems: OptionExplanation[] = [];
     for (const key of ["A", "B", "C", "D"] as const) {
       const val = (rawWhyWrong as Record<string, unknown>)[key];
-      if (typeof val === "string" && val.trim().length > 0) {
-        validItems.push({ option: key, reason_vi: val });
+      if (typeof val === "string" && sanitizeAnalysisString(val)) {
+        validItems.push({ option: key, reason_vi: val.trim() });
       }
     }
     if (validItems.length > 0) {

@@ -78,6 +78,29 @@ describe("QuestionExplanationSchema & parseExplanation", () => {
       { option: "D", reason_vi: "Thiếu tân ngữ." },
     ]);
   });
+
+  it("giữ nguyên trạng thái thiếu reason_vi ở dữ liệu cũ (không tự điền câu chung chung)", () => {
+    const legacyMissingReason = parseExplanation({
+      why_wrong_vi: [{ option: "A" }, { option: "B", reason_vi: "   " }],
+      why_correct_vi: "Lý do đúng cụ thể cho câu này.",
+    });
+    expect(legacyMissingReason.why_wrong_vi).toBeUndefined();
+    expect(legacyMissingReason.why_correct_vi).toBe("Lý do đúng cụ thể cho câu này.");
+
+    const partialWithOptionsAnalysis = parseExplanation({
+      why_wrong_vi: [{ option: "A" }, { option: "C", reason_vi: "Sai từ loại." }],
+      options_analysis: {
+        A: "Phân tích thật cho A",
+        B: "Phân tích B",
+        C: "Phân tích C",
+        D: "Phân tích D",
+      },
+    });
+    expect(partialWithOptionsAnalysis.why_wrong_vi).toEqual([
+      { option: "C", reason_vi: "Sai từ loại." },
+    ]);
+    expect(partialWithOptionsAnalysis.options_analysis?.A).toBe("Phân tích thật cho A");
+  });
 });
 
 describe("parseSessionReviewResponse", () => {

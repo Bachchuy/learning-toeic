@@ -1,15 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
-import { BookOpen, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
+import React, { useId, useState } from "react";
+import {
+  BookOpen,
+  Lightbulb,
+  Languages,
+  Quote,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import {
+  getExpandableDetailFlags,
+  type OptionAnalysisDetail,
+  type OptionLabel,
+} from "@/core/practiceFeedback";
 import type { QuestionExplanation } from "../types";
 
 interface AdaptiveExplanationProps {
   isCorrect: boolean;
   explanation: QuestionExplanation;
   onExpandClick?: () => void;
-  /** Nếu true, cho phép người dùng mở quy tắc & mẹo; mặc định luôn thu gọn để giữ giao diện thoáng */
+  /** Nếu true, mặc định mở sẵn phần chi tiết; mặc định thu gọn để giữ màn hình thoáng */
   initiallyExpanded?: boolean;
+  /** Ẩn lý do đáp án đúng khi đã được hiển thị làm phương án dự phòng ngay dưới lựa chọn sai */
+  showWhyCorrect?: boolean;
+  correctOptionLabel?: OptionLabel;
+  /** Chỉ thu gọn bản dịch trong phiên luyện Part 5; các màn dùng chung (Drill, Kết quả) giữ bản dịch hiển thị ngay */
+  collapseTranslation?: boolean;
+  /** Danh sách phân tích các phương án còn lại khi mở chi tiết */
+  remainingOptionAnalyses?: OptionAnalysisDetail[];
+  /** Văn bản của từng phương án A–D để hiển thị ngữ cảnh kèm phân tích */
+  optionTexts?: Partial<Record<OptionLabel, string>>;
 }
 
 export function AdaptiveExplanation({
@@ -17,111 +38,235 @@ export function AdaptiveExplanation({
   explanation,
   onExpandClick,
   initiallyExpanded = false,
+  showWhyCorrect = true,
+  correctOptionLabel,
+  collapseTranslation = false,
+  remainingOptionAnalyses = [],
+  optionTexts,
 }: AdaptiveExplanationProps) {
-  // Mặc định luôn thu gọn phần mẹo & quy tắc nâng cao để tránh chiếm dụng màn hình
-  const [showAdvancedRules, setShowAdvancedRules] = useState(initiallyExpanded);
+  const detailsId = useId();
+  const [showDetails, setShowDetails] = useState(initiallyExpanded);
 
-  const handleToggleAdvanced = () => {
-    const nextState = !showAdvancedRules;
-    setShowAdvancedRules(nextState);
+  const whyCorrectText = showWhyCorrect
+    ? explanation.why_correct_vi?.trim() || ""
+    : "";
+  const rawTranslation = explanation.full_translation_vi?.trim() || "";
+  const visibleTranslation = !collapseTranslation ? rawTranslation : "";
+  const expandable = getExpandableDetailFlags(explanation, {
+    includeTranslation: collapseTranslation,
+    hasOptionAnalyses: remainingOptionAnalyses.length > 0,
+  });
+
+  if (!whyCorrectText && !visibleTranslation && !expandable.hasAny) {
+    return null;
+  }
+
+  const handleToggleDetails = () => {
+    const nextState = !showDetails;
+    setShowDetails(nextState);
     if (nextState && onExpandClick) {
       onExpandClick();
     }
   };
 
+  const whyCorrectHeading = isCorrect
+    ? correctOptionLabel
+      ? `Lý do đáp án đúng (${correctOptionLabel})`
+      : "Điểm cốt lõi giúp chọn đúng"
+    : correctOptionLabel
+      ? `Lý do đáp án đúng (${correctOptionLabel})`
+      : "Lý do đáp án đúng";
+
   return (
     <div className="w-full space-y-3 text-left" aria-live="polite">
-      {/* 1. Khối Giải thích trọng tâm & Dịch nghĩa (Gọn gàng, dễ đọc, không lấn át câu hỏi) */}
-      <div className="p-4 sm:p-5 rounded-xl bg-[#F0F7FF] border border-[#BFDBFE] text-[#0F172A] space-y-3">
-        {explanation.why_correct_vi && (
-          <div className="text-[14px] sm:text-[15px] leading-relaxed text-[#1E293B]">
-            <span className="font-bold text-[#1E40AF]">
-              {isCorrect ? "Điểm cốt lõi giúp chọn đúng: " : "Điểm mấu chốt cần lưu ý: "}
-            </span>
-            <span>{explanation.why_correct_vi}</span>
+      {/* 1. Khối Giải thích trọng tâm & Nút mở rộng quy tắc, bản dịch, ví dụ */}
+      <div className="p-4 sm:p-5 rounded-[10px] bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] border-l-4 border-l-[var(--color-primary-default)] text-[var(--color-text-primary)] space-y-3">
+        {whyCorrectText && (
+          <div className="space-y-1">
+            <div
+              className={`text-[11px] font-mono font-bold uppercase tracking-[0.06em] ${
+                isCorrect
+                  ? "text-[var(--status-success-text)]"
+                  : "text-[var(--color-primary-default)]"
+              }`}
+            >
+              {whyCorrectHeading}
+            </div>
+            <p className="text-[14px] sm:text-[15px] leading-[1.6] text-[var(--color-text-primary)] break-words">
+              {whyCorrectText}
+            </p>
           </div>
         )}
 
-        {explanation.full_translation_vi && (
-          <div className="text-[13px] sm:text-[14px] text-[#334155] border-t border-[#DBEAFE] pt-2.5 leading-relaxed">
-            <span className="font-semibold text-[#1E40AF]">Dịch toàn câu: </span>
-            <span className="italic">&ldquo;{explanation.full_translation_vi}&rdquo;</span>
+        {visibleTranslation && (
+          <div
+            data-testid="visible-translation"
+            className={
+              whyCorrectText
+                ? "pt-3 border-t border-[var(--color-border-default)] space-y-1"
+                : "space-y-1"
+            }
+          >
+            <div className="text-[11px] font-mono font-bold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">
+              Dịch toàn câu
+            </div>
+            <p className="text-[13px] sm:text-[14px] text-[var(--color-text-primary)] italic leading-relaxed break-words">
+              &ldquo;{visibleTranslation}&rdquo;
+            </p>
           </div>
         )}
 
-        {/* Nút chủ động xem thêm Quy tắc & Mẹo (Chỉ mở khi người dùng muốn đào sâu) */}
-        {(explanation.rule_vi || explanation.tip_vi || explanation.example_en) && (
-          <div className="pt-1 border-t border-[#DBEAFE]/60">
+        {expandable.hasAny && (
+          <div
+            className={
+              whyCorrectText || visibleTranslation
+                ? "pt-3 border-t border-[var(--color-border-default)]"
+                : undefined
+            }
+          >
             <button
               type="button"
-              onClick={handleToggleAdvanced}
-              className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-[#2563EB] hover:text-[#1D4ED8] cursor-pointer transition-colors"
+              data-testid="explanation-details-toggle"
+              aria-expanded={showDetails}
+              aria-controls={detailsId}
+              onClick={handleToggleDetails}
+              className="w-full min-h-[44px] flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left text-[13px] sm:text-sm font-semibold text-[var(--color-primary-default)] bg-[var(--color-primary-subtle)] border border-[var(--color-border-default)] hover:border-[var(--color-primary-default)] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--color-primary-default)] focus-visible:outline-offset-2"
             >
-              {showAdvancedRules ? (
-                <>
-                  <ChevronUp className="w-4 h-4" />
-                  <span>Thu gọn quy tắc & mẹo nhận diện</span>
-                </>
+              <span>
+                {showDetails ? expandable.closeLabel : expandable.openLabel}
+              </span>
+              {showDetails ? (
+                <ChevronUp className="w-4 h-4 shrink-0" aria-hidden="true" />
               ) : (
-                <>
-                  <ChevronDown className="w-4 h-4" />
-                  <span>Xem thêm quy tắc cốt lõi & mẹo làm bài</span>
-                </>
+                <ChevronDown className="w-4 h-4 shrink-0" aria-hidden="true" />
               )}
             </button>
           </div>
         )}
       </div>
 
-      {/* 2. Phần mở rộng nâng cao: Chỉ hiển thị khi người dùng chủ động bấm xem */}
-      {showAdvancedRules && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
-          {/* Hộp Quy tắc ngữ pháp */}
-          {explanation.rule_vi && (
-            <div className="p-3.5 sm:p-4 bg-white border border-[#E2E8F0] rounded-xl flex items-start gap-3 shadow-xs">
-              <div className="p-1.5 rounded-lg bg-[#EFF6FF] text-[#2563EB] shrink-0 mt-0.5">
-                <BookOpen className="w-4 h-4" />
+      {/* 2. Phần mở rộng: Quy tắc, Bản dịch, Ví dụ và Mẹo (chỉ hiện khi có dữ liệu và người dùng mở) */}
+      {showDetails && expandable.hasAny && (
+        <div
+          id={detailsId}
+          data-testid="explanation-details-panel"
+          className="space-y-3"
+        >
+          {expandable.hasRule && (
+            <div className="p-3.5 sm:p-4 bg-[var(--color-bg-muted)] border border-[var(--color-border-default)] rounded-lg flex items-start gap-3">
+              <div className="p-1.5 rounded-lg bg-[var(--color-primary-subtle)] text-[var(--color-primary-default)] shrink-0 mt-0.5">
+                <BookOpen className="w-4 h-4" aria-hidden="true" />
               </div>
-              <div className="space-y-1 flex-1">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-[#2563EB] font-mono">
-                  Quy tắc cốt lõi
+              <div className="space-y-1 flex-1 min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--color-primary-default)] font-mono">
+                  Quy tắc
                 </div>
-                <div className="text-[13px] sm:text-[14px] font-medium text-[#0F172A] leading-relaxed">
-                  {explanation.rule_vi}
+                <div className="text-[13px] sm:text-[14px] font-medium text-[var(--color-text-primary)] leading-relaxed break-words">
+                  {explanation.rule_vi.trim()}
                 </div>
               </div>
             </div>
           )}
 
-          {/* Mẹo nhận diện & Ví dụ minh họa */}
-          {(explanation.tip_vi || explanation.example_en) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {explanation.tip_vi && (
-                <div className="p-3.5 sm:p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] flex items-start gap-2.5">
-                  <div className="p-1 rounded-md bg-[#FEF3C7] text-[#B45309] shrink-0 mt-0.5">
-                    <Lightbulb className="w-4 h-4" />
-                  </div>
-                  <div className="space-y-1 flex-1">
-                    <div className="font-bold text-[#B45309] text-[11px] font-mono uppercase tracking-wider">
-                      Mẹo nhận diện nhanh
-                    </div>
-                    <div className="text-[12px] sm:text-[13px] text-[#92400E] leading-relaxed">
-                      {explanation.tip_vi}
-                    </div>
-                  </div>
+          {expandable.hasTranslation && (
+            <div className="p-3.5 sm:p-4 bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] rounded-lg flex items-start gap-3">
+              <div className="p-1.5 rounded-lg bg-[var(--color-bg-muted)] text-[var(--color-text-secondary)] shrink-0 mt-0.5">
+                <Languages className="w-4 h-4" aria-hidden="true" />
+              </div>
+              <div className="space-y-1 flex-1 min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] font-mono">
+                  Bản dịch
                 </div>
-              )}
+                <div className="text-[13px] sm:text-[14px] text-[var(--color-text-primary)] leading-relaxed break-words">
+                  {explanation.full_translation_vi?.trim()}
+                </div>
+              </div>
+            </div>
+          )}
 
-              {explanation.example_en && (
-                <div className="p-3.5 sm:p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1 flex-1">
-                  <div className="font-bold text-[#475569] font-mono text-[11px] uppercase tracking-wider">
-                    Ví dụ minh họa
-                  </div>
-                  <div className="text-[12px] sm:text-[13px] text-[#0F172A] italic leading-relaxed">
-                    &ldquo;{explanation.example_en}&rdquo;
-                  </div>
+          {expandable.hasExample && (
+            <div className="p-3.5 sm:p-4 bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] rounded-lg flex items-start gap-3">
+              <div className="p-1.5 rounded-lg bg-[var(--color-bg-muted)] text-[var(--color-text-secondary)] shrink-0 mt-0.5">
+                <Quote className="w-4 h-4" aria-hidden="true" />
+              </div>
+              <div className="space-y-1 flex-1 min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] font-mono">
+                  Ví dụ
                 </div>
-              )}
+                <div className="text-[13px] sm:text-[14px] text-[var(--color-text-primary)] italic leading-relaxed break-words">
+                  &ldquo;{explanation.example_en?.trim()}&rdquo;
+                </div>
+              </div>
+            </div>
+          )}
+
+          {expandable.hasOptionAnalyses && remainingOptionAnalyses.length > 0 && (
+            <div
+              data-testid="remaining-options-analysis"
+              className="p-3.5 sm:p-4 bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] rounded-lg space-y-3"
+            >
+              <div className="text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] font-mono">
+                {isCorrect ? "Phân tích các phương án" : "Phân tích các phương án còn lại"}
+              </div>
+              <ul className="space-y-2.5">
+                {remainingOptionAnalyses.map((item) => {
+                  const isCorrectOption = item.option === correctOptionLabel;
+                  const optionWord = optionTexts?.[item.option];
+
+                  return (
+                    <li
+                      key={item.option}
+                      data-analysis-option={item.option}
+                      className="flex items-start gap-2.5 text-[13px] sm:text-[14px] leading-relaxed"
+                    >
+                      <span
+                        className={`w-6 h-6 rounded-[6px] flex items-center justify-center font-mono text-xs font-bold shrink-0 mt-0.5 ${
+                          isCorrectOption
+                            ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]"
+                            : "bg-[var(--color-bg-muted)] text-[var(--color-text-secondary)] border border-[var(--color-border-default)]"
+                        }`}
+                      >
+                        {item.option}
+                      </span>
+                      <div className="flex-1 min-w-0 space-y-0.5">
+                        {(optionWord || isCorrectOption) && (
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            {optionWord && (
+                              <span className="font-semibold text-[var(--color-text-primary)] break-words">
+                                {optionWord}
+                              </span>
+                            )}
+                            {isCorrectOption && (
+                              <span className="text-[11px] font-mono font-bold text-[var(--status-success-text)]">
+                                (Đáp án đúng)
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <p className="text-[var(--color-text-primary)] break-words">
+                          {item.reason}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          {expandable.hasTip && (
+            <div className="p-3.5 sm:p-4 bg-[var(--status-warning-bg)] border border-[var(--color-border-default)] border-l-4 border-l-[var(--status-warning-text)] rounded-lg flex items-start gap-3">
+              <div className="p-1.5 rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] text-[var(--status-warning-text)] shrink-0 mt-0.5">
+                <Lightbulb className="w-4 h-4" aria-hidden="true" />
+              </div>
+              <div className="space-y-1 flex-1 min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--status-warning-text)] font-mono">
+                  Mẹo nhận diện
+                </div>
+                <div className="text-[13px] sm:text-[14px] text-[var(--color-text-primary)] leading-relaxed break-words">
+                  {explanation.tip_vi?.trim()}
+                </div>
+              </div>
             </div>
           )}
         </div>
