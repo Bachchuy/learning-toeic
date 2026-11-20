@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Check,
   CheckCircle2,
@@ -27,6 +28,7 @@ import {
 import type { ReviewCardItem, ReviewSessionSummary, ReviewTopicInfo } from "../types";
 import type { Notebook } from "@/features/vocab/types";
 import { submitCardRatingAction, getReviewCardsAction } from "../actions";
+import { buildReviewFilterKey, buildReviewUrl } from "../review-config";
 import { ReviewHeader, type ReviewStudyMode } from "./review-header";
 import { ShortcutsModal } from "./shortcuts-modal";
 import { ReviewSettingsModal, type ReviewSettings } from "./review-settings-modal";
@@ -37,6 +39,7 @@ import { QuizModeCard } from "./quiz-mode-card";
 import { SpeakingModeCard } from "./speaking-mode-card";
 
 interface ReviewViewProps {
+  filterKey?: string;
   initialCards: ReviewCardItem[];
   nextDueFormatted?: string;
   totalCardsCount?: number;
@@ -45,11 +48,14 @@ interface ReviewViewProps {
   notebookId?: string;
   currentTopic?: string;
   currentLimit?: number;
+  currentStudyAll?: boolean;
+  currentExcludeDeck?: string;
   notebooks?: Notebook[];
   topics?: ReviewTopicInfo[];
 }
 
 export function ReviewView({
+  filterKey,
   initialCards,
   nextDueFormatted,
   totalCardsCount = 0,
@@ -58,13 +64,27 @@ export function ReviewView({
   notebookId,
   currentTopic,
   currentLimit = 15,
+  currentStudyAll = false,
+  currentExcludeDeck,
   notebooks = [],
   topics = [],
 }: ReviewViewProps) {
-  // Chủ đề đang hoạt động (Mặc định giữ trống nếu không lọc theo chủ đề từ URL)
-  const [activeTopic, setActiveTopic] = useState<string>(
-    currentTopic || topicName || ""
-  );
+  const router = useRouter();
+  const [isNavigating, startNavigation] = useTransition();
+  const [pendingTopicLabel, setPendingTopicLabel] = useState<string | null>(null);
+
+  // Nguồn sự thật thống nhất theo URL/props (tránh lệch state cục bộ so với URL)
+  const activeTopic = currentTopic || topicName || "";
+  const resolvedFilterKey =
+    filterKey ??
+    buildReviewFilterKey({
+      notebookId,
+      topic: activeTopic || undefined,
+      limit: currentLimit,
+      studyAll: currentStudyAll,
+      excludeDeck: currentExcludeDeck,
+    });
+
   const [queue, setQueue] = useState<ReviewCardItem[]>(initialCards);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentMode, setCurrentMode] = useState<ReviewStudyMode>("typing");
@@ -100,25 +120,53 @@ export function ReviewView({
 
   const [isSessionComplete, setIsSessionComplete] = useState(false);
 
-  const currentCard: ReviewCardItem | undefined = queue[currentIndex];
+  const [prevFilterKey, setPrevFilterKey] = useState<string>(resolvedFilterKey);
 
-  // Chuyển sang chủ đề khác từ danh sách bên trái
-  const handleSelectTopic = (selectedName: string) => {
-    if (selectedName === activeTopic && queue.length > 0 && !isSessionComplete) return;
-    setActiveTopic(selectedName);
-    setIsLoadingTopic(true);
+  // Đồng bộ lại queue khi bộ lọc (notebookId / topic / limit / studyAll / excludeDeck) thay đổi trên cùng trang đã mount
+  if (prevFilterKey !== resolvedFilterKey) {
+    setPrevFilterKey(resolvedFilterKey);
+    setQueue(initialCards);
+    setTotalSessionCards(initialCards.length);
+    setCompletedCardIds(new Set<string>());
+    setCurrentIndex(0);
     setIsSessionComplete(false);
     setRatingError(null);
-    setIsMobileTopicsOpen(false);
+    setPendingTopicLabel(null);
+    setSessionSummary({
+      totalReviewed: 0,
+      ratingsDistribution: { again: 0, hard: 0, good: 0, easy: 0 },
+    });
+  }
 
+  const currentCard: ReviewCardItem | undefined = queue[currentIndex];
+
+  // Ôn lại cấu hình hiện tại (ưu tiên điều hướng URL nếu chưa bật studyAll, hoặc nạp lại tại chỗ nếu URL đã khớp)
+  const handleReplayCurrentSession = (forceStudyAll = true) => {
+    const targetConfig = {
+      notebookId,
+      topic: activeTopic || undefined,
+      limit: currentLimit,
+      studyAll: forceStudyAll,
+      excludeDeck: currentExcludeDeck,
+    };
+    const targetKey = buildReviewFilterKey(targetConfig);
+
+    setIsMobileTopicsOpen(false);
+    setRatingError(null);
+
+    if (targetKey !== resolvedFilterKey) {
+      setPendingTopicLabel(activeTopic || null);
+      startNavigation(() => {
+        router.push(buildReviewUrl(targetConfig));
+      });
+      return;
+    }
+
+    setIsLoadingTopic(true);
+    setIsSessionComplete(false);
     startTransition(async () => {
       try {
-        const res = await getReviewCardsAction({
-          notebookId,
-          topic: selectedName || undefined,
-          limit: selectedName ? 50 : currentLimit,
-          studyAll: true,
-        });
+        const res = await getReviewCardsAction(targetConfig);
         setQueue(res.cards);
         setTotalSessionCards(res.cards.length);
         setCompletedCardIds(new Set<string>());
@@ -128,11 +176,35 @@ export function ReviewView({
           ratingsDistribution: { again: 0, hard: 0, good: 0, easy: 0 },
         });
       } catch (err) {
-        console.error("Lỗi khi tải chủ đề:", err);
-        setRatingError("Không thể nạp từ vựng cho chủ đề này. Vui lòng thử lại.");
+        console.error("Lỗi khi tải lại phiên ôn tập:", err);
+        setRatingError("Không thể tải lại phiên ôn tập. Vui lòng thử lại.");
       } finally {
         setIsLoadingTopic(false);
       }
+    });
+  };
+
+  // Chuyển sang chủ đề khác qua URL (giữ nguồn sự thật thống nhất với ReviewSetupModal)
+  const handleSelectTopic = (selectedName: string) => {
+    setIsMobileTopicsOpen(false);
+
+    if (selectedName === activeTopic) {
+      if (queue.length > 0 && !isSessionComplete) return;
+      handleReplayCurrentSession(true);
+      return;
+    }
+
+    const targetConfig = {
+      notebookId,
+      topic: selectedName || undefined,
+      limit: currentLimit,
+      studyAll: currentStudyAll,
+      excludeDeck: currentExcludeDeck,
+    };
+    setRatingError(null);
+    setPendingTopicLabel(selectedName || null);
+    startNavigation(() => {
+      router.push(buildReviewUrl(targetConfig));
     });
   };
 
@@ -374,11 +446,13 @@ export function ReviewView({
           )}
 
           {/* TRẠNG THÁI: Đang nạp thẻ của chủ đề mới */}
-          {isLoadingTopic ? (
+          {isLoadingTopic || isNavigating ? (
             <div className="w-full max-w-2xl bg-white rounded-3xl border border-[#E2E8F0] shadow-xs p-12 text-center space-y-3">
               <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
               <div className="text-sm font-semibold text-[#0F172A]">
-                {activeTopic ? `Đang nạp từ vựng chủ đề "${activeTopic}"...` : "Đang nạp từ vựng..."}
+                {pendingTopicLabel ?? activeTopic
+                  ? `Đang nạp từ vựng chủ đề "${pendingTopicLabel ?? activeTopic}"...`
+                  : "Đang nạp từ vựng..."}
               </div>
             </div>
           ) : isSessionComplete ? (
@@ -447,7 +521,7 @@ export function ReviewView({
                 )}
                 <button
                   type="button"
-                  onClick={() => handleSelectTopic(activeTopic)}
+                  onClick={() => handleReplayCurrentSession(true)}
                   className="w-full sm:w-auto px-6 h-11 rounded-xl text-xs font-semibold bg-white border border-[#8190A6] text-[#0F172A] hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4 text-slate-500" />
@@ -484,7 +558,7 @@ export function ReviewView({
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
                     <button
                       type="button"
-                      onClick={() => handleSelectTopic(activeTopic)}
+                      onClick={() => handleReplayCurrentSession(true)}
                       className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-bold cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-colors"
                     >
                       <RotateCcw className="w-4 h-4" />
@@ -697,6 +771,8 @@ export function ReviewView({
         currentNotebookId={notebookId}
         currentTopic={activeTopic || undefined}
         currentLimit={currentLimit}
+        currentStudyAll={currentStudyAll}
+        currentExcludeDeck={currentExcludeDeck}
       />
     </div>
   );

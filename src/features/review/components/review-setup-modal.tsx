@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { buildReviewUrl } from "../review-config";
 import type { ReviewTopicInfo } from "../types";
 import type { Notebook } from "@/features/vocab/types";
 import {
@@ -23,6 +24,8 @@ interface ReviewSetupModalProps {
   currentNotebookId?: string;
   currentTopic?: string;
   currentLimit?: number;
+  currentStudyAll?: boolean;
+  currentExcludeDeck?: string;
 }
 
 export function ReviewSetupModal({
@@ -33,6 +36,8 @@ export function ReviewSetupModal({
   currentNotebookId,
   currentTopic,
   currentLimit = 15,
+  currentStudyAll = false,
+  currentExcludeDeck,
 }: ReviewSetupModalProps) {
   const router = useRouter();
   const [selectedNotebookId, setSelectedNotebookId] = useState<string | undefined>(
@@ -40,8 +45,17 @@ export function ReviewSetupModal({
   );
   const [selectedTopic, setSelectedTopic] = useState<string | undefined>(currentTopic);
   const [selectedLimit, setSelectedLimit] = useState<number>(currentLimit);
-  const [studyAll, setStudyAll] = useState<boolean>(true);
+  const [studyAll, setStudyAll] = useState<boolean>(currentStudyAll);
   const [searchTopicQuery, setSearchTopicQuery] = useState("");
+  const syncSignature = `${isOpen}|${currentNotebookId ?? ""}|${currentTopic ?? ""}|${currentLimit}|${currentStudyAll}`;
+  const [prevSyncSignature, setPrevSyncSignature] = useState(syncSignature);
+  if (prevSyncSignature !== syncSignature) {
+    setPrevSyncSignature(syncSignature);
+    setSelectedNotebookId(currentNotebookId);
+    setSelectedTopic(currentTopic);
+    setSelectedLimit(currentLimit);
+    setStudyAll(currentStudyAll);
+  }
 
   const filteredTopics = useMemo(() => {
     if (!searchTopicQuery.trim()) return topics;
@@ -52,14 +66,16 @@ export function ReviewSetupModal({
   if (!isOpen) return null;
 
   const handleStartReview = () => {
-    const params = new URLSearchParams();
-    if (selectedNotebookId) params.set("notebookId", selectedNotebookId);
-    if (selectedTopic) params.set("topic", selectedTopic);
-    params.set("limit", (selectedLimit > 0 ? selectedLimit : 100).toString());
-    if (studyAll) params.set("studyAll", "true");
+    const nextUrl = buildReviewUrl({
+      notebookId: selectedNotebookId,
+      topic: selectedTopic,
+      limit: selectedLimit > 0 ? selectedLimit : 100,
+      studyAll,
+      excludeDeck: currentExcludeDeck,
+    });
 
     onClose();
-    router.push(`/review?${params.toString()}`);
+    router.push(nextUrl);
   };
 
   const limitOptions = [

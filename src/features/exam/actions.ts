@@ -3,7 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOptionalUser } from "@/shared/auth";
-import { MOCK_TESTS } from "@/data/mock-tests";
 import {
   evaluateReadingExam,
   type ReadingQuestionItem,
@@ -74,7 +73,8 @@ interface RawExamRow {
 }
 
 /**
- * Server Action: Lấy danh sách đề thi thử TOEIC Reading
+ * Server Action: Lấy danh sách đề thi thử TOEIC đã xuất bản từ DB
+ * BẤT BIẾN (MD-06): Không fallback sang MOCK_TESTS local thiếu đáp án chấm bài.
  */
 export async function getExamListAction(): Promise<ExamMetaSummary[]> {
   try {
@@ -85,45 +85,30 @@ export async function getExamListAction(): Promise<ExamMetaSummary[]> {
       .eq("status", "published")
       .order("created_at", { ascending: true });
 
-    if (!error && data && data.length > 0) {
-      return data.map((d) => ({
-        id: d.id,
-        slug: d.slug,
-        title: d.title,
-        description: d.description,
-        exam_type: d.exam_type,
-        target_score: d.target_score,
-        duration_minutes: 75, // Chuẩn Reading 75 phút
-        total_questions: 100, // Chuẩn Reading 100 câu
-        parts_summary: {
-          part5: (d.parts_summary as Record<string, number>)?.part5 || 30,
-          part6: (d.parts_summary as Record<string, number>)?.part6 || 16,
-          part7: (d.parts_summary as Record<string, number>)?.part7 || 54,
-          totalReading: (d.parts_summary as Record<string, number>)?.totalReading || 100,
-        },
-      }));
+    if (error || !data || data.length === 0) {
+      return [];
     }
-  } catch (err) {
-    console.error("[getExamListAction] Supabase error, falling back to local mock data:", err);
-  }
 
-  // Fallback sang dữ liệu local mock tests
-  return MOCK_TESTS.map((t) => ({
-    id: t.id,
-    slug: t.slug,
-    title: t.title,
-    description: t.description,
-    exam_type: t.exam_type,
-    target_score: t.target_score,
-    duration_minutes: 75,
-    total_questions: 100,
-    parts_summary: {
-      part5: t.parts_summary?.part5 || 30,
-      part6: t.parts_summary?.part6 || 16,
-      part7: t.parts_summary?.part7 || 54,
-      totalReading: 100,
-    },
-  }));
+    return data.map((d) => ({
+      id: d.id,
+      slug: d.slug,
+      title: d.title,
+      description: d.description,
+      exam_type: d.exam_type,
+      target_score: d.target_score,
+      duration_minutes: 75, // Chuẩn Reading 75 phút
+      total_questions: 100, // Chuẩn Reading 100 câu
+      parts_summary: {
+        part5: (d.parts_summary as Record<string, number>)?.part5 || 30,
+        part6: (d.parts_summary as Record<string, number>)?.part6 || 16,
+        part7: (d.parts_summary as Record<string, number>)?.part7 || 54,
+        totalReading: (d.parts_summary as Record<string, number>)?.totalReading || 100,
+      },
+    }));
+  } catch (err) {
+    console.error("[getExamListAction] Supabase error:", err);
+    return [];
+  }
 }
 
 /**
@@ -303,7 +288,7 @@ export async function getReadingExamAction(
 /**
  * Server Action: Nộp bài thi và chấm điểm chuẩn ETS 5-495 trên Server
  * BẤT BIẾN BẢO MẬT: Truy vấn đáp án an toàn qua service role chỉ ở Server,
- * đối soát và tính điểm quy đổi chính xác, lưu lịch sử exam_attempts.
+ * kiểm tra status = 'published' trước khi đọc answer keys, và bắt buộc lưu lịch sử exam_attempts thành công.
  */
 export async function submitReadingExamAction(
   payload: SubmitExamPayload
@@ -331,15 +316,19 @@ export async function submitReadingExamAction(
   try {
     const adminSupabase = createAdminClient();
 
-    // 1. Lấy thông tin đề thi để lấy danh sách câu hỏi
+    // 1. Lấy thông tin đề thi đã xuất bản (status = 'published') trước khi đọc answer keys
     const { data: examSet, error: setErr } = await adminSupabase
       .from("exam_sets")
       .select("id, slug, title, content")
       .eq("id", examSetId)
+      .eq("status", "published")
       .maybeSingle();
 
     if (setErr || !examSet) {
-      return { success: false, error: "Không tìm thấy bộ đề thi tương ứng." };
+      return {
+        success: false,
+        error: "Không tìm thấy bộ đề thi tương ứng hoặc đề thi chưa được xuất bản.",
+      };
     }
 
     const rawExam = examSet as unknown as RawExamRow;
@@ -418,8 +407,7 @@ export async function submitReadingExamAction(
       timeSpentSeconds,
     });
 
-    // 4. Lưu kết quả vào exam_attempts cho user đã xác thực
-    let attemptId: string | undefined;
+    // 4. Lưu kết quả vào exam_attempts cho user đã xác thực (bắt buộc thành công trước khi trả kết quả)
     const { data: attemptRow, error: attemptErr } = await adminSupabase
       .from("exam_attempts")
       .insert({
@@ -440,13 +428,17 @@ export async function submitReadingExamAction(
       .select("id")
       .maybeSingle();
 
-    if (!attemptErr && attemptRow) {
-      attemptId = attemptRow.id;
+    if (attemptErr || !attemptRow?.id) {
+      return {
+        success: false,
+        error:
+          "Không thể lưu kết quả bài thi vào lịch sử. Đáp án của bạn vẫn được giữ nguyên, vui lòng bấm Nộp bài để thử lại.",
+      };
     }
 
     return {
       success: true,
-      attemptId,
+      attemptId: attemptRow.id,
       evaluation,
     };
   } catch (err: unknown) {
@@ -538,10 +530,14 @@ export async function submitListeningExamAction(
       .from("exam_sets")
       .select("id, slug, title, content")
       .eq("id", examSetId)
+      .eq("status", "published")
       .maybeSingle();
 
     if (setErr || !examSet) {
-      return { success: false, error: "Không tìm thấy bộ đề thi tương ứng." };
+      return {
+        success: false,
+        error: "Không tìm thấy bộ đề thi tương ứng hoặc đề thi chưa được xuất bản.",
+      };
     }
 
     const rawExam = examSet as unknown as RawExamRow;
@@ -593,7 +589,6 @@ export async function submitListeningExamAction(
       timeSpentSeconds,
     });
 
-    let attemptId: string | undefined;
     const { data: attemptRow, error: attemptErr } = await adminSupabase
       .from("exam_attempts")
       .insert({
@@ -615,13 +610,17 @@ export async function submitListeningExamAction(
       .select("id")
       .maybeSingle();
 
-    if (!attemptErr && attemptRow) {
-      attemptId = attemptRow.id;
+    if (attemptErr || !attemptRow?.id) {
+      return {
+        success: false,
+        error:
+          "Không thể lưu kết quả bài thi Listening vào lịch sử. Đáp án của bạn vẫn được giữ nguyên, vui lòng bấm Nộp bài để thử lại.",
+      };
     }
 
     return {
       success: true,
-      attemptId,
+      attemptId: attemptRow.id,
       evaluation,
     };
   } catch (err: unknown) {

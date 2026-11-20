@@ -200,6 +200,9 @@ export async function getReviewCardsAction(
     if (topic) {
       cramQuery = cramQuery.eq("vocab_entries.metadata->>topic", topic);
     }
+    if (excludedNotebookId) {
+      cramQuery = cramQuery.neq("vocab_entries.notebook_id", excludedNotebookId);
+    }
 
     const { data: cramData } = await cramQuery;
 
@@ -224,6 +227,9 @@ export async function getReviewCardsAction(
     }
     if (topic) {
       upcomingQuery = upcomingQuery.eq("vocab_entries.metadata->>topic", topic);
+    }
+    if (excludedNotebookId) {
+      upcomingQuery = upcomingQuery.neq("vocab_entries.notebook_id", excludedNotebookId);
     }
 
     const { data: upcoming } = await upcomingQuery.single();

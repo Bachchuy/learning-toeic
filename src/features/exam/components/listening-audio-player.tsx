@@ -1,11 +1,150 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Headphones, Pause, Play, RotateCcw, Volume2 } from "lucide-react";
 
 export interface SpeechSegment {
   speaker?: string;
   text: string;
+}
+
+export interface TtsFallbackChunk {
+  segmentIndex: number;
+  text: string;
+}
+
+export const TTS_MAX_CHUNK_CHARS = 180;
+
+/**
+ * Chia danh sách SpeechSegment thành các đoạn nhỏ <= 180 ký tự (phù hợp giới hạn <= 200 ký tự của /api/audio/tts)
+ * mà KHÔNG làm mất bất kỳ từ hay ký tự nào.
+ */
+export function splitSegmentsIntoTtsChunks(
+  segments: SpeechSegment[],
+  maxChunkLength: number = TTS_MAX_CHUNK_CHARS
+): TtsFallbackChunk[] {
+  const safeMax = Math.max(20, Math.min(200, Math.trunc(maxChunkLength)));
+  const chunks: TtsFallbackChunk[] = [];
+
+  segments.forEach((seg, segmentIndex) => {
+    const normalized = (seg.text || "").trim().replace(/\s+/g, " ");
+    if (!normalized) return;
+
+    if (normalized.length <= safeMax) {
+      chunks.push({ segmentIndex, text: normalized });
+      return;
+    }
+
+    const words = normalized.split(" ");
+    let current = "";
+
+    const flushCurrent = () => {
+      if (current) {
+        chunks.push({ segmentIndex, text: current });
+        current = "";
+      }
+    };
+
+    for (const word of words) {
+      if (!word) continue;
+
+      if (word.length > safeMax) {
+        flushCurrent();
+        for (let offset = 0; offset < word.length; offset += safeMax) {
+          chunks.push({
+            segmentIndex,
+            text: word.slice(offset, offset + safeMax),
+          });
+        }
+        continue;
+      }
+
+      const candidate = current ? `${current} ${word}` : word;
+      if (candidate.length <= safeMax) {
+        current = candidate;
+      } else {
+        flushCurrent();
+        current = word;
+      }
+    }
+
+    flushCurrent();
+  });
+
+  return chunks;
+}
+
+export interface AudioLike {
+  src: string;
+  currentTime: number;
+  playbackRate: number;
+  paused?: boolean;
+  ended?: boolean;
+  onended: ((ev: Event) => unknown) | null;
+  onerror: ((ev: Event | string) => unknown) | null;
+  play: () => Promise<void>;
+  pause: () => void;
+}
+
+export interface SequentialTtsOptions {
+  chunks: TtsFallbackChunk[];
+  startChunkIndex: number;
+  audio: AudioLike;
+  getRate: () => number;
+  isCancelled: () => boolean;
+  onChunkStart: (chunkIndex: number, segmentIndex: number) => void;
+  onComplete: () => void;
+  onError: () => void;
+}
+
+/**
+ * Phát tuần tự toàn bộ các chunk qua /api/audio/tts?text=...
+ */
+export function runSequentialTtsFallback(options: SequentialTtsOptions): void {
+  const {
+    chunks,
+    startChunkIndex,
+    audio,
+    getRate,
+    isCancelled,
+    onChunkStart,
+    onComplete,
+    onError,
+  } = options;
+
+  if (chunks.length === 0 || startChunkIndex >= chunks.length) {
+    onComplete();
+    return;
+  }
+
+  const playChunk = (chunkIdx: number) => {
+    if (isCancelled()) return;
+    if (chunkIdx >= chunks.length) {
+      onComplete();
+      return;
+    }
+
+    const chunk = chunks[chunkIdx];
+    onChunkStart(chunkIdx, chunk.segmentIndex);
+
+    audio.src = `/api/audio/tts?text=${encodeURIComponent(chunk.text)}`;
+    audio.playbackRate = getRate();
+    audio.onended = () => {
+      if (isCancelled()) return;
+      playChunk(chunkIdx + 1);
+    };
+    audio.onerror = () => {
+      if (isCancelled()) return;
+      onError();
+    };
+
+    void audio.play().catch(() => {
+      if (isCancelled()) return;
+      onError();
+    });
+  };
+
+  playChunk(Math.max(0, startChunkIndex));
 }
 
 interface ListeningAudioPlayerProps {
@@ -37,10 +176,29 @@ export function ListeningAudioPlayer({
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playbackRunIdRef = useRef(0);
+  const fallbackChunkIndexRef = useRef(0);
+  const isFallbackPausedRef = useRef(false);
+  const speedRef = useRef<(typeof SPEED_OPTIONS)[number]>(1);
+
+  const fallbackChunks = useMemo(
+    () => splitSegmentsIntoTtsChunks(segments, TTS_MAX_CHUNK_CHARS),
+    [segments]
+  );
+
+  const segmentsSignature = useMemo(
+    () =>
+      `${title}|${audioUrl ?? ""}|${segments
+        .map((s) => `${s.speaker ?? ""}:${s.text}`)
+        .join("||")}`,
+    [title, audioUrl, segments]
+  );
 
   const stopPlayback = () => {
     playbackRunIdRef.current += 1;
+    isFallbackPausedRef.current = false;
     if (audioRef.current) {
+      audioRef.current.onended = null;
+      audioRef.current.onerror = null;
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
@@ -49,20 +207,66 @@ export function ListeningAudioPlayer({
     }
   };
 
+  const [prevSignature, setPrevSignature] = useState(segmentsSignature);
+  if (prevSignature !== segmentsSignature) {
+    setPrevSignature(segmentsSignature);
+    setSegmentIndex(0);
+    setStatus("idle");
+    setAudioNotice(null);
+  }
+
+  // Cleanup side-effects (Web Speech / HTMLAudioElement) khi chuyển câu hoặc khi unmount
   useEffect(() => {
+    stopPlayback();
+    audioRef.current = null;
+    fallbackChunkIndexRef.current = 0;
+
     return () => {
-      playbackRunIdRef.current += 1;
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      stopPlayback();
     };
-  }, []);
+  }, [segmentsSignature]);
+
+  const startFallbackFromChunk = (startChunkIdx: number, rate: number) => {
+    if (fallbackChunks.length === 0) return;
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+    }
+    const audio = audioRef.current;
+    speedRef.current = rate as (typeof SPEED_OPTIONS)[number];
+    const runId = ++playbackRunIdRef.current;
+    isFallbackPausedRef.current = false;
+    setAudioNotice(null);
+    setStatus("playing");
+
+    runSequentialTtsFallback({
+      chunks: fallbackChunks,
+      startChunkIndex: startChunkIdx,
+      audio,
+      getRate: () => speedRef.current,
+      isCancelled: () => playbackRunIdRef.current !== runId,
+      onChunkStart: (chunkIdx, segIdx) => {
+        fallbackChunkIndexRef.current = chunkIdx;
+        setSegmentIndex(segIdx);
+      },
+      onComplete: () => {
+        fallbackChunkIndexRef.current = 0;
+        isFallbackPausedRef.current = false;
+        setSegmentIndex(0);
+        setStatus("idle");
+      },
+      onError: () => {
+        isFallbackPausedRef.current = false;
+        setStatus("idle");
+        setAudioNotice(
+          "Không thể phát âm thanh trên thiết bị này. Bạn có thể mở Transcript hỗ trợ tự học."
+        );
+      },
+    });
+  };
 
   const speakFromIndex = (startIdx: number, rate: number) => {
     if (typeof window === "undefined") return;
+    speedRef.current = rate as (typeof SPEED_OPTIONS)[number];
 
     if ("speechSynthesis" in window && segments.length > 0) {
       window.speechSynthesis.cancel();
@@ -80,7 +284,7 @@ export function ListeningAudioPlayer({
         setSegmentIndex(idx);
         const utterance = new SpeechSynthesisUtterance(seg.text);
         utterance.lang = "en-US";
-        utterance.rate = rate;
+        utterance.rate = speedRef.current;
         utterance.pitch = resolveSpeakerPitch(seg.speaker);
 
         const voices = window.speechSynthesis.getVoices();
@@ -112,30 +316,12 @@ export function ListeningAudioPlayer({
       return;
     }
 
-    // Fallback ngắn qua /api/audio/tts nếu trình duyệt thiếu speechSynthesis
-    const joined = segments
-      .map((s) => s.text)
-      .join(" ")
-      .slice(0, 190);
-    if (!joined) return;
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-    }
-    const audio = audioRef.current;
-    audio.src = `/api/audio/tts?text=${encodeURIComponent(joined)}`;
-    audio.playbackRate = rate;
-    audio.onended = () => setStatus("idle");
-    audio.onerror = () => {
-      setStatus("idle");
-      setAudioNotice(
-        "Không thể phát âm thanh trên thiết bị này. Bạn có thể mở Transcript hỗ trợ tự học."
-      );
-    };
-    setAudioNotice(null);
-    setStatus("playing");
-    void audio.play().catch(() => {
-      setStatus("idle");
-    });
+    // Fallback qua /api/audio/tts: phát tuần tự toàn bộ các đoạn <= 180 ký tự
+    const firstChunkForSegment = Math.max(
+      0,
+      fallbackChunks.findIndex((c) => c.segmentIndex >= startIdx)
+    );
+    startFallbackFromChunk(firstChunkForSegment, rate);
   };
 
   const handlePlayOrPause = () => {
@@ -162,15 +348,53 @@ export function ListeningAudioPlayer({
       return;
     }
 
+    const hasSpeechSynthesis =
+      typeof window !== "undefined" && "speechSynthesis" in window;
+
     if (status === "playing") {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        playbackRunIdRef.current += 1;
+      playbackRunIdRef.current += 1;
+      if (hasSpeechSynthesis) {
         window.speechSynthesis.cancel();
-      }
-      if (audioRef.current) {
+      } else if (audioRef.current) {
         audioRef.current.pause();
+        isFallbackPausedRef.current = true;
       }
       setStatus("paused");
+      return;
+    }
+
+    if (!hasSpeechSynthesis && status === "paused") {
+      const audio = audioRef.current;
+      if (
+        isFallbackPausedRef.current &&
+        audio &&
+        audio.src &&
+        !audio.ended &&
+        audio.currentTime > 0
+      ) {
+        const runId = ++playbackRunIdRef.current;
+        isFallbackPausedRef.current = false;
+        audio.playbackRate = speed;
+        audio.onended = () => {
+          if (playbackRunIdRef.current !== runId) return;
+          startFallbackFromChunk(fallbackChunkIndexRef.current + 1, speedRef.current);
+        };
+        audio.onerror = () => {
+          if (playbackRunIdRef.current !== runId) return;
+          setStatus("idle");
+          setAudioNotice(
+            "Không thể phát âm thanh trên thiết bị này. Bạn có thể mở Transcript hỗ trợ tự học."
+          );
+        };
+        setAudioNotice(null);
+        setStatus("playing");
+        void audio.play().catch(() => {
+          if (playbackRunIdRef.current !== runId) return;
+          setStatus("idle");
+        });
+        return;
+      }
+      startFallbackFromChunk(fallbackChunkIndexRef.current, speed);
       return;
     }
 
@@ -179,16 +403,23 @@ export function ListeningAudioPlayer({
 
   const handleReplay = () => {
     stopPlayback();
+    fallbackChunkIndexRef.current = 0;
     setSegmentIndex(0);
     if (audioUrl) {
       if (!audioRef.current) {
         audioRef.current = new Audio(audioUrl);
       }
-      audioRef.current.currentTime = 0;
-      audioRef.current.playbackRate = speed;
-      audioRef.current.onended = () => setStatus("idle");
+      const audio = audioRef.current;
+      audio.currentTime = 0;
+      audio.playbackRate = speed;
+      audio.onended = () => setStatus("idle");
+      audio.onerror = () => {
+        setStatus("idle");
+        setAudioNotice("Không tải được file âm thanh của câu này.");
+      };
+      setAudioNotice(null);
       setStatus("playing");
-      void audioRef.current.play().catch(() => setStatus("idle"));
+      void audio.play().catch(() => setStatus("idle"));
       return;
     }
     speakFromIndex(0, speed);
@@ -196,10 +427,16 @@ export function ListeningAudioPlayer({
 
   const handleSpeedChange = (nextSpeed: (typeof SPEED_OPTIONS)[number]) => {
     setSpeed(nextSpeed);
+    speedRef.current = nextSpeed;
     if (audioRef.current) {
       audioRef.current.playbackRate = nextSpeed;
     }
-    if (!audioUrl && status === "playing") {
+    if (
+      !audioUrl &&
+      status === "playing" &&
+      typeof window !== "undefined" &&
+      "speechSynthesis" in window
+    ) {
       speakFromIndex(segmentIndex, nextSpeed);
     }
   };
