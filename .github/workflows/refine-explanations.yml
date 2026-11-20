@@ -10,19 +10,24 @@ on:
       batch_size:
         description: "Số câu mỗi mẻ trước khi nghỉ cooldown (khuyến nghị 40-50)"
         required: true
-        default: "50"
+        default: "40"
       cooldown:
-        description: "Số giây nghỉ giải lao giữa các mẻ (khuyến nghị 20-30s)"
+        description: "Số giây nghỉ giải lao giữa các mẻ (khuyến nghị 25-30s)"
         required: true
-        default: "25"
-  # Tạm dừng chạy tự động hàng ngày để đảm bảo an toàn dữ liệu Production
-  # Chỉ kích hoạt thủ công qua workflow_dispatch sau khi kiểm tra mẻ câu hỏi
-  # schedule:
-  #   - cron: "0 0 * * *"
+        default: "30"
+  # Tự động chạy mỗi ngày 1 lần lúc 00:30 UTC (07:30 giờ Việt Nam, sau mốc reset quota 07:00)
+  schedule:
+    - cron: "30 0 * * *"
+
+# Khóa tuần tự tuyệt đối: không bao giờ chạy 2 job song song để tránh dồn request vào Gemini API
+concurrency:
+  group: refine-explanations-ai
+  cancel-in-progress: false
 
 jobs:
   refine-batch:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -52,6 +57,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || vars.GEMINI_API_KEY }}
           LIMIT: ${{ github.event.inputs.limit || '200' }}
-          BATCH_SIZE: ${{ github.event.inputs.batch_size || '50' }}
-          COOLDOWN_SECONDS: ${{ github.event.inputs.cooldown || '25' }}
+          BATCH_SIZE: ${{ github.event.inputs.batch_size || '40' }}
+          COOLDOWN_SECONDS: ${{ github.event.inputs.cooldown || '30' }}
+          REQUEST_DELAY_MS: "6500"
         run: npx tsx scripts/refine-explanations-ai.ts

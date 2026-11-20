@@ -87,6 +87,7 @@ Thumbs.db
 /examples/
 /data/
 /FEATURE_INVENTORY.md
+toeic_test_raw.json
 
 # Internal / Private Scripts (Crawlers, Data Ingestions & AI pipelines)
 scripts/crawler-*.ts

@@ -15,7 +15,7 @@ import { createClient } from "@supabase/supabase-js";
 import * as fs from "fs";
 import * as path from "path";
 
-// 1. Nạp biến môi trường từ .env.local
+// 1. Nạp biến môi trường từ .env.local (chỉ điền biến chưa có để không ghi đè GitHub Secrets)
 const envPath = path.resolve(process.cwd(), ".env.local");
 if (fs.existsSync(envPath)) {
   const envConfig = fs.readFileSync(envPath, "utf-8");
@@ -23,7 +23,10 @@ if (fs.existsSync(envPath)) {
     const trimmed = line.trim();
     if (trimmed && !trimmed.startsWith("#") && trimmed.includes("=")) {
       const [key, ...values] = trimmed.split("=");
-      process.env[key.trim()] = values.join("=").trim();
+      const k = key.trim();
+      if (!process.env[k]) {
+        process.env[k] = values.join("=").trim();
+      }
     }
   }
 }
@@ -77,16 +80,18 @@ interface ModelInfo {
   dailyLimit: number;
 }
 
-const MODEL_POOLS: ModelInfo[] = [
-  // Tier 1: 500 RPD / 15 RPM (Ưu tiên số 1: Hạn ngạch lớn 500 câu/ngày, giãn cách 5.5s triệt tiêu lỗi RPM)
-  { name: "gemini-3.1-flash-lite", rpmLimit: 15, minDelayMs: 5500, dailyLimit: 500 },
-  { name: "gemini-3.5-flash-lite", rpmLimit: 15, minDelayMs: 5500, dailyLimit: 500 },
-  { name: "gemini-flash-lite-latest", rpmLimit: 15, minDelayMs: 5500, dailyLimit: 500 },
+const minRequestDelayMs = Math.max(4000, parseInt(process.env.REQUEST_DELAY_MS || "6500", 10) || 6500);
 
-  // Tier 2: 20 RPD / 5 RPM (Dự phòng thông minh khi Tier 1 bận/503: Giãn cách 13s để tuyệt đối không vượt 5 RPM)
-  { name: "gemini-3.6-flash", rpmLimit: 5, minDelayMs: 13000, dailyLimit: 20 },
-  { name: "gemini-3.5-flash", rpmLimit: 5, minDelayMs: 13000, dailyLimit: 20 },
-  { name: "gemini-3-flash-preview", rpmLimit: 5, minDelayMs: 13000, dailyLimit: 20 },
+const MODEL_POOLS: ModelInfo[] = [
+  // Tier 1: 500 RPD / 15 RPM (Ưu tiên số 1: Hạn ngạch lớn 500 câu/ngày, giãn cách >= 6.5s triệt tiêu lỗi RPM)
+  { name: "gemini-3.1-flash-lite", rpmLimit: 15, minDelayMs: Math.max(minRequestDelayMs, 6500), dailyLimit: 500 },
+  { name: "gemini-3.5-flash-lite", rpmLimit: 15, minDelayMs: Math.max(minRequestDelayMs, 6500), dailyLimit: 500 },
+  { name: "gemini-flash-lite-latest", rpmLimit: 15, minDelayMs: Math.max(minRequestDelayMs, 6500), dailyLimit: 500 },
+
+  // Tier 2: 20 RPD / 5 RPM (Dự phòng thông minh khi Tier 1 bận/503: Giãn cách >= 14s để tuyệt đối không vượt 5 RPM)
+  { name: "gemini-3.6-flash", rpmLimit: 5, minDelayMs: Math.max(minRequestDelayMs, 14000), dailyLimit: 20 },
+  { name: "gemini-3.5-flash", rpmLimit: 5, minDelayMs: Math.max(minRequestDelayMs, 14000), dailyLimit: 20 },
+  { name: "gemini-3-flash-preview", rpmLimit: 5, minDelayMs: Math.max(minRequestDelayMs, 14000), dailyLimit: 20 },
 ];
 
 // Tập hợp lưu các model đã hết hạn ngạch ngày trong phiên chạy hiện tại
@@ -122,6 +127,7 @@ async function callGeminiWithRetry(
                   tag_id: { type: "INTEGER" },
                   rule_vi: { type: "STRING" },
                   why_correct_vi: { type: "STRING" },
+                  full_translation_vi: { type: "STRING" },
                   tip_vi: { type: "STRING" },
                   options_analysis: {
                     type: "OBJECT",
@@ -149,6 +155,7 @@ async function callGeminiWithRetry(
                   "tag_id",
                   "rule_vi",
                   "why_correct_vi",
+                  "full_translation_vi",
                   "tip_vi",
                   "options_analysis",
                   "vocab_hints",
@@ -172,11 +179,12 @@ async function callGeminiWithRetry(
 
         // 1. Nếu gặp 429: Kiểm tra xem hết hạn ngạch ngày (RPD) hay chỉ quá tải tốc độ phút (RPM)
         if (res.status === 429) {
+          const errLower = errText.toLowerCase();
           const isDailyQuota =
-            errText.includes("PerDay") ||
-            errText.includes("day") ||
-            errText.includes("requests per day") ||
-            errText.includes("RESOURCE_EXHAUSTED");
+            errLower.includes("perday") ||
+            errLower.includes("per_day") ||
+            errLower.includes("requests per day") ||
+            errLower.includes("daily limit");
 
           if (isDailyQuota) {
             console.log(
@@ -186,7 +194,9 @@ async function callGeminiWithRetry(
             break; // Bỏ qua model này, chuyển ngay sang model khác trong pool
           }
 
-          const waitSec = attempt * 12;
+          const retryMatch = errText.match(/retry\s+in\s+(\d+(?:\.\d+)?)s/i);
+          const hintedSec = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) + 2 : 0;
+          const waitSec = Math.min(90, Math.max(attempt * 15, hintedSec));
           console.log(
             `      ⏳ Giới hạn tốc độ RPM trên [${model.name}]. Chờ ${waitSec}s rồi thử lại lần ${attempt}/${maxRetries}...`
           );
@@ -227,6 +237,7 @@ interface RefinedResult {
   tag_id: number;
   rule_vi: string;
   why_correct_vi: string;
+  full_translation_vi?: string;
   tip_vi: string;
   options_analysis: {
     A: string;
@@ -311,6 +322,7 @@ YÊU CẦU NỘI DUNG:
 2. Viết lời giải 4 tầng chất lượng cao:
    - rule_vi: Quy tắc ngữ pháp trọng tâm, phân tích thành phần câu.
    - why_correct_vi: Giải thích vì sao đáp án đúng thỏa mãn cấu trúc và ngữ nghĩa.
+   - full_translation_vi: Dịch trọn vẹn câu đề đã điền đáp án đúng sang tiếng Việt tự nhiên, sát ngữ cảnh công sở.
    - tip_vi: Mẹo nhận diện nhanh trong 10-15 giây để làm bài tốc độ cao.
    - options_analysis: Phân tích tường tận TỪNG PHƯƠNG ÁN A, B, C, D (từ loại, nghĩa, lý do sai hoặc đúng).
    - vocab_hints: 1-3 từ vựng/cụm từ quan trọng nhất trong câu.
@@ -320,6 +332,7 @@ TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON:
   "tag_id": <số nguyên từ 1 đến 16>,
   "rule_vi": "<nội dung>",
   "why_correct_vi": "<nội dung>",
+  "full_translation_vi": "<dịch nghĩa câu hoàn chỉnh>",
   "tip_vi": "<nội dung>",
   "options_analysis": {
     "A": "<giải thích A>",
@@ -393,7 +406,7 @@ async function main() {
   let totalFailed = 0;
   let offset = 0;
   let consecutiveErrors = 0;
-  let currentDelayMs = 5500; // Mặc định an toàn cho 15 RPM
+  let currentDelayMs = minRequestDelayMs; // Mặc định giãn cách an toàn chống quá tải RPM
   let currentBatchRefined = 0;
   let batchCounter = 1;
   let reachedDailyQuota = false;
@@ -403,6 +416,7 @@ async function main() {
       .from("questions")
       .select("id, stem, option_a, option_b, option_c, option_d, tag_id, part")
       .eq("part", 5)
+      .eq("status", "published")
       .order("created_at", { ascending: true })
       .range(offset, offset + pageSize - 1);
 
@@ -419,17 +433,29 @@ async function main() {
       break;
     }
 
+    // Tải hàng loạt đáp án của cả trang để tránh N+1 query khi bỏ qua các câu đã vá
+    const { data: pageAnswers, error: aListErr } = await supabase
+      .from("question_answers")
+      .select("question_id, correct_index, explanation")
+      .in("question_id", questions.map((item) => item.id));
+
+    if (aListErr) {
+      console.error(`❌ Lỗi tải question_answers trang offset ${offset}:`, aListErr.message);
+      break;
+    }
+
+    const answersMap = new Map<string, { correct_index: number; explanation: any }>();
+    for (const row of pageAnswers || []) {
+      answersMap.set(row.question_id, row);
+    }
+
     console.log(`\n--- [Mẻ #${batchCounter}] Đang quét trang offset ${offset} -> ${offset + questions.length} (${questions.length} câu) ---`);
 
     for (const q of questions) {
       if (totalRefined >= maxToProcess || reachedDailyQuota) break;
       totalProcessed++;
 
-      const { data: aData } = await supabase
-        .from("question_answers")
-        .select("correct_index, explanation")
-        .eq("question_id", q.id)
-        .single();
+      const aData = answersMap.get(q.id);
 
       if (!aData) {
         totalSkipped++;
@@ -450,19 +476,28 @@ async function main() {
         const { result: refined, modelUsed, delayMs } = await refineQuestionWithAI(q, aData.correct_index);
         currentDelayMs = delayMs;
 
-        // 1. Cập nhật tag_id cho questions
-        if (refined.tag_id && refined.tag_id !== q.tag_id) {
+        // 1. Cập nhật tag_id cho questions (chỉ chấp nhận 1..16 hợp lệ)
+        const nextTagId = Number.isInteger(refined.tag_id) && refined.tag_id >= 1 && refined.tag_id <= 16 ? refined.tag_id : null;
+        if (nextTagId && nextTagId !== q.tag_id) {
           await supabase
             .from("questions")
-            .update({ tag_id: refined.tag_id })
+            .update({ tag_id: nextTagId })
             .eq("id", q.id);
-          console.log(`   🏷️  Đổi tag_id: ${q.tag_id} -> ${refined.tag_id}`);
+          console.log(`   🏷️  Đổi tag_id: ${q.tag_id} -> ${nextTagId}`);
         }
 
-        // 2. Cập nhật explanation cho question_answers
+        // 2. Cập nhật explanation cho question_answers (bảo tồn full_translation_vi chuẩn nếu đã có)
+        const existingTranslation =
+          typeof aData.explanation?.full_translation_vi === "string" &&
+          aData.explanation.full_translation_vi.trim().length > 0 &&
+          aData.explanation.full_translation_vi.trim() !== "Dịch nghĩa câu hỏi theo ngữ cảnh công sở."
+            ? aData.explanation.full_translation_vi.trim()
+            : null;
+
         const updatedExplanation = {
           rule_vi: refined.rule_vi,
           why_correct_vi: refined.why_correct_vi,
+          full_translation_vi: existingTranslation || refined.full_translation_vi || "",
           tip_vi: refined.tip_vi,
           options_analysis: refined.options_analysis,
           vocab_hints: refined.vocab_hints,
@@ -508,8 +543,9 @@ async function main() {
         }
       }
 
-      // Giãn cách an toàn theo từng model để triệt tiêu lỗi quá tải RPM (15 RPM: 5.5s, 5 RPM: 13.0s)
-      await new Promise((r) => setTimeout(r, currentDelayMs));
+      // Giãn cách an toàn + jitter ngẫu nhiên (400-1100ms) để tránh dồn request cùng lúc
+      const jitterMs = 400 + Math.floor(Math.random() * 700);
+      await new Promise((r) => setTimeout(r, currentDelayMs + jitterMs));
     }
 
     if (specificQId || reachedDailyQuota) break;
