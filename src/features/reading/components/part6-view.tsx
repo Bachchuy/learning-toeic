@@ -8,6 +8,7 @@ import { submitPassageAnswersAction } from "../actions";
 import { tokenizePart6Content, getPassageTypeLabel, getPassageTypeBadgeClass } from "@/core/passages";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { StructuredExplanationBlock } from "@/components/ui/structured-explanation";
 
 interface Part6ViewProps {
   passage: ReadingPassage;
@@ -329,27 +330,25 @@ export function Part6View({ passage }: Part6ViewProps) {
                   })}
                 </div>
 
-                {/* Phân tích đáp án khi đã nộp bài */}
+                {/* Phân tích đáp án chi tiết khi đã nộp bài */}
                 {qResult && (
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2 animate-in fade-in">
-                    {qResult.explanation.translation && (
-                      <div>
-                        <strong className="text-slate-900">Dịch nghĩa: </strong>
-                        <span>{qResult.explanation.translation}</span>
-                      </div>
-                    )}
-                    {qResult.explanation.analysis && (
-                      <div>
-                        <strong className="text-blue-700">Giải thích ngữ pháp: </strong>
-                        <span>{qResult.explanation.analysis}</span>
-                      </div>
-                    )}
-                    {qResult.explanation.key_clue && (
-                      <div className="text-[11px] font-mono text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
-                        <strong>Dấu hiệu nhận biết: </strong>
-                        <span>{qResult.explanation.key_clue}</span>
-                      </div>
-                    )}
+                  <div className="animate-in fade-in">
+                    <StructuredExplanationBlock
+                      data={{
+                        questionTypeVi: qResult.explanation.question_type_vi,
+                        ruleVi: qResult.explanation.rule_vi,
+                        evidence: qResult.explanation.key_clue,
+                        whyCorrectVi: qResult.explanation.analysis,
+                        optionsAnalysis: qResult.explanation.options_analysis,
+                        tipVi: qResult.explanation.tip_vi,
+                        translationVi: qResult.explanation.translation,
+                        vocabHints: qResult.explanation.vocab_hints,
+                      }}
+                      options={options.map((o) => o.text)}
+                      correctIndex={qResult.correct_index}
+                      userSelectedIndex={qResult.user_selected}
+                      evidenceLabel="Dấu hiệu nhận biết:"
+                    />
                   </div>
                 )}
               </Card>

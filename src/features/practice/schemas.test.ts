@@ -101,6 +101,26 @@ describe("QuestionExplanationSchema & parseExplanation", () => {
     ]);
     expect(partialWithOptionsAnalysis.options_analysis?.A).toBe("Phân tích thật cho A");
   });
+
+  it("lọc bỏ các chuỗi template cũ từ ingest-kaggle-toeic trong options_analysis và why_correct_vi", () => {
+    const legacyKaggle = parseExplanation({
+      rule_vi: "Quy tắc chia thì động từ.",
+      why_correct_vi: "Phương án B (to sign) tuân thủ đúng dạng động từ theo cấu trúc chuẩn.",
+      options_analysis: {
+        A: "'signed' sai thì hoặc sai dạng chia động từ theo chủ ngữ/thời điểm.",
+        B: "Đáp án đúng. Mang nghĩa và cấu trúc chuẩn xác nhất cho câu.",
+        C: "'signing' sai từ loại, không đứng vào vị trí ngữ pháp này trong câu.",
+        D: "Động từ nguyên thể có 'to' không phù hợp sau giới từ.",
+      },
+    });
+
+    expect(legacyKaggle.why_correct_vi).toBe(
+      "Phương án này tạo nên cấu trúc ngữ pháp chuẩn xác và truyền đạt đúng ý nghĩa trong ngữ cảnh câu."
+    );
+    expect(legacyKaggle.options_analysis).toEqual({
+      D: "Động từ nguyên thể có 'to' không phù hợp sau giới từ.",
+    });
+  });
 });
 
 describe("parseSessionReviewResponse", () => {

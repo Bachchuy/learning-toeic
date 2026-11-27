@@ -1,4 +1,5 @@
 import { estimateListeningScore } from "./toeicScoring";
+import { parseExamExplanation, type ParsedExamExplanation } from "./explanationQuality";
 
 export type ListeningPart = 1 | 2 | 3 | 4;
 
@@ -90,6 +91,7 @@ export interface ListeningAnswerKey {
   evidence?: string | null;
   explanation: string;
   explanationVi?: string | null;
+  structuredExplanation?: ParsedExamExplanation | null;
 }
 
 export interface ListeningQuestionGradingResult {
@@ -107,6 +109,7 @@ export interface ListeningQuestionGradingResult {
   evidence?: string | null;
   explanation: string;
   explanationVi?: string | null;
+  structuredExplanation?: ParsedExamExplanation | null;
 }
 
 export interface ListeningPartScoreBreakdown {
@@ -337,6 +340,7 @@ export function evaluateListeningExam(params: {
         evidence: null,
         explanation: "",
         explanationVi: null,
+        structuredExplanation: null,
       });
     } else {
       results.push({
@@ -354,6 +358,7 @@ export function evaluateListeningExam(params: {
         evidence: key.evidence || null,
         explanation: key.explanation || "",
         explanationVi: key.explanationVi || null,
+        structuredExplanation: parseExamExplanation(key.explanation, key.explanationVi),
       });
     }
   }

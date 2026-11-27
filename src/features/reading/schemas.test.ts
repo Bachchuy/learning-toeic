@@ -49,6 +49,57 @@ describe("parsePassageSubmitResult", () => {
     expect(parsed.message).toBe("Vui lòng đăng nhập để nộp bài và lưu kết quả");
   });
 
+  it("hỗ trợ payload giải thích dạng plain string cũ (105 câu bổ sung) và cấu trúc mới options_analysis", () => {
+    const parsed = parsePassageSubmitResult(
+      {
+        success: true,
+        score: 1,
+        total: 2,
+        results: [
+          {
+            question_id: "q-legacy-str",
+            is_correct: false,
+            correct_index: 2,
+            user_selected: 0,
+            explanation: "Trước danh từ 'protection' cần một tính từ bổ nghĩa -> 'superior'.",
+          },
+          {
+            question_id: "q-rich-json",
+            is_correct: true,
+            correct_index: 1,
+            user_selected: 1,
+            explanation: {
+              question_type_vi: "Câu hỏi chi tiết (Detail & Paraphrase)",
+              rule_vi: "Tìm từ khóa paraphrase trong đoạn văn.",
+              why_correct_vi: "Đoạn 2 nêu rõ baked daily on-site.",
+              key_clue: "We bake everything on-site every morning",
+              full_translation_vi: "Tiệm nướng bánh mới tại chỗ mỗi sáng.",
+              tip_vi: "Đối chiếu cụm trạng từ tần suất.",
+              options_analysis: {
+                A: "Sai vì địa chỉ mới vẫn ở Westfield.",
+                B: "Đúng vì 'on-site every morning' = 'made daily on the premises'.",
+                C: "Sai vì nghỉ thứ Hai.",
+                D: "Sai vì chỉ cần báo trước 48 giờ.",
+              },
+            },
+          },
+        ],
+      },
+      2
+    );
+
+    expect(parsed.success).toBe(true);
+    expect(parsed.results).toHaveLength(2);
+    expect(parsed.results[0].explanation.analysis).toContain("superior");
+    expect(parsed.results[1].explanation.question_type_vi).toBe(
+      "Câu hỏi chi tiết (Detail & Paraphrase)"
+    );
+    expect(parsed.results[1].explanation.options_analysis?.B).toContain("on-site");
+    expect(parsed.results[1].explanation.translation).toBe(
+      "Tiệm nướng bánh mới tại chỗ mỗi sáng."
+    );
+  });
+
   it("fail-closed (success = false) khi payload null, thiếu trường success hoặc sai kiểu", () => {
     expect(parsePassageSubmitResult(null, 4).success).toBe(false);
     expect(parsePassageSubmitResult([], 4).success).toBe(false);

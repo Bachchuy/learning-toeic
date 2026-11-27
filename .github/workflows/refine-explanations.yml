@@ -3,6 +3,10 @@ name: Auto Refine TOEIC Explanations with Gemini
 on:
   workflow_dispatch:
     inputs:
+      part:
+        description: "Phạm vi cần vá: all (Part 6/7 + Part 5 + Exam), 5, 6, 7, reading, hoặc exam"
+        required: true
+        default: "all"
       limit:
         description: "Tổng số câu muốn vá (chạy cuốn chiếu từng mẻ, ví dụ 150-250 để tận dụng hết quota ngày)"
         required: true
@@ -15,6 +19,10 @@ on:
         description: "Số giây nghỉ giải lao giữa các mẻ (khuyến nghị 25-30s)"
         required: true
         default: "30"
+      require_example:
+        description: "Có vá bổ sung các câu Part 5 đã refined nhưng còn thiếu example_en không (true/false)"
+        required: false
+        default: "false"
   # Tự động chạy mỗi ngày 1 lần lúc 00:30 UTC (07:30 giờ Việt Nam, sau mốc reset quota 07:00)
   schedule:
     - cron: "30 0 * * *"
@@ -56,8 +64,10 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || vars.GEMINI_API_KEY }}
+          TARGET_PART: ${{ github.event.inputs.part || 'all' }}
           LIMIT: ${{ github.event.inputs.limit || '200' }}
           BATCH_SIZE: ${{ github.event.inputs.batch_size || '40' }}
           COOLDOWN_SECONDS: ${{ github.event.inputs.cooldown || '30' }}
+          REQUIRE_EXAMPLE: ${{ github.event.inputs.require_example || 'false' }}
           REQUEST_DELAY_MS: "6500"
         run: npx tsx scripts/refine-explanations-ai.ts

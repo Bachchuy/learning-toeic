@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { formatGrammarTagName } from "@/core/grammarTags";
+import { isBoilerplateTemplateText } from "@/core/explanationQuality";
 import type {
   OptionExplanation,
   QuestionExplanation,
@@ -50,11 +51,7 @@ function sanitizeAnalysisString(text?: string): string | undefined {
   if (!text) return undefined;
   const trimmed = text.trim();
   if (!trimmed) return undefined;
-  if (
-    trimmed.includes("không phù hợp về ngữ nghĩa hoặc không tạo thành cụm từ tự nhiên") ||
-    trimmed.includes("Đáp án đúng. Mang nghĩa và cấu trúc chuẩn xác nhất cho câu.") ||
-    trimmed === "Phương án này không phù hợp với cấu trúc ngữ pháp của câu."
-  ) {
+  if (isBoilerplateTemplateText(trimmed)) {
     return undefined; // Ẩn chuỗi rập khuôn máy móc / dự phòng chung chung
   }
   return text;
@@ -93,13 +90,16 @@ export function parseExplanation(raw: unknown): QuestionExplanation {
     }
   }
 
-  // Làm sạch why_correct_vi nếu dính template rập khuôn
+  // Làm sạch why_correct_vi nếu bản gốc từ DB dính template rập khuôn cũ
+  const rawWhyCorrect = (raw as Record<string, unknown>).why_correct_vi;
   let whyCorrect = typeof data.why_correct_vi === "string" ? data.why_correct_vi : "";
   if (
-    whyCorrect.includes("mang ngữ nghĩa phù hợp nhất với ngữ cảnh của câu và kết hợp tự nhiên với các từ xung quanh") ||
-    whyCorrect.includes("tạo thành cấu trúc so sánh chuẩn xác theo dấu hiệu ngữ pháp trong câu")
+    typeof rawWhyCorrect === "string" &&
+    rawWhyCorrect.trim().length > 0 &&
+    isBoilerplateTemplateText(rawWhyCorrect)
   ) {
-    whyCorrect = "Phương án này tạo nên cấu trúc ngữ pháp chuẩn xác và truyền đạt đúng ý nghĩa trong ngữ cảnh câu.";
+    whyCorrect =
+      "Phương án này tạo nên cấu trúc ngữ pháp chuẩn xác và truyền đạt đúng ý nghĩa trong ngữ cảnh câu.";
   }
 
   // Chuẩn hóa why_wrong_vi (hỗ trợ cả mảng OptionExplanation[] lẫn object Record<"A".."D", string> legacy)

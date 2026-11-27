@@ -132,6 +132,7 @@ describe("examListening core logic", () => {
     expect(answered.isAnswerHidden).toBe(false);
     expect(answered.correctIndex).toBe(1);
     expect(answered.explanationVi).toBeTruthy();
+    expect(answered.structuredExplanation?.isStructured).toBe(false);
 
     const invalidOrUnanswered = evaluation.results[1];
     expect(invalidOrUnanswered.userSelectedIndex).toBeNull();
@@ -140,6 +141,7 @@ describe("examListening core logic", () => {
     expect(invalidOrUnanswered.correctAnswer).toBeNull();
     expect(invalidOrUnanswered.evidence).toBeNull();
     expect(invalidOrUnanswered.explanation).toBe("");
+    expect(invalidOrUnanswered.structuredExplanation).toBeNull();
 
     const unansweredP4 = evaluation.results[3];
     expect(unansweredP4.isAnswerHidden).toBe(true);
@@ -172,5 +174,38 @@ describe("examListening core logic", () => {
     expect(getListeningProficiencyLevel(400).colorHex).toBe("#2563EB");
     expect(getListeningProficiencyLevel(300).colorHex).toBe("#B45309");
     expect(getListeningProficiencyLevel(150).colorHex).toBe("#BE123C");
+  });
+
+  it("phân tích structured JSON cho Part 2 (A-C) khi đã trả lời và ẩn khi chưa trả lời", () => {
+    const { questions, groups } = flattenListeningContent(SAMPLE_RAW);
+    const customKeys = SAMPLE_KEYS.map((k) =>
+      k.questionId === "t1_p2_07"
+        ? {
+            ...k,
+            explanation: JSON.stringify({
+              part: 2,
+              question_type_vi: "Câu hỏi Wh- (Where)",
+              strategy_vi: "Tìm cụm giới từ chỉ địa điểm.",
+              why_correct_vi: "Room 202 trả lời trực tiếp cho Where.",
+              options_analysis: {
+                A: "Đúng: Room 202 là địa điểm.",
+                B: "Sai: At 3 PM trả lời cho When.",
+                C: "Sai: bẫy Yes/No cho câu hỏi Wh-.",
+              },
+            }),
+          }
+        : k
+    );
+    const evaluation = evaluateListeningExam({
+      questions,
+      groups,
+      answerKeys: customKeys,
+      userAnswers: { t1_p2_07: 0 },
+      timeSpentSeconds: 60,
+    });
+
+    expect(evaluation.results[1].structuredExplanation?.isStructured).toBe(true);
+    expect(evaluation.results[1].structuredExplanation?.optionsAnalysis?.B).toContain("When");
+    expect(evaluation.results[0].structuredExplanation).toBeNull();
   });
 });

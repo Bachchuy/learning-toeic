@@ -1,19 +1,35 @@
 /**
- * Script tự động tinh chỉnh và chuẩn hóa lời giải sư phạm TOEIC Part 5 bằng Gemini AI.
- * 
- * Tính năng nâng cao:
- * - Tự động phát hiện các câu có lời giải cũ rập khuôn để vá (bỏ qua câu đã vá).
- * - Tự động Retry với Exponential Backoff khi gặp lỗi mạng hoặc 503 High Demand.
- * - Luân chuyển model linh hoạt (gemini-3.5-flash, gemini-flash-latest).
- * - Chạy liên tục theo từng trang (Pagination) cho đến khi vá xong toàn bộ.
- * 
+ * Script tự động tinh chỉnh và chuẩn hóa lời giải sư phạm TOEIC TOÀN DIỆN (Part 1 -> Part 7) bằng Gemini AI.
+ *
+ * Phạm vi hỗ trợ:
+ * - Part 6 & Part 7 Reading (`questions` + `passages` -> `question_answers`)
+ * - Part 5 Practice (`questions` -> `question_answers`, chi tiết 5 nhóm tình huống & chống sáo rỗng)
+ * - Đề thi thử Mock Exam (`exam_sets` + `exam_set_answers` cho cả Listening Part 1–4 & Reading Part 5–7)
+ *
  * Cách chạy:
  *   npx tsx scripts/refine-explanations-ai.ts
+ *   npx tsx scripts/refine-explanations-ai.ts --part=all --limit=200
+ *   npx tsx scripts/refine-explanations-ai.ts --part=exam --limit=50 --dry-run
+ *   TARGET_PART=6 LIMIT=50 npx tsx scripts/refine-explanations-ai.ts
  */
 
 import { createClient } from "@supabase/supabase-js";
 import * as fs from "fs";
 import * as path from "path";
+import { flattenListeningContent } from "../src/core/examListening";
+import {
+  buildExamRefinementPrompt,
+  buildPart5RefinementPrompt,
+  buildPart6RefinementPrompt,
+  buildPart7RefinementPrompt,
+  getExamGeminiResponseSchema,
+  isExamAnswerNeedsRefinement,
+  isGenericExplanationText,
+  isPart5ExplanationNeedsRefinement,
+  isReadingExplanationNeedsRefinement,
+  PART5_GEMINI_RESPONSE_SCHEMA,
+  READING_GEMINI_RESPONSE_SCHEMA,
+} from "../src/core/explanationQuality";
 
 // 1. Nạp biến môi trường từ .env.local (chỉ điền biến chưa có để không ghi đè GitHub Secrets)
 const envPath = path.resolve(process.cwd(), ".env.local");
@@ -52,27 +68,6 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-// 2. Danh mục 16 tag ngữ pháp chuẩn TOEIC
-const GRAMMAR_TAGS = [
-  { id: 1, code: "tenses", name: "Thì động từ (Tenses)" },
-  { id: 2, code: "subject_verb", name: "Hòa hợp Chủ ngữ - Động từ" },
-  { id: 3, code: "passive_voice", name: "Câu bị động (Passive Voice)" },
-  { id: 4, code: "modals", name: "Động từ khuyết thiếu (Modal Verbs)" },
-  { id: 5, code: "gerund_infinitive", name: "Danh động từ & Động từ nguyên mẫu (V-ing / To-V)" },
-  { id: 6, code: "participles", name: "Phân từ & Rút gọn mệnh đề" },
-  { id: 7, code: "relative_clauses", name: "Mệnh đề quan hệ (Relative Clauses)" },
-  { id: 8, code: "conditionals", name: "Câu điều kiện & Thể giả định" },
-  { id: 9, code: "comparisons", name: "Cấu trúc so sánh (Comparisons)" },
-  { id: 10, code: "conjunctions_prepositions", name: "Liên từ & Giới từ" },
-  { id: 11, code: "nouns_pronouns", name: "Danh từ & Đại từ" },
-  { id: 12, code: "adjectives_adverbs", name: "Tính từ & Trạng từ" },
-  { id: 13, code: "inversion", name: "Đảo ngữ (Inversion)" },
-  { id: 14, code: "word_form", name: "Từ loại (Word Form)" },
-  { id: 15, code: "collocations", name: "Cụm từ cố định (Collocations)" },
-  { id: 16, code: "parallel_structure", name: "Cấu trúc song hành (Parallelism)" },
-];
-
-// Cấu hình các tầng Model theo hạn ngạch và tốc độ thực tế từ Google AI Studio
 interface ModelInfo {
   name: string;
   rpmLimit: number;
@@ -80,31 +75,31 @@ interface ModelInfo {
   dailyLimit: number;
 }
 
-const minRequestDelayMs = Math.max(4000, parseInt(process.env.REQUEST_DELAY_MS || "6500", 10) || 6500);
+const minRequestDelayMs = Math.max(
+  4000,
+  parseInt(process.env.REQUEST_DELAY_MS || "6500", 10) || 6500
+);
 
 const MODEL_POOLS: ModelInfo[] = [
-  // Tier 1: 500 RPD / 15 RPM (Ưu tiên số 1: Hạn ngạch lớn 500 câu/ngày, giãn cách >= 6.5s triệt tiêu lỗi RPM)
+  // Tier 1: 500 RPD / 15 RPM
   { name: "gemini-3.1-flash-lite", rpmLimit: 15, minDelayMs: Math.max(minRequestDelayMs, 6500), dailyLimit: 500 },
   { name: "gemini-3.5-flash-lite", rpmLimit: 15, minDelayMs: Math.max(minRequestDelayMs, 6500), dailyLimit: 500 },
   { name: "gemini-flash-lite-latest", rpmLimit: 15, minDelayMs: Math.max(minRequestDelayMs, 6500), dailyLimit: 500 },
 
-  // Tier 2: 20 RPD / 5 RPM (Dự phòng thông minh khi Tier 1 bận/503: Giãn cách >= 14s để tuyệt đối không vượt 5 RPM)
+  // Tier 2: 20 RPD / 5 RPM
   { name: "gemini-3.6-flash", rpmLimit: 5, minDelayMs: Math.max(minRequestDelayMs, 14000), dailyLimit: 20 },
   { name: "gemini-3.5-flash", rpmLimit: 5, minDelayMs: Math.max(minRequestDelayMs, 14000), dailyLimit: 20 },
   { name: "gemini-3-flash-preview", rpmLimit: 5, minDelayMs: Math.max(minRequestDelayMs, 14000), dailyLimit: 20 },
 ];
 
-// Tập hợp lưu các model đã hết hạn ngạch ngày trong phiên chạy hiện tại
 const exhaustedDailyModels = new Set<string>();
 
-/**
- * Gọi Gemini REST API kèm cơ chế luân chuyển model thông minh và kiểm soát RPM an toàn
- */
 async function callGeminiWithRetry(
   prompt: string,
+  responseSchema: Record<string, unknown>,
   maxRetries = 2
 ): Promise<{ text: string; delayMs: number; modelUsed: string }> {
-  let lastError: any = null;
+  let lastError: unknown = null;
 
   for (const model of MODEL_POOLS) {
     if (exhaustedDailyModels.has(model.name)) {
@@ -121,50 +116,11 @@ async function callGeminiWithRetry(
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
               responseMimeType: "application/json",
-              responseSchema: {
-                type: "OBJECT",
-                properties: {
-                  tag_id: { type: "INTEGER" },
-                  rule_vi: { type: "STRING" },
-                  why_correct_vi: { type: "STRING" },
-                  full_translation_vi: { type: "STRING" },
-                  tip_vi: { type: "STRING" },
-                  options_analysis: {
-                    type: "OBJECT",
-                    properties: {
-                      A: { type: "STRING" },
-                      B: { type: "STRING" },
-                      C: { type: "STRING" },
-                      D: { type: "STRING" },
-                    },
-                    required: ["A", "B", "C", "D"],
-                  },
-                  vocab_hints: {
-                    type: "ARRAY",
-                    items: {
-                      type: "OBJECT",
-                      properties: {
-                        word: { type: "STRING" },
-                        meaning_vi: { type: "STRING" },
-                      },
-                      required: ["word", "meaning_vi"],
-                    },
-                  },
-                },
-                required: [
-                  "tag_id",
-                  "rule_vi",
-                  "why_correct_vi",
-                  "full_translation_vi",
-                  "tip_vi",
-                  "options_analysis",
-                  "vocab_hints",
-                ],
-              },
+              responseSchema,
               temperature: 0.2,
             },
           }),
-          signal: AbortSignal.timeout(25000),
+          signal: AbortSignal.timeout(30000),
         });
 
         if (res.ok) {
@@ -177,7 +133,6 @@ async function callGeminiWithRetry(
 
         const errText = await res.text();
 
-        // 1. Nếu gặp 429: Kiểm tra xem hết hạn ngạch ngày (RPD) hay chỉ quá tải tốc độ phút (RPM)
         if (res.status === 429) {
           const errLower = errText.toLowerCase();
           const isDailyQuota =
@@ -191,7 +146,7 @@ async function callGeminiWithRetry(
               `      🛑 Model [${model.name}] đã hết hạn ngạch ngày (${model.dailyLimit} RPD). Đổi sang model tiếp theo trong pool...`
             );
             exhaustedDailyModels.add(model.name);
-            break; // Bỏ qua model này, chuyển ngay sang model khác trong pool
+            break;
           }
 
           const retryMatch = errText.match(/retry\s+in\s+(\d+(?:\.\d+)?)s/i);
@@ -204,7 +159,6 @@ async function callGeminiWithRetry(
           continue;
         }
 
-        // 2. Nếu lỗi 503 (quá tải đột biến tạm thời): Chờ nhẹ hoặc đổi model
         if (res.status === 503) {
           const waitSec = attempt * 3;
           console.log(
@@ -215,11 +169,12 @@ async function callGeminiWithRetry(
         }
 
         throw new Error(`Gemini API HTTP ${res.status}: ${errText}`);
-      } catch (err: any) {
+      } catch (err: unknown) {
         lastError = err;
         if (attempt < maxRetries) {
           const waitSec = attempt * 2;
-          console.log(`      ⚠️ Lỗi kết nối (${err.message?.slice(0, 80)}). Chờ ${waitSec}s thử lại...`);
+          const msg = err instanceof Error ? err.message : String(err);
+          console.log(`      ⚠️ Lỗi kết nối (${msg.slice(0, 80)}). Chờ ${waitSec}s thử lại...`);
           await new Promise((r) => setTimeout(r, waitSec * 1000));
         }
       }
@@ -227,67 +182,46 @@ async function callGeminiWithRetry(
   }
 
   if (exhaustedDailyModels.size >= MODEL_POOLS.length) {
-    throw new Error("DAILY_QUOTA_EXCEEDED: Toàn bộ model dự phòng trong pool đều đã đạt giới hạn Daily Quota.");
+    throw new Error(
+      "DAILY_QUOTA_EXCEEDED: Toàn bộ model dự phòng trong pool đều đã đạt giới hạn Daily Quota."
+    );
   }
 
-  throw lastError || new Error("Không thể kết nối đến Gemini sau khi đã thử qua toàn bộ pool model.");
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Không thể kết nối đến Gemini sau khi đã thử qua toàn bộ pool model.");
 }
 
-interface RefinedResult {
-  tag_id: number;
-  rule_vi: string;
-  why_correct_vi: string;
-  full_translation_vi?: string;
-  tip_vi: string;
-  options_analysis: {
-    A: string;
-    B: string;
-    C: string;
-    D: string;
-  };
-  vocab_hints: Array<{ word: string; meaning_vi: string }>;
-}
-
-function extractJson(rawJsonText: string): any {
+function extractJson<T = Record<string, unknown>>(rawJsonText: string): T {
   if (!rawJsonText || typeof rawJsonText !== "string") {
     throw new Error("Phản hồi rỗng từ AI");
   }
 
-  // 1. Tháo gỡ markdown code block nếu có
   let clean = rawJsonText.trim();
   clean = clean.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
 
-  // 2. Thử parse trực tiếp
   try {
-    return JSON.parse(clean);
+    return JSON.parse(clean) as T;
   } catch {
-    // 3. Tìm khối JSON { ... } lớn nhất
     const start = clean.indexOf("{");
     const end = clean.lastIndexOf("}");
     if (start !== -1 && end > start) {
       const jsonCandidate = clean.slice(start, end + 1);
-
       try {
-        return JSON.parse(jsonCandidate);
+        return JSON.parse(jsonCandidate) as T;
       } catch {
-        // 4. Khử lỗi trailing comma (dấu phẩy thừa trước } hoặc ])
         let sanitized = jsonCandidate.replace(/,\s*([\}\]])/g, "$1");
-
-        // 5. Loại bỏ comment // ... hoặc /* ... */
         sanitized = sanitized.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, "$1");
-
         try {
-          return JSON.parse(sanitized);
+          return JSON.parse(sanitized) as T;
         } catch {
-          // 6. Xử lý trường hợp có ký tự điều khiển hoặc xuống dòng thô trong chuỗi string
-          // Chỉ escape \n, \r trong nội dung chuỗi (giữa hai dấu nháy kép), không can thiệp vào các newline cấu trúc
           const escaped = sanitized.replace(/"((?:\\.|[^"\\])*)"/g, (match) => {
             return match
               .replace(/\r/g, "")
               .replace(/\n/g, "\\n")
               .replace(/\t/g, "\\t");
           });
-          return JSON.parse(escaped);
+          return JSON.parse(escaped) as T;
         }
       }
     }
@@ -295,123 +229,272 @@ function extractJson(rawJsonText: string): any {
   }
 }
 
-async function refineQuestionWithAI(
-  q: any,
-  correctIndex: number
-): Promise<{ result: RefinedResult; modelUsed: string; delayMs: number }> {
-  const letters = ["A", "B", "C", "D"];
-  const correctLetter = letters[correctIndex];
-  const optionsArr = [q.option_a, q.option_b, q.option_c, q.option_d];
-  const correctText = optionsArr[correctIndex];
-
-  const prompt = `
-Bạn là chuyên gia sư phạm TOEIC 990 điểm. Hãy viết lời giải chi tiết, chuẩn xác, không rập khuôn cho câu hỏi TOEIC Part 5 sau:
-
-ĐỀ BÀI: "${q.stem}"
-A. ${q.option_a}
-B. ${q.option_b}
-C. ${q.option_c}
-D. ${q.option_d}
-ĐÁP ÁN ĐÚNG: ${correctLetter} (${correctText})
-
-DANH SÁCH 16 CHỦ ĐIỂM NGỮ PHÁP (Chọn đúng 1 tag_id phản ánh bản chất ngữ pháp của câu):
-${JSON.stringify(GRAMMAR_TAGS.map((t) => ({ id: t.id, name: t.name })))}
-
-YÊU CẦU NỘI DUNG:
-1. Xác định đúng bản chất ngữ pháp (Ví dụ: Chỗ trống cần Danh từ làm Chủ ngữ thì tag_id phải là 14 Word Form hoặc 11 Nouns, KHÔNG gán nhầm sang Comparisons chỉ vì câu có 'than' trong mốc thời gian).
-2. Viết lời giải 4 tầng chất lượng cao:
-   - rule_vi: Quy tắc ngữ pháp trọng tâm, phân tích thành phần câu.
-   - why_correct_vi: Giải thích vì sao đáp án đúng thỏa mãn cấu trúc và ngữ nghĩa.
-   - full_translation_vi: Dịch trọn vẹn câu đề đã điền đáp án đúng sang tiếng Việt tự nhiên, sát ngữ cảnh công sở.
-   - tip_vi: Mẹo nhận diện nhanh trong 10-15 giây để làm bài tốc độ cao.
-   - options_analysis: Phân tích tường tận TỪNG PHƯƠNG ÁN A, B, C, D (từ loại, nghĩa, lý do sai hoặc đúng).
-   - vocab_hints: 1-3 từ vựng/cụm từ quan trọng nhất trong câu.
-
-TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON:
-{
-  "tag_id": <số nguyên từ 1 đến 16>,
-  "rule_vi": "<nội dung>",
-  "why_correct_vi": "<nội dung>",
-  "full_translation_vi": "<dịch nghĩa câu hoàn chỉnh>",
-  "tip_vi": "<nội dung>",
-  "options_analysis": {
-    "A": "<giải thích A>",
-    "B": "<giải thích B>",
-    "C": "<giải thích C>",
-    "D": "<giải thích D>"
-  },
-  "vocab_hints": [
-    { "word": "<từ vựng>", "meaning_vi": "<nghĩa tiếng Việt>" }
-  ]
+interface CliConfig {
+  targetPart: "all" | "5" | "6" | "7" | "reading" | "exam";
+  specificQId?: string;
+  maxToProcess: number;
+  batchSize: number;
+  cooldownSeconds: number;
+  dryRun: boolean;
+  requireExample: boolean;
 }
-`;
 
-  const { text, delayMs, modelUsed } = await callGeminiWithRetry(prompt);
+function parseCliConfig(): CliConfig {
+  const args = process.argv.slice(2);
+  const getArg = (prefix: string): string | undefined => {
+    const found = args.find((a) => a.startsWith(`${prefix}=`));
+    return found ? found.slice(prefix.length + 1) : undefined;
+  };
+
+  const rawPart = (getArg("--part") || process.env.TARGET_PART || "all").toLowerCase();
+  const validParts = ["all", "5", "6", "7", "reading", "exam"] as const;
+  const targetPart = (validParts.includes(rawPart as (typeof validParts)[number])
+    ? rawPart
+    : "all") as CliConfig["targetPart"];
+
   return {
-    result: extractJson(text),
-    modelUsed,
-    delayMs,
+    targetPart,
+    specificQId: getArg("--question-id") || process.env.QUESTION_ID,
+    maxToProcess: parseInt(getArg("--limit") || process.env.LIMIT || "200", 10),
+    batchSize: parseInt(getArg("--batch-size") || process.env.BATCH_SIZE || "50", 10),
+    cooldownSeconds: parseInt(getArg("--cooldown") || process.env.COOLDOWN_SECONDS || "25", 10),
+    dryRun: args.includes("--dry-run") || process.env.DRY_RUN === "1" || process.env.DRY_RUN === "true",
+    requireExample:
+      args.includes("--require-example") ||
+      process.env.REQUIRE_EXAMPLE === "1" ||
+      process.env.REQUIRE_EXAMPLE === "true",
   };
 }
 
-/**
- * Kiểm tra xem lời giải hiện tại có phải là lời giải cũ rập khuôn cần vá không
- */
-function isBoilerplateExplanation(explanation: any): boolean {
-  if (!explanation) return true;
-  const expStr = JSON.stringify(explanation);
-  
-  // 1. Dấu hiệu giải thích qua loa / sáo rỗng
-  if (expStr.includes("Phương án sai theo ngữ cảnh")) return true;
-  if (expStr.includes("Phương án sai")) return true;
-  if (expStr.includes("sai theo ngữ cảnh")) return true;
-
-  // 2. Dấu hiệu của template cũ trong ingest-kaggle-toeic.ts
-  if (expStr.includes("không phù hợp về ngữ nghĩa hoặc không tạo thành cụm từ tự nhiên")) return true;
-  if (expStr.includes("tạo thành cấu trúc so sánh chuẩn xác theo dấu hiệu ngữ pháp trong câu")) return true;
-  if (expStr.includes("Quy tắc nhận diện từ loại (Word Form). Xác định vị trí của chỗ trống")) return true;
-  if (expStr.includes("Quy tắc chia thì động từ (Tenses) và sự phối hợp thì trong câu. Dựa vào dấu hiệu thời gian")) return true;
-  if (expStr.includes("Quy tắc sử dụng Đại từ (Pronouns) và Danh từ. Phân biệt rõ giữa")) return true;
-  if (expStr.includes("Từ khóa chính trong câu")) return true;
-
-  // 3. Thiếu hoặc phân tích phương án không đầy đủ 4 lựa chọn (A, B, C, D)
-  if (!explanation.options_analysis || typeof explanation.options_analysis !== "object") return true;
-  const opts = Object.values(explanation.options_analysis);
-  if (opts.length < 4) return true;
-  if (opts.some((o) => typeof o !== "string" || o.trim().length < 8)) return true;
-
-  return false;
+interface RunState {
+  totalProcessed: number;
+  totalRefined: number;
+  totalSkipped: number;
+  totalFailed: number;
+  consecutiveErrors: number;
+  currentDelayMs: number;
+  currentBatchRefined: number;
+  batchCounter: number;
+  reachedDailyQuota: boolean;
 }
 
-async function main() {
-  console.log("==========================================================");
-  console.log("🚀 BẮT ĐẦU QUY TRÌNH VÁ TOÀN BỘ LỜI GIẢI TOEIC BẰNG GEMINI");
-  console.log("   (Hỗ trợ chạy cuốn chiếu nhiều mẻ liên tục kèm tự động cooldown)");
-  console.log("==========================================================\n");
+async function handlePaceAndCooldown(cfg: CliConfig, state: RunState) {
+  if (state.currentBatchRefined >= cfg.batchSize && state.totalRefined < cfg.maxToProcess) {
+    console.log(`\n==========================================================`);
+    console.log(`☕ HOÀN THÀNH MẺ #${state.batchCounter} (${state.currentBatchRefined} câu đã vá mới).`);
+    console.log(`   Tiến độ tổng: ${state.totalRefined}/${cfg.maxToProcess} câu đã vá.`);
+    console.log(`   Tạm nghỉ ${cfg.cooldownSeconds}s để API làm mát trước khi sang mẻ #${state.batchCounter + 1}...`);
+    console.log(`==========================================================\n`);
+    state.batchCounter++;
+    state.currentBatchRefined = 0;
+    await new Promise((r) => setTimeout(r, cfg.cooldownSeconds * 1000));
+  }
 
-  const specificQId = process.env.QUESTION_ID;
-  const maxToProcess = parseInt(process.env.LIMIT || "200", 10);
-  const batchSize = parseInt(process.env.BATCH_SIZE || "50", 10);
-  const cooldownSeconds = parseInt(process.env.COOLDOWN_SECONDS || "25", 10);
+  const jitterMs = 400 + Math.floor(Math.random() * 700);
+  await new Promise((r) => setTimeout(r, state.currentDelayMs + jitterMs));
+}
+
+function handleItemError(err: unknown, state: RunState) {
+  const msg = err instanceof Error ? err.message : String(err);
+  console.error(`   ❌ Lỗi: ${msg}`);
+  state.totalFailed++;
+  state.consecutiveErrors++;
+
+  if (msg.includes("DAILY_QUOTA_EXCEEDED") || state.consecutiveErrors >= 3) {
+    state.reachedDailyQuota = true;
+    console.log("\n==========================================================");
+    console.log("🛑 THÔNG BÁO: Dừng tiến trình do chạm giới hạn Daily Quota hoặc lỗi liên tiếp >= 3.");
+    console.log("==========================================================");
+  }
+}
+
+// ============================================================================
+// PHASE 1: READING PASSAGES (PART 6 & PART 7)
+// ============================================================================
+async function refineReadingPhase(cfg: CliConfig, state: RunState, parts: Array<6 | 7>) {
+  console.log(`\n📚 [PHASE READING] Quét câu hỏi Part ${parts.join(" & ")}...`);
+
+  let qQuery = supabase
+    .from("questions")
+    .select(
+      "id, part, passage_id, order_in_passage, question_sub_type, stem, option_a, option_b, option_c, option_d"
+    )
+    .in("part", parts)
+    .eq("status", "published")
+    .order("created_at", { ascending: true });
+
+  if (cfg.specificQId) {
+    qQuery = qQuery.eq("id", cfg.specificQId);
+  }
+
+  const { data: questions, error } = await qQuery;
+  if (error || !questions || questions.length === 0) {
+    console.log("   ℹ️ Không có câu hỏi Part 6/7 nào cần xử lý.");
+    return;
+  }
+
+  const passageIds = Array.from(
+    new Set(questions.map((q) => q.passage_id).filter((id): id is string => Boolean(id)))
+  );
+  const passageMap = new Map<
+    string,
+    { title: string; passage_type: string; content: string; context_info: Record<string, string> }
+  >();
+
+  for (let i = 0; i < passageIds.length; i += 40) {
+    const { data: pRows } = await supabase
+      .from("passages")
+      .select("id, title, passage_type, content, context_info")
+      .in("id", passageIds.slice(i, i + 40));
+    for (const p of pRows || []) {
+      passageMap.set(p.id, {
+        title: p.title || "",
+        passage_type: p.passage_type || "",
+        content: p.content || "",
+        context_info: (p.context_info || {}) as Record<string, string>,
+      });
+    }
+  }
+
+  const answersMap = new Map<string, { correct_index: number; explanation: unknown }>();
+  for (let i = 0; i < questions.length; i += 40) {
+    const { data: aRows } = await supabase
+      .from("question_answers")
+      .select("question_id, correct_index, explanation")
+      .in(
+        "question_id",
+        questions.slice(i, i + 40).map((q) => q.id)
+      );
+    for (const a of aRows || []) {
+      answersMap.set(a.question_id, a);
+    }
+  }
+
+  for (const q of questions) {
+    if (state.totalRefined >= cfg.maxToProcess || state.reachedDailyQuota) break;
+    state.totalProcessed++;
+
+    const aData = answersMap.get(q.id);
+    if (!aData) {
+      state.totalSkipped++;
+      continue;
+    }
+
+    if (!cfg.specificQId && !isReadingExplanationNeedsRefinement(aData.explanation)) {
+      state.totalSkipped++;
+      continue;
+    }
+
+    const passage = q.passage_id ? passageMap.get(q.passage_id) : undefined;
+    if (!passage?.content) {
+      state.totalSkipped++;
+      continue;
+    }
+
+    const contextHeader = Object.entries(passage.context_info || {})
+      .filter(([, v]) => Boolean(v))
+      .map(([k, v]) => `${k.toUpperCase()}: ${v}`)
+      .join("\n");
+    const fullPassageText = contextHeader
+      ? `${contextHeader}\n\n${passage.content}`
+      : passage.content;
+
+    console.log(
+      `[#${state.totalRefined + 1}/${cfg.maxToProcess}] [Part ${q.part}] Đang vá: "${q.stem.slice(0, 50)}..." (ID: ${q.id})`
+    );
+
+    try {
+      const prompt =
+        q.part === 6
+          ? buildPart6RefinementPrompt({
+              passageTitle: passage.title,
+              passageType: passage.passage_type,
+              passageContent: fullPassageText,
+              stem: q.stem,
+              orderInPassage: q.order_in_passage,
+              questionSubType: q.question_sub_type,
+              option_a: q.option_a,
+              option_b: q.option_b,
+              option_c: q.option_c,
+              option_d: q.option_d,
+              correctIndex: aData.correct_index,
+            })
+          : buildPart7RefinementPrompt({
+              passageTitle: passage.title,
+              passageType: passage.passage_type,
+              passageContent: fullPassageText,
+              stem: q.stem,
+              questionSubType: q.question_sub_type,
+              option_a: q.option_a,
+              option_b: q.option_b,
+              option_c: q.option_c,
+              option_d: q.option_d,
+              correctIndex: aData.correct_index,
+            });
+
+      const { text, delayMs, modelUsed } = await callGeminiWithRetry(
+        prompt,
+        READING_GEMINI_RESPONSE_SCHEMA
+      );
+      state.currentDelayMs = delayMs;
+
+      const refined = extractJson<{
+        question_type_vi: string;
+        rule_vi: string;
+        why_correct_vi: string;
+        key_clue: string;
+        full_translation_vi: string;
+        tip_vi: string;
+        options_analysis: Record<"A" | "B" | "C" | "D", string>;
+        vocab_hints: Array<{ word: string; meaning_vi: string }>;
+      }>(text);
+
+      const updatedExplanation = {
+        question_type_vi: refined.question_type_vi,
+        rule_vi: refined.rule_vi,
+        why_correct_vi: refined.why_correct_vi,
+        analysis: refined.why_correct_vi,
+        key_clue: refined.key_clue,
+        evidence: refined.key_clue,
+        full_translation_vi: refined.full_translation_vi,
+        translation: refined.full_translation_vi,
+        tip_vi: refined.tip_vi,
+        options_analysis: refined.options_analysis,
+        vocab_hints: refined.vocab_hints,
+      };
+
+      if (cfg.dryRun) {
+        console.log(`   🧪 [DRY-RUN Part ${q.part}] Model [${modelUsed}]:`, JSON.stringify(updatedExplanation, null, 2).slice(0, 500));
+      } else {
+        const { error: updateErr } = await supabase
+          .from("question_answers")
+          .update({ explanation: updatedExplanation })
+          .eq("question_id", q.id);
+
+        if (updateErr) throw new Error(updateErr.message);
+        console.log(`   ✅ Đã vá Part ${q.part} thành công bằng [${modelUsed}]!`);
+      }
+
+      state.totalRefined++;
+      state.currentBatchRefined++;
+      state.consecutiveErrors = 0;
+
+      await handlePaceAndCooldown(cfg, state);
+    } catch (err) {
+      handleItemError(err, state);
+    }
+  }
+}
+
+// ============================================================================
+// PHASE 2: PART 5 PRACTICE BANK
+// ============================================================================
+async function refinePart5Phase(cfg: CliConfig, state: RunState) {
+  console.log(`\n📘 [PHASE PART 5] Quét ngân hàng câu hỏi Part 5...`);
+  let offset = 0;
   const pageSize = 50;
 
-  console.log(`🎯 Cấu hình phiên chạy:`);
-  console.log(`   - Mục tiêu cần vá mới: ${maxToProcess} câu`);
-  console.log(`   - Kích thước mỗi mẻ (Batch): ${batchSize} câu`);
-  console.log(`   - Thời gian giãn cách giữa các mẻ: ${cooldownSeconds} giây\n`);
-
-  let totalProcessed = 0;
-  let totalRefined = 0;
-  let totalSkipped = 0;
-  let totalFailed = 0;
-  let offset = 0;
-  let consecutiveErrors = 0;
-  let currentDelayMs = minRequestDelayMs; // Mặc định giãn cách an toàn chống quá tải RPM
-  let currentBatchRefined = 0;
-  let batchCounter = 1;
-  let reachedDailyQuota = false;
-
-  while (totalRefined < maxToProcess && !reachedDailyQuota) {
+  while (state.totalRefined < cfg.maxToProcess && !state.reachedDailyQuota) {
     let query = supabase
       .from("questions")
       .select("id, stem, option_a, option_b, option_c, option_d, tag_id, part")
@@ -420,145 +503,418 @@ async function main() {
       .order("created_at", { ascending: true })
       .range(offset, offset + pageSize - 1);
 
-    if (specificQId) {
+    if (cfg.specificQId) {
       query = supabase
         .from("questions")
         .select("id, stem, option_a, option_b, option_c, option_d, tag_id, part")
-        .eq("id", specificQId);
+        .eq("id", cfg.specificQId);
     }
 
     const { data: questions, error } = await query;
     if (error || !questions || questions.length === 0) {
-      console.log("📦 Đã quét hết toàn bộ ngân hàng câu hỏi trong cơ sở dữ liệu.");
+      console.log("📦 Đã quét hết toàn bộ ngân hàng Part 5.");
       break;
     }
 
-    // Tải hàng loạt đáp án của cả trang để tránh N+1 query khi bỏ qua các câu đã vá
     const { data: pageAnswers, error: aListErr } = await supabase
       .from("question_answers")
       .select("question_id, correct_index, explanation")
-      .in("question_id", questions.map((item) => item.id));
+      .in(
+        "question_id",
+        questions.map((item) => item.id)
+      );
 
     if (aListErr) {
       console.error(`❌ Lỗi tải question_answers trang offset ${offset}:`, aListErr.message);
       break;
     }
 
-    const answersMap = new Map<string, { correct_index: number; explanation: any }>();
+    const answersMap = new Map<string, { correct_index: number; explanation: unknown }>();
     for (const row of pageAnswers || []) {
       answersMap.set(row.question_id, row);
     }
 
-    console.log(`\n--- [Mẻ #${batchCounter}] Đang quét trang offset ${offset} -> ${offset + questions.length} (${questions.length} câu) ---`);
+    console.log(
+      `\n--- [Mẻ #${state.batchCounter}] Quét Part 5 offset ${offset} -> ${offset + questions.length} (${questions.length} câu) ---`
+    );
 
     for (const q of questions) {
-      if (totalRefined >= maxToProcess || reachedDailyQuota) break;
-      totalProcessed++;
+      if (state.totalRefined >= cfg.maxToProcess || state.reachedDailyQuota) break;
+      state.totalProcessed++;
 
       const aData = answersMap.get(q.id);
-
       if (!aData) {
-        totalSkipped++;
+        state.totalSkipped++;
         continue;
       }
 
-      // Kiểm tra xem câu này có cần vá không
-      const needsRefine = isBoilerplateExplanation(aData.explanation);
-      if (!needsRefine && !specificQId) {
-        // Đã là lời giải chất lượng cao -> bỏ qua
-        totalSkipped++;
+      const needsRefine = isPart5ExplanationNeedsRefinement(aData.explanation, {
+        requireExample: cfg.requireExample,
+      });
+      if (!needsRefine && !cfg.specificQId) {
+        state.totalSkipped++;
         continue;
       }
 
-      console.log(`[#${totalRefined + 1}/${maxToProcess}] (Mẻ ${batchCounter}: câu thứ ${currentBatchRefined + 1}/${batchSize}) Đang vá: "${q.stem.slice(0, 50)}..." (ID: ${q.id})`);
+      console.log(
+        `[#${state.totalRefined + 1}/${cfg.maxToProcess}] (Mẻ ${state.batchCounter}: ${state.currentBatchRefined + 1}/${cfg.batchSize}) Đang vá Part 5: "${q.stem.slice(0, 50)}..." (ID: ${q.id})`
+      );
 
       try {
-        const { result: refined, modelUsed, delayMs } = await refineQuestionWithAI(q, aData.correct_index);
-        currentDelayMs = delayMs;
+        const prompt = buildPart5RefinementPrompt({
+          stem: q.stem,
+          option_a: q.option_a,
+          option_b: q.option_b,
+          option_c: q.option_c,
+          option_d: q.option_d,
+          correctIndex: aData.correct_index,
+        });
 
-        // 1. Cập nhật tag_id cho questions (chỉ chấp nhận 1..16 hợp lệ)
-        const nextTagId = Number.isInteger(refined.tag_id) && refined.tag_id >= 1 && refined.tag_id <= 16 ? refined.tag_id : null;
-        if (nextTagId && nextTagId !== q.tag_id) {
-          await supabase
-            .from("questions")
-            .update({ tag_id: nextTagId })
-            .eq("id", q.id);
-          console.log(`   🏷️  Đổi tag_id: ${q.tag_id} -> ${nextTagId}`);
-        }
+        const { text, delayMs, modelUsed } = await callGeminiWithRetry(
+          prompt,
+          PART5_GEMINI_RESPONSE_SCHEMA
+        );
+        state.currentDelayMs = delayMs;
 
-        // 2. Cập nhật explanation cho question_answers (bảo tồn full_translation_vi chuẩn nếu đã có)
-        const existingTranslation =
-          typeof aData.explanation?.full_translation_vi === "string" &&
-          aData.explanation.full_translation_vi.trim().length > 0 &&
-          aData.explanation.full_translation_vi.trim() !== "Dịch nghĩa câu hỏi theo ngữ cảnh công sở."
-            ? aData.explanation.full_translation_vi.trim()
+        const refined = extractJson<{
+          tag_id: number;
+          rule_vi: string;
+          why_correct_vi: string;
+          full_translation_vi: string;
+          tip_vi: string;
+          example_en: string;
+          options_analysis: Record<"A" | "B" | "C" | "D", string>;
+          vocab_hints: Array<{ word: string; meaning_vi: string }>;
+        }>(text);
+
+        const existingObj =
+          aData.explanation && typeof aData.explanation === "object"
+            ? (aData.explanation as Record<string, unknown>)
+            : null;
+        const existingTrans =
+          typeof existingObj?.full_translation_vi === "string" &&
+          !isGenericExplanationText(existingObj.full_translation_vi)
+            ? existingObj.full_translation_vi.trim()
             : null;
 
         const updatedExplanation = {
           rule_vi: refined.rule_vi,
           why_correct_vi: refined.why_correct_vi,
-          full_translation_vi: existingTranslation || refined.full_translation_vi || "",
+          full_translation_vi: existingTrans || refined.full_translation_vi || "",
           tip_vi: refined.tip_vi,
+          example_en: refined.example_en || "",
           options_analysis: refined.options_analysis,
           vocab_hints: refined.vocab_hints,
         };
 
-        const { error: updateErr } = await supabase
-          .from("question_answers")
-          .update({ explanation: updatedExplanation })
-          .eq("question_id", q.id);
-
-        if (updateErr) throw new Error(updateErr.message);
-
-        console.log(`   ✅ Đã vá thành công bằng [${modelUsed}]!`);
-        totalRefined++;
-        currentBatchRefined++;
-        consecutiveErrors = 0;
-
-        // Tự động kiểm tra hoàn thành mẻ (batch) để giải lao cooldown
-        if (currentBatchRefined >= batchSize && totalRefined < maxToProcess) {
-          console.log(`\n==========================================================`);
-          console.log(`☕ HOÀN THÀNH MẺ #${batchCounter} (${currentBatchRefined} câu đã vá mới).`);
-          console.log(`   Tiến độ tổng: ${totalRefined}/${maxToProcess} câu đã vá.`);
-          console.log(`   Tạm nghỉ ${cooldownSeconds}s để API làm mát trước khi sang mẻ #${batchCounter + 1}...`);
-          console.log(`==========================================================\n`);
-          batchCounter++;
-          currentBatchRefined = 0;
-          await new Promise((r) => setTimeout(r, cooldownSeconds * 1000));
+        if (isPart5ExplanationNeedsRefinement(updatedExplanation)) {
+          console.warn(
+            `   ⚠️ Cảnh báo: AI trả về lời giải còn hơi ngắn/sáo rỗng ở câu ${q.id}, vẫn lưu và đánh dấu để theo dõi.`
+          );
         }
-      } catch (err: any) {
-        console.error(`   ❌ Lỗi: ${err.message}`);
-        totalFailed++;
-        consecutiveErrors++;
 
-        // Nếu toàn bộ model trong pool đều hết hạn ngạch ngày hoặc lỗi liên tiếp 3 câu -> Dừng ngay
-        if (err.message.includes("DAILY_QUOTA_EXCEEDED") || consecutiveErrors >= 3) {
-          reachedDailyQuota = true;
-          console.log("\n==========================================================");
-          console.log("🛑 THÔNG BÁO: Đã chạm trần hạn ngạch ngày (Daily Quota) của toàn bộ model trong pool.");
-          console.log("   Tiến trình tự động dừng để bảo toàn tài nguyên.");
-          console.log("   Hạn ngạch sẽ tự động được Google làm mới vào ngày mai (07:00 sáng).");
-          console.log("==========================================================");
-          break;
+        if (cfg.dryRun) {
+          console.log(`   🧪 [DRY-RUN Part 5] Model [${modelUsed}]:`, JSON.stringify(updatedExplanation, null, 2).slice(0, 500));
+        } else {
+          const nextTagId =
+            Number.isInteger(refined.tag_id) && refined.tag_id >= 1 && refined.tag_id <= 16
+              ? refined.tag_id
+              : null;
+          if (nextTagId && nextTagId !== q.tag_id) {
+            await supabase.from("questions").update({ tag_id: nextTagId }).eq("id", q.id);
+            console.log(`   🏷️  Đổi tag_id: ${q.tag_id} -> ${nextTagId}`);
+          }
+
+          const { error: updateErr } = await supabase
+            .from("question_answers")
+            .update({ explanation: updatedExplanation })
+            .eq("question_id", q.id);
+
+          if (updateErr) throw new Error(updateErr.message);
+          console.log(`   ✅ Đã vá Part 5 thành công bằng [${modelUsed}]!`);
+        }
+
+        state.totalRefined++;
+        state.currentBatchRefined++;
+        state.consecutiveErrors = 0;
+
+        await handlePaceAndCooldown(cfg, state);
+      } catch (err) {
+        handleItemError(err, state);
+      }
+    }
+
+    if (cfg.specificQId || state.reachedDailyQuota) break;
+    offset += pageSize;
+  }
+}
+
+// ============================================================================
+// PHASE 3: EXAM SETS (EXAM_SET_ANSWERS PART 1 -> PART 7)
+// ============================================================================
+interface ExamContextItem {
+  part: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  stem: string;
+  options: string[];
+  contextText?: string;
+}
+
+function buildExamQuestionContextMap(content: Record<string, unknown>): Map<string, ExamContextItem> {
+  const map = new Map<string, ExamContextItem>();
+
+  // Listening Part 1-4
+  const listening = content.listening as Record<string, unknown> | undefined;
+  if (listening) {
+    const { questions, groups } = flattenListeningContent(listening as never);
+    const groupMap = new Map(groups.map((g) => [g.id, g]));
+
+    for (const q of questions) {
+      const grp = q.groupId ? groupMap.get(q.groupId) : undefined;
+      let contextText: string | undefined;
+      if (q.part === 1) {
+        contextText = q.scene || grp?.scene;
+      } else if (q.part === 3 && grp?.lines) {
+        contextText = grp.lines.map((l) => `${l.speaker}: ${l.text}`).join("\n");
+      } else if (q.part === 4 && grp?.script) {
+        contextText = grp.script;
+      }
+
+      map.set(q.id, {
+        part: q.part,
+        stem: q.stem,
+        options: q.options,
+        contextText,
+      });
+    }
+  }
+
+  // Reading Part 5-7
+  const reading = content.reading as Record<string, unknown> | undefined;
+  if (reading) {
+    const p5 = (reading.part5 || []) as Array<{ id: string; stem: string; options: string[] }>;
+    for (const q of p5) {
+      map.set(q.id, { part: 5, stem: q.stem, options: q.options });
+    }
+
+    const p6 = (reading.part6 || []) as Array<{
+      title?: string;
+      docType?: string;
+      passage: string;
+      questions: Array<{ id: string; stem: string; options: string[] }>;
+    }>;
+    for (const p of p6) {
+      const passageCtx = `${p.docType ? `[${p.docType}] ` : ""}${p.title || ""}\n${p.passage}`.trim();
+      for (const q of p.questions || []) {
+        map.set(q.id, { part: 6, stem: q.stem, options: q.options, contextText: passageCtx });
+      }
+    }
+
+    const p7 = (reading.part7 || []) as Array<{
+      title?: string;
+      docType?: string;
+      passage: string;
+      questions: Array<{ id: string; stem: string; options: string[] }>;
+    }>;
+    for (const p of p7) {
+      const passageCtx = `${p.docType ? `[${p.docType}] ` : ""}${p.title || ""}\n${p.passage}`.trim();
+      for (const q of p.questions || []) {
+        map.set(q.id, { part: 7, stem: q.stem, options: q.options, contextText: passageCtx });
+      }
+    }
+  }
+
+  return map;
+}
+
+async function refineExamPhase(cfg: CliConfig, state: RunState) {
+  console.log(`\n📝 [PHASE EXAM SETS] Quét các bộ đề thi thử (Part 1–7)...`);
+
+  const { data: examSets, error: setErr } = await supabase
+    .from("exam_sets")
+    .select("id, slug, title, content")
+    .eq("status", "published")
+    .order("created_at", { ascending: true });
+
+  if (setErr || !examSets || examSets.length === 0) {
+    console.log("   ℹ️ Không có bộ đề thi thử nào đang published.");
+    return;
+  }
+
+  for (const examSet of examSets) {
+    if (state.totalRefined >= cfg.maxToProcess || state.reachedDailyQuota) break;
+
+    const contextMap = buildExamQuestionContextMap(
+      (examSet.content || {}) as Record<string, unknown>
+    );
+
+    let ansOffset = 0;
+    while (state.totalRefined < cfg.maxToProcess && !state.reachedDailyQuota) {
+      let ansQuery = supabase
+        .from("exam_set_answers")
+        .select("id, question_id, part, correct_index, evidence, explanation, explanation_vi")
+        .eq("exam_set_id", examSet.id)
+        .order("part", { ascending: true })
+        .order("question_id", { ascending: true })
+        .range(ansOffset, ansOffset + 99);
+
+      if (cfg.specificQId) {
+        ansQuery = ansQuery.eq("question_id", cfg.specificQId);
+      }
+
+      const { data: answers, error: ansErr } = await ansQuery;
+      if (ansErr || !answers || answers.length === 0) break;
+
+      for (const row of answers) {
+        if (state.totalRefined >= cfg.maxToProcess || state.reachedDailyQuota) break;
+        state.totalProcessed++;
+
+        if (!cfg.specificQId && !isExamAnswerNeedsRefinement(row)) {
+          state.totalSkipped++;
+          continue;
+        }
+
+        const qCtx = contextMap.get(row.question_id);
+        if (!qCtx) {
+          state.totalSkipped++;
+          continue;
+        }
+
+        console.log(
+          `[#${state.totalRefined + 1}/${cfg.maxToProcess}] [${examSet.slug} · Part ${row.part}] Đang chuẩn hóa: ${row.question_id}`
+        );
+
+        try {
+          const prompt = buildExamRefinementPrompt({
+            part: qCtx.part,
+            stem: qCtx.stem,
+            options: qCtx.options,
+            correctIndex: row.correct_index,
+            contextText: qCtx.contextText,
+            existingEvidence: row.evidence,
+            existingExplanation: row.explanation,
+            existingExplanationVi: row.explanation_vi,
+          });
+
+          const { text, delayMs, modelUsed } = await callGeminiWithRetry(
+            prompt,
+            getExamGeminiResponseSchema(row.part)
+          );
+          state.currentDelayMs = delayMs;
+
+          const refined = extractJson<{
+            question_type_vi: string;
+            strategy_vi: string;
+            evidence: string;
+            why_correct_vi: string;
+            tip_vi: string;
+            translation_vi: string;
+            options_analysis: Record<string, string>;
+            vocab_hints?: Array<{ word: string; meaning_vi: string }>;
+          }>(text);
+
+          const structuredPayload = {
+            part: row.part,
+            question_type_vi: refined.question_type_vi,
+            strategy_vi: refined.strategy_vi,
+            evidence: refined.evidence || row.evidence || "",
+            why_correct_vi: refined.why_correct_vi,
+            tip_vi: refined.tip_vi,
+            translation_vi: refined.translation_vi || row.explanation_vi || "",
+            options_analysis: refined.options_analysis,
+            vocab_hints: refined.vocab_hints || [],
+          };
+
+          if (cfg.dryRun) {
+            console.log(
+              `   🧪 [DRY-RUN Exam Part ${row.part}] Model [${modelUsed}]:`,
+              JSON.stringify(structuredPayload, null, 2).slice(0, 500)
+            );
+          } else {
+            const { error: upErr } = await supabase
+              .from("exam_set_answers")
+              .update({
+                evidence: structuredPayload.evidence || row.evidence,
+                explanation: JSON.stringify(structuredPayload),
+                explanation_vi: structuredPayload.translation_vi,
+              })
+              .eq("id", row.id);
+
+            if (upErr) throw new Error(upErr.message);
+            console.log(`   ✅ Đã chuẩn hóa ${row.question_id} bằng [${modelUsed}]!`);
+          }
+
+          state.totalRefined++;
+          state.currentBatchRefined++;
+          state.consecutiveErrors = 0;
+
+          await handlePaceAndCooldown(cfg, state);
+        } catch (err) {
+          handleItemError(err, state);
         }
       }
 
-      // Giãn cách an toàn + jitter ngẫu nhiên (400-1100ms) để tránh dồn request cùng lúc
-      const jitterMs = 400 + Math.floor(Math.random() * 700);
-      await new Promise((r) => setTimeout(r, currentDelayMs + jitterMs));
+      if (cfg.specificQId) break;
+      ansOffset += 100;
     }
+  }
+}
 
-    if (specificQId || reachedDailyQuota) break;
-    offset += pageSize;
+async function main() {
+  const cfg = parseCliConfig();
+
+  console.log("==========================================================");
+  console.log("🚀 BẮT ĐẦU QUY TRÌNH NÂNG CẤP LỜI GIẢI TOEIC P1–P7 BẰNG GEMINI");
+  console.log("==========================================================\n");
+  console.log("🎯 Cấu hình phiên chạy:");
+  console.log(`   - Phạm vi (TARGET_PART): ${cfg.targetPart}`);
+  console.log(`   - Mục tiêu tối đa:       ${cfg.maxToProcess} câu`);
+  console.log(`   - Kích thước mỗi mẻ:     ${cfg.batchSize} câu (nghỉ ${cfg.cooldownSeconds}s)`);
+  console.log(`   - Chế độ Dry Run:        ${cfg.dryRun ? "BẬT (không ghi DB)" : "TẮT"}`);
+  console.log(`   - Ép có example_en P5:   ${cfg.requireExample ? "BẬT" : "TẮT"}\n`);
+
+  const state: RunState = {
+    totalProcessed: 0,
+    totalRefined: 0,
+    totalSkipped: 0,
+    totalFailed: 0,
+    consecutiveErrors: 0,
+    currentDelayMs: minRequestDelayMs,
+    currentBatchRefined: 0,
+    batchCounter: 1,
+    reachedDailyQuota: false,
+  };
+
+  if (cfg.targetPart === "all" || cfg.targetPart === "reading") {
+    await refineReadingPhase(cfg, state, [6, 7]);
+  } else if (cfg.targetPart === "6") {
+    await refineReadingPhase(cfg, state, [6]);
+  } else if (cfg.targetPart === "7") {
+    await refineReadingPhase(cfg, state, [7]);
+  }
+
+  if (
+    (cfg.targetPart === "all" || cfg.targetPart === "5") &&
+    state.totalRefined < cfg.maxToProcess &&
+    !state.reachedDailyQuota
+  ) {
+    await refinePart5Phase(cfg, state);
+  }
+
+  if (
+    (cfg.targetPart === "all" || cfg.targetPart === "exam") &&
+    state.totalRefined < cfg.maxToProcess &&
+    !state.reachedDailyQuota
+  ) {
+    await refineExamPhase(cfg, state);
   }
 
   console.log("\n==========================================================");
-  console.log(`🎉 KẾT THÚC TIẾN TRÌNH:`);
-  console.log(`   - Đã hoàn thành:       ${batchCounter} mẻ`);
-  console.log(`   - Tổng câu đã quét:    ${totalProcessed}`);
-  console.log(`   - Đã vá mới thành công:${totalRefined}`);
-  console.log(`   - Bỏ qua (đã chuẩn):   ${totalSkipped}`);
-  console.log(`   - Lỗi:                 ${totalFailed}`);
+  console.log("🎉 KẾT THÚC TIẾN TRÌNH:");
+  console.log(`   - Đã hoàn thành:       ${state.batchCounter} mẻ`);
+  console.log(`   - Tổng câu đã quét:    ${state.totalProcessed}`);
+  console.log(`   - Đã vá mới thành công:${state.totalRefined}`);
+  console.log(`   - Bỏ qua (đã chuẩn):   ${state.totalSkipped}`);
+  console.log(`   - Lỗi:                 ${state.totalFailed}`);
   console.log("==========================================================");
 }
 

@@ -134,6 +134,7 @@ describe("Exam Reading Logic & Standard ETS Scoring", () => {
     expect(firstResult.correctIndex).toBe(1);
     expect(firstResult.correctAnswer).toBe("B");
     expect(firstResult.explanation).toBe(`Explanation for #${firstQ.questionNumber}`);
+    expect(firstResult.structuredExplanation?.isStructured).toBe(false);
 
     const hiddenResults = evaluation.results.slice(1);
     expect(hiddenResults).toHaveLength(99);
@@ -145,6 +146,7 @@ describe("Exam Reading Logic & Standard ETS Scoring", () => {
       expect(item.evidence).toBeNull();
       expect(item.explanation).toBe("");
       expect(item.explanationVi).toBeNull();
+      expect(item.structuredExplanation).toBeNull();
       expect(item.isCorrect).toBe(false);
     }
   });
@@ -167,5 +169,38 @@ describe("Exam Reading Logic & Standard ETS Scoring", () => {
       expect(evaluation.results[idx].isAnswerHidden).toBe(true);
       expect(evaluation.results[idx].correctIndex).toBeNull();
     }
+  });
+
+  it("phân tích JSON lời giải chi tiết cho câu đã trả lời và vẫn ẩn với câu chưa làm", () => {
+    const jsonExplanation = JSON.stringify({
+      part: 7,
+      question_type_vi: "Câu hỏi chi tiết (Detail & Paraphrase)",
+      strategy_vi: "Quét từ khóa và đối chiếu paraphrase.",
+      evidence: "We bake everything on-site every morning.",
+      why_correct_vi: "Cụm on-site every morning tương ứng với made daily on the premises.",
+      tip_vi: "Tìm từ đồng nghĩa trạng từ tần suất.",
+      translation_vi: "Chúng tôi nướng mọi thứ tại chỗ mỗi sáng.",
+      options_analysis: {
+        A: "Sai vì địa chỉ vẫn ở Westfield.",
+        B: "Đúng vì khớp paraphrase.",
+        C: "Sai vì đóng cửa thứ Hai.",
+        D: "Sai vì chỉ cần 48 giờ.",
+      },
+    });
+    const customKeys = dummyKeys.map((k, idx) =>
+      idx === 99 ? { ...k, explanation: jsonExplanation } : k
+    );
+    const evaluation = evaluateReadingExam({
+      questions: dummyQuestions,
+      answerKeys: customKeys,
+      userAnswers: { [dummyQuestions[99].id]: 1 },
+      timeSpentSeconds: 120,
+    });
+
+    expect(evaluation.results[99].structuredExplanation?.isStructured).toBe(true);
+    expect(evaluation.results[99].structuredExplanation?.optionsAnalysis?.B).toContain(
+      "paraphrase"
+    );
+    expect(evaluation.results[0].structuredExplanation).toBeNull();
   });
 });

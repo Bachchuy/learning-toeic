@@ -1,4 +1,5 @@
 import { calculateReadingScore } from "./toeicScoring";
+import { parseExamExplanation, type ParsedExamExplanation } from "./explanationQuality";
 
 export interface ReadingQuestionItem {
   id: string;
@@ -48,6 +49,7 @@ export interface QuestionGradingResult {
   evidence?: string | null;
   explanation: string;
   explanationVi?: string | null;
+  structuredExplanation?: ParsedExamExplanation | null;
 }
 
 export interface PartScoreBreakdown {
@@ -137,6 +139,7 @@ export function evaluateReadingExam(params: {
         evidence: null,
         explanation: "",
         explanationVi: null,
+        structuredExplanation: null,
       });
     } else {
       results.push({
@@ -153,6 +156,7 @@ export function evaluateReadingExam(params: {
         evidence: key?.evidence || null,
         explanation: key?.explanation || "",
         explanationVi: key?.explanationVi || null,
+        structuredExplanation: parseExamExplanation(key?.explanation, key?.explanationVi),
       });
     }
   }

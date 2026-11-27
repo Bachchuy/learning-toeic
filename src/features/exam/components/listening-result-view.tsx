@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { StructuredExplanationBlock } from "@/components/ui/structured-explanation";
+import { parseExamExplanation } from "@/core/explanationQuality";
 import {
   getListeningProficiencyLevel,
   type ExamListeningEvaluation,
@@ -325,7 +327,7 @@ export function ListeningResultView({
                   </p>
                 )}
 
-                {(item.explanation || item.evidence || (!item.isAnswerHidden && item.transcript)) && (
+                {(item.explanation || item.evidence || item.structuredExplanation || (!item.isAnswerHidden && item.transcript)) && (
                   <div className="pt-2 border-t border-[#F1F5F9]">
                     <button
                       type="button"
@@ -344,54 +346,47 @@ export function ListeningResultView({
                       )}
                     </button>
 
-                    {isExpanded && (
-                      <div className="mt-3 p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3 text-xs leading-relaxed animate-in fade-in">
-                        {item.transcript && !item.isAnswerHidden && (
-                          <div className="space-y-1">
-                            <span className="font-bold text-[#0F172A] flex items-center gap-1.5">
-                              <FileText className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
-                              <span>Transcript đoạn nghe:</span>
-                            </span>
-                            <pre className="whitespace-pre-wrap font-sans text-[#475569] bg-white p-2.5 rounded-md border border-[#E2E8F0]">
-                              {item.transcript}
-                            </pre>
-                          </div>
-                        )}
+                    {isExpanded && (() => {
+                      const parsedExpl =
+                        item.structuredExplanation ??
+                        parseExamExplanation(item.explanation, item.explanationVi);
 
-                        {item.evidence && (
-                          <div className="space-y-1">
-                            <span className="font-bold text-[#0F172A]">
-                              Từ khóa gợi ý đáp án:
-                            </span>
-                            <blockquote className="italic text-[#475569] pl-3 border-l-2 border-[#2563EB] bg-white p-2 rounded-r-md">
-                              &ldquo;{item.evidence}&rdquo;
-                            </blockquote>
-                          </div>
-                        )}
+                      return (
+                        <div className="mt-3 space-y-3 animate-in fade-in">
+                          {item.transcript && !item.isAnswerHidden && (
+                            <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1 text-xs">
+                              <span className="font-bold text-[#0F172A] flex items-center gap-1.5">
+                                <FileText className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
+                                <span>Transcript đoạn nghe:</span>
+                              </span>
+                              <pre className="whitespace-pre-wrap font-sans text-[#475569] bg-white p-2.5 rounded-md border border-[#E2E8F0]">
+                                {item.transcript}
+                              </pre>
+                            </div>
+                          )}
 
-                        {item.explanation && (
-                          <div className="space-y-1">
-                            <span className="font-bold text-[#0F172A]">
-                              Phân tích sư phạm:
-                            </span>
-                            <p className="text-[#0F172A] whitespace-pre-line">
-                              {item.explanation}
-                            </p>
-                          </div>
-                        )}
-
-                        {item.explanationVi && (
-                          <div className="space-y-1 pt-1 border-t border-[#E2E8F0]">
-                            <span className="font-bold text-[#475569]">
-                              Dịch nghĩa & giải thích thêm:
-                            </span>
-                            <p className="text-[#475569] italic">
-                              {item.explanationVi}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                          <StructuredExplanationBlock
+                            data={{
+                              questionTypeVi: parsedExpl?.questionTypeVi,
+                              ruleVi: parsedExpl?.strategyVi,
+                              evidence: parsedExpl?.evidence || item.evidence,
+                              whyCorrectVi: parsedExpl?.whyCorrectVi,
+                              optionsAnalysis: parsedExpl?.optionsAnalysis,
+                              tipVi: parsedExpl?.tipVi,
+                              translationVi: parsedExpl?.translationVi ?? item.explanationVi,
+                              vocabHints: parsedExpl?.vocabHints,
+                              legacySummary: !parsedExpl?.isStructured
+                                ? parsedExpl?.summary || item.explanation
+                                : undefined,
+                            }}
+                            options={item.options}
+                            correctIndex={item.correctIndex}
+                            userSelectedIndex={item.userSelectedIndex}
+                            evidenceLabel="Từ khóa gợi ý đáp án:"
+                          />
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </Card>

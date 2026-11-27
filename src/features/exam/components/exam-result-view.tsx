@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { StructuredExplanationBlock } from "@/components/ui/structured-explanation";
+import { parseExamExplanation } from "@/core/explanationQuality";
 import { getReadingProficiencyLevel, type ExamReadingEvaluation } from "@/core/examReading";
 import {
   Award,
@@ -12,7 +14,6 @@ import {
   ArrowRight,
   RotateCcw,
   BookOpen,
-  FileText,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -326,7 +327,7 @@ export function ExamResultView({
                 )}
 
                 {/* Toggle xem giải thích & bằng chứng */}
-                {(item.explanation || item.evidence) && (
+                {(item.explanation || item.evidence || item.structuredExplanation) && (
                   <div className="pt-2 border-t border-[#F1F5F9]">
                     <button
                       onClick={() => toggleExpand(item.id)}
@@ -336,35 +337,35 @@ export function ExamResultView({
                       {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                     </button>
 
-                    {isExpanded && (
-                      <div className="mt-3 p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3 text-xs leading-relaxed animate-in fade-in">
-                        {item.evidence && (
-                          <div className="space-y-1">
-                            <span className="font-bold text-[#0F172A] flex items-center gap-1.5">
-                              <FileText className="w-3.5 h-3.5 text-[#2563EB]" />
-                              <span>Trích dẫn bằng chứng trong bài:</span>
-                            </span>
-                            <blockquote className="italic text-[#475569] pl-3 border-l-2 border-[#2563EB] bg-white p-2 rounded-r-md">
-                              &ldquo;{item.evidence}&rdquo;
-                            </blockquote>
-                          </div>
-                        )}
+                    {isExpanded && (() => {
+                      const parsedExpl =
+                        item.structuredExplanation ??
+                        parseExamExplanation(item.explanation, item.explanationVi);
 
-                        {item.explanation && (
-                          <div className="space-y-1">
-                            <span className="font-bold text-[#0F172A]">Phân tích sư phạm:</span>
-                            <p className="text-[#334155] whitespace-pre-line">{item.explanation}</p>
-                          </div>
-                        )}
-
-                        {item.explanationVi && (
-                          <div className="space-y-1 pt-1 border-t border-[#E2E8F0]">
-                            <span className="font-bold text-[#475569]">Dịch nghĩa phương án:</span>
-                            <p className="text-[#64748B] italic">{item.explanationVi}</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                      return (
+                        <div className="mt-3 animate-in fade-in">
+                          <StructuredExplanationBlock
+                            data={{
+                              questionTypeVi: parsedExpl?.questionTypeVi,
+                              ruleVi: parsedExpl?.strategyVi,
+                              evidence: parsedExpl?.evidence || item.evidence,
+                              whyCorrectVi: parsedExpl?.whyCorrectVi,
+                              optionsAnalysis: parsedExpl?.optionsAnalysis,
+                              tipVi: parsedExpl?.tipVi,
+                              translationVi: parsedExpl?.translationVi ?? item.explanationVi,
+                              vocabHints: parsedExpl?.vocabHints,
+                              legacySummary: !parsedExpl?.isStructured
+                                ? parsedExpl?.summary || item.explanation
+                                : undefined,
+                            }}
+                            options={item.options}
+                            correctIndex={item.correctIndex}
+                            userSelectedIndex={item.userSelectedIndex}
+                            evidenceLabel="Trích dẫn bằng chứng trong bài:"
+                          />
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </Card>

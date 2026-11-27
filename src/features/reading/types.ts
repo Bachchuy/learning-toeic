@@ -50,9 +50,14 @@ export interface ReadingPassage {
 }
 
 export interface QuestionExplanation {
+  question_type_vi?: string;
+  rule_vi?: string;
   translation?: string;
   analysis?: string;
   key_clue?: string;
+  options_analysis?: Partial<Record<"A" | "B" | "C" | "D", string>>;
+  tip_vi?: string;
+  vocab_hints?: Array<{ word: string; meaning_vi: string }>;
 }
 
 export interface ReadingQuestionResult {
